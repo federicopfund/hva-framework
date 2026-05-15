@@ -1,0 +1,41 @@
+services:
+  hva:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hva-engine
+    image: hva:activated
+    volumes:
+      # Montar salida de resultados
+      - ./output:/app/output
+    environment:
+      - WOLFRAM_APP_PATH=/app
+      - HVA_PACLET_PATH=/app/paclet
+    restart: "no"
+
+  # Ejecutar el TestRunner del paclet
+  hva-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hva-test
+    volumes:
+      - ./paclet:/app/paclet:ro
+    command: wolframscript -file /app/run_tests.wl
+    profiles:
+      - test
+
+  # Shell interactivo para desarrollo
+  hva-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hva-dev
+    volumes:
+      - ./paclet:/app/paclet
+      - ./output:/app/output
+    stdin_open: true
+    tty: true
+    command: wolframscript
+    profiles:
+      - dev
