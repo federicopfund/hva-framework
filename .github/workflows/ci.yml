@@ -49,7 +49,7 @@ jobs:
       - name: Extraer versión de PacletInfo.wl
         id: version
         run: |
-          VERSION=$(grep '"Version"' paclet/PacletInfo.wl | grep -oP '"\K[^"]+(?=")')
+          VERSION=$(awk -F'"' '/"Version"/{print $4}' paclet/PacletInfo.wl)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Versión detectada: $VERSION"
 
