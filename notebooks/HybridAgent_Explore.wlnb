@@ -1,0 +1,204 @@
+{
+ "cells": [
+  {
+   "kind": 1,
+   "value": "# HybridAgent — Exploración interactiva\n\nEste notebook carga el paclet HVA y recorre las funciones principales de `HybridAgent`:\n`AgentId`, accessors, actualizaciones inmutables y hash estructural.",
+   "languageId": "markdown",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 1,
+   "value": "## 1 · Cargar el paclet",
+   "languageId": "markdown",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "PacletDirectoryLoad[\"/workspaces/hva-framework/paclet\"];\nNeeds[\"HVA`\"]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 1,
+   "value": "## 2 · Construir un agente de prueba",
+   "languageId": "markdown",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* Agente termostat mínimo *)\nagent = HybridAgent[\"thermostat\",\n  States       -> {\"off\", \"on\"},\n  Vars         -> {temp},\n  Dynamics     -> <|\n    \"off\" -> {Derivative[1][temp] == 0},\n    \"on\"  -> {Derivative[1][temp] == 5 - temp}\n  |>,\n  Guards       -> {\n    <|\"from\" -> \"off\", \"to\" -> \"on\",  \"condition\" -> temp < 18|>,\n    <|\"from\" -> \"on\",  \"to\" -> \"off\", \"condition\" -> temp > 22|>\n  },\n  Invariants   -> {0 <= temp <= 30},\n  InitialState -> \"off\",\n  InitialValues -> <|temp -> 15|>\n]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* Verificar que se construyó correctamente *)\nHybridAgentQ[agent]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 1,
+   "value": "## 3 · `AgentId` — identificador del agente\n\n```\nAgentId::usage = \"AgentId[a] devuelve el identificador del agente.\"\n```",
+   "languageId": "markdown",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "AgentId[agent]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* Verificar tipo de retorno *)\nStringQ[AgentId[agent]]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* Error handling: non-HybridAgent *)\nAgentId[\"not an agent\"]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 1,
+   "value": "## 4 · Accessors completos",
+   "languageId": "markdown",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "AgentStates[agent]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "AgentVars[agent]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "AgentDynamics[agent]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "AgentGuards[agent]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "AgentCurrentState[agent]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "AgentValuation[agent]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "AgentValuation[agent][temp]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 1,
+   "value": "## 5 · Actualizaciones inmutables\n\nCada `With*` devuelve un **nuevo** agente sin modificar el original.",
+   "languageId": "markdown",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "agent2 = WithCurrentState[agent, \"on\"];\n{AgentCurrentState[agent], AgentCurrentState[agent2]}",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "agent3 = WithValuation[agent2, <|temp -> 20|>];\nAgentValuation[agent3][temp]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "agent4 = AppendTrace[agent3, \"transitioned to on\"];\nAgentTrace[agent4]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 1,
+   "value": "## 6 · Hash estructural\n\n`AgentStructuralHash` es determinístico e ignora campos runtime (`currentState`, `valuation`, `mailbox`, `trace`).",
+   "languageId": "markdown",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* Mismo hash en dos instancias con distintos runtime fields *)\nh1 = AgentStructuralHash[agent];\nh2 = AgentStructuralHash[agent4];\n{h1, h2, h1 === h2}",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  },
+  {
+   "kind": 2,
+   "value": "(* Hash cambia si se modifica la estructura *)\nagentMod = HybridAgent[\"thermostat\",\n  States       -> {\"off\", \"on\", \"standby\"},\n  Vars         -> {temp},\n  Dynamics     -> <|\n    \"off\"     -> {Derivative[1][temp] == 0},\n    \"on\"      -> {Derivative[1][temp] == 5 - temp},\n    \"standby\" -> {Derivative[1][temp] == -0.1 * temp}\n  |>,\n  Guards       -> {},\n  Invariants   -> {},\n  InitialState -> \"off\",\n  InitialValues -> <|temp -> 15|>\n];\nAgentStructuralHash[agent] =!= AgentStructuralHash[agentMod]",
+   "languageId": "wolfram",
+   "outputs": [],
+   "metadata": {},
+   "executionSummary": {}
+  }
+ ]
+}
