@@ -24,3 +24,5 @@ LoadUtilities[] := Module[{},
 
 End[]
 EndPackage[]
+
+LoadUtilities[];
