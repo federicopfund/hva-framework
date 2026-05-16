@@ -11,7 +11,7 @@ VerificationTest[
 (* ============================================================== *)
 
 VerificationTest[
-  RegisterConstraint["Test.AlwaysTrue", Function[_, True]];
+  RegisterConstraint["Test.AlwaysTrue", Function[x, True]];
   RegisteredConstraintQ["Test.AlwaysTrue"],
   True,
   TestID -> "Utilities-Validation-RegisterConstraint"
@@ -25,9 +25,9 @@ VerificationTest[
 ]
 
 VerificationTest[
-  RegisterConstraint["Test.Constraint1", Function[_, True]];
-  RegisterConstraint["Test.Constraint2", Function[_, True]];
-  Sort[ListRegisteredConstraints[]] ~Contains~ "Test.Constraint1",
+  RegisterConstraint["Test.Constraint1", Function[x, True]];
+  RegisterConstraint["Test.Constraint2", Function[x, True]];
+  MemberQ[ListRegisteredConstraints[], "Test.Constraint1"],
   True,
   TestID -> "Utilities-Validation-ListRegisteredConstraints"
 ]
@@ -70,7 +70,7 @@ VerificationTest[
     <|"Type" -> _Association, "Required" -> {"id", "name"}|>
   ];
   AssociationQ[result] && result["Status"] === "Invalid" &&
-  Cases[result["Errors"], <|"Code" -> "MissingField", "Path" -> "name", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "MissingField", "Path" -> "name", ___|>] =!= {},
   True,
   TestID -> "Utilities-Validation-Required-Missing"
 ]
@@ -100,7 +100,7 @@ VerificationTest[
     |>
   ];
   AssociationQ[result] && result["Status"] === "Invalid" &&
-  Cases[result["Errors"], <|"Code" -> "InvalidType", "Path" -> "id", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "InvalidType", "Path" -> "id", ___|>] =!= {},
   True,
   TestID -> "Utilities-Validation-Field-Type-Invalid"
 ]
@@ -130,7 +130,7 @@ VerificationTest[
     |>
   ];
   AssociationQ[result] && result["Status"] === "Invalid" &&
-  Cases[result["Errors"], <|"Code" -> "EmptyValue", "Path" -> "name", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "EmptyValue", "Path" -> "name", ___|>] =!= {},
   True,
   TestID -> "Utilities-Validation-NonEmpty-Fails"
 ]
@@ -160,7 +160,7 @@ VerificationTest[
     |>
   ];
   AssociationQ[result] && result["Status"] === "Invalid" &&
-  Cases[result["Errors"], <|"Code" -> "DuplicateValue", "Path" -> "items", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "DuplicateValue", "Path" -> "items", ___|>] =!= {},
   True,
   TestID -> "Utilities-Validation-Unique-Fails"
 ]
@@ -190,7 +190,7 @@ VerificationTest[
     |>
   ];
   AssociationQ[result] && result["Status"] === "Invalid" &&
-  Cases[result["Errors"], <|"Code" -> "NotInSet", "Path" -> "status", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "NotInSet", "Path" -> "status", ___|>] =!= {},
   True,
   TestID -> "Utilities-Validation-InSet-Fails"
 ]
@@ -226,7 +226,7 @@ VerificationTest[
     |>
   ];
   AssociationQ[result] && result["Status"] === "Invalid" &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "c", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "c", ___|>] =!= {},
   True,
   TestID -> "Utilities-Validation-Constraint-Fails"
 ]
