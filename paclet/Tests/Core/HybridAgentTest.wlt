@@ -66,7 +66,7 @@ VerificationTest[
     Invariants -> {},
     InitialState -> "s1",
     InitialValues -> <||>,
-    Contract -> HVA`Core`HybridAgent`Contract[<|"assumes" -> {}, "guarantees" -> {}|>],
+    Contract -> HVA`Core`Contract`Contract[<|"assumes" -> {}, "guarantees" -> {}|>],
     Handlers -> {x_ :> y}
   ];
   HybridAgentQ[agent3],
@@ -78,7 +78,7 @@ VerificationTest[
 VerificationTest[
   contract = AgentContract[agent];
   Head[contract],
-  HVA`Core`HybridAgent`Contract,
+  HVA`Core`Contract`Contract,
   TestID -> "Core-HybridAgent-Constructor-DefaultContract"
 ]
 
