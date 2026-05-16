@@ -2,28 +2,16 @@
 # wolfram-notebook — wrapper for njpipeorgan.wolfram-language-notebook VS Code extension.
 #
 # The extension starts the kernel with:
-#   wolfram -code 'ToExpression["zmqPort=XXXXX;"<>Uncompress["..."]]'
+#   wolframscript -code 'ToExpression["zmqPort=XXXXX;"<>Uncompress["..."]]'
 # and then connects to localhost:XXXXX via ZMQ.
 #
-# Because the kernel runs inside a nested Docker container, we must expose that
-# port with -p XXXXX:XXXXX so the extension (running in the dev container) can
-# reach it.
-
-ZMQPORT=""
-for arg in "$@"; do
-  if [[ "$arg" =~ zmqPort=([0-9]+) ]]; then
-    ZMQPORT="${BASH_REMATCH[1]}"
-    break
-  fi
-done
-
-PORT_ARGS=()
-if [[ -n "$ZMQPORT" ]]; then
-  PORT_ARGS=(-p "${ZMQPORT}:${ZMQPORT}")
-fi
+# The kernel binds ZMQ to 127.0.0.1:XXXXX (loopback) inside the container.
+# Docker -p port mapping cannot reach a loopback-bound socket, so we use
+# --network host to share the dev container's network namespace — making
+# 127.0.0.1 inside the Docker container identical to 127.0.0.1 in the dev container.
 
 exec docker run --rm -i \
-  "${PORT_ARGS[@]}" \
+  --network host \
   -v /workspaces/hva-framework:/workspaces/hva-framework \
   -w /workspaces/hva-framework \
   hva:latest \
