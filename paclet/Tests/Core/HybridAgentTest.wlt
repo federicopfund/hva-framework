@@ -98,7 +98,7 @@ VerificationTest[
     InitialValues -> <||>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-Constraint-DynamicsMissingState"
 ]
@@ -115,7 +115,7 @@ VerificationTest[
     InitialValues -> <||>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-Constraint-DynamicsExtraState"
 ]
@@ -136,7 +136,7 @@ VerificationTest[
     InitialValues -> <|x -> 0|>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-Constraint-UndeclaredVar"
 ]
@@ -157,7 +157,7 @@ VerificationTest[
     InitialValues -> <||>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "guards", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "guards", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-Constraint-InvalidGuardTarget"
 ]
@@ -178,7 +178,7 @@ VerificationTest[
     InitialValues -> <||>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialState", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialState", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-Constraint-InvalidInitialState"
 ]
@@ -199,7 +199,7 @@ VerificationTest[
     InitialValues -> <|x -> 0|>  (* y falta! *)
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValues", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValues", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-Constraint-MissingInitialValue"
 ]
@@ -216,7 +216,7 @@ VerificationTest[
     InitialValues -> <|x -> 0, y -> 1|>  (* y extra! *)
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValues", ___"|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValues", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-Constraint-ExtraInitialValue"
 ]
@@ -241,7 +241,7 @@ VerificationTest[
 
 (* Test 15: AgentValuation derivado desde InitialValues *)
 VerificationTest[
-  AgentValuation[agent]["temp"],
+  AgentValuation[agent][temp],
   15,
   TestID -> "Core-HybridAgent-AccessorValuation"
 ]
@@ -252,17 +252,17 @@ VerificationTest[
 
 (* Test 16: WithCurrentState retorna nuevo HybridAgent sin modificar el original *)
 VerificationTest[
-  agent_updated = WithCurrentState[agent, "on"];
-  {AgentCurrentState[agent_updated], AgentCurrentState[agent]},
+  agentUpdated = WithCurrentState[agent, "on"];
+  {AgentCurrentState[agentUpdated], AgentCurrentState[agent]},
   {"on", "off"},
   TestID -> "Core-HybridAgent-WithCurrentState"
 ]
 
 (* Test 17: WithValuation retorna nuevo HybridAgent *)
 VerificationTest[
-  new_valuation = <|temp -> 25|>;
-  agent_updated2 = WithValuation[agent, new_valuation];
-  {AgentValuation[agent_updated2]["temp"], AgentValuation[agent]["temp"]},
+  newValuation = <|temp -> 25|>;
+  agentUpdated2 = WithValuation[agent, newValuation];
+  {AgentValuation[agentUpdated2][temp], AgentValuation[agent][temp]},
   {25, 15},
   TestID -> "Core-HybridAgent-WithValuation"
 ]
@@ -270,17 +270,17 @@ VerificationTest[
 (* Test 18: WithMailbox retorna nuevo HybridAgent *)
 VerificationTest[
   mailbox = {"msg1", "msg2"};
-  agent_with_mail = WithMailbox[agent, mailbox];
-  AgentMailbox[agent_with_mail],
+  agentWithMail = WithMailbox[agent, mailbox];
+  AgentMailbox[agentWithMail],
   mailbox,
   TestID -> "Core-HybridAgent-WithMailbox"
 ]
 
 (* Test 19: AppendTrace retorna nuevo HybridAgent con evento agregado *)
 VerificationTest[
-  agent_with_trace = AppendTrace[agent, "event1"];
-  agent_with_trace2 = AppendTrace[agent_with_trace, "event2"];
-  AgentTrace[agent_with_trace2],
+  agentWithTrace = AppendTrace[agent, "event1"];
+  agentWithTrace2 = AppendTrace[agentWithTrace, "event2"];
+  AgentTrace[agentWithTrace2],
   {"event1", "event2"},
   TestID -> "Core-HybridAgent-AppendTrace"
 ]
@@ -311,7 +311,7 @@ VerificationTest[
 
 (* Test 22: AgentStructuralHash cambia si contenido estructural cambia *)
 VerificationTest[
-  agent_modified = HybridAgent["thermostat",
+  agentModified = HybridAgent["thermostat",
     States -> {"off", "on", "standby"},  (* Estado adicional *)
     Vars -> {temp},
     Dynamics -> <|"off" -> {Derivative[1][temp] == 0},
@@ -322,19 +322,19 @@ VerificationTest[
     InitialState -> "off",
     InitialValues -> <|temp -> 15|>
   ];
-  hash_original = AgentStructuralHash[agent];
-  hash_modified = AgentStructuralHash[agent_modified];
-  hash_original =!= hash_modified,
+  hashOriginal = AgentStructuralHash[agent];
+  hashModified = AgentStructuralHash[agentModified];
+  hashOriginal =!= hashModified,
   True,
   TestID -> "Core-HybridAgent-StructuralHash-DiffContent"
 ]
 
 (* Test 23: AgentStructuralHash ignora runtime fields (currentState, trace, mailbox) *)
 VerificationTest[
-  agent_same_struct_diff_runtime = WithCurrentState[agent, "on"];
-  hash_original = AgentStructuralHash[agent];
-  hash_with_state = AgentStructuralHash[agent_same_struct_diff_runtime];
-  hash_original === hash_with_state,
+  agentSameStructDiffRuntime = WithCurrentState[agent, "on"];
+  hashOriginal = AgentStructuralHash[agent];
+  hashWithState = AgentStructuralHash[agentSameStructDiffRuntime];
+  hashOriginal === hashWithState,
   True,
   TestID -> "Core-HybridAgent-StructuralHash-IgnoresRuntime"
 ]
@@ -363,14 +363,14 @@ VerificationTest[
     InitialValues -> <|x -> 0, y -> 0|>
   ];
   (* Validar *)
-  HybridAgentQ[a] &&
+  HybridAgentQ[a];
   (* Actualizar *)
   b = WithCurrentState[a, "working"];
   c = WithValuation[b, <|x -> 5, y -> -5|>];
   d = AppendTrace[c, "transitioned to working"];
   HybridAgentQ[d] &&
   AgentCurrentState[d] === "working" &&
-  AgentValuation[d]["x"] === 5,
+  AgentValuation[d][x] === 5,
   True,
   TestID -> "Core-HybridAgent-FullPipeline"
 ]
