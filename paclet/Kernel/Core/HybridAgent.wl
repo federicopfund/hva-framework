@@ -520,17 +520,30 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
 (* FORMATO (D11)                                                  *)
 (* ============================================================== *)
 
-(* Format en StandardForm solamente. InputForm/OutputForm/FullForm
-   mantienen la representacion literal para serializacion. *)
-Format[HybridAgent[a_Association], StandardForm] :=
-  Row[{
-    "HybridAgent[",
-    Style["\"" <> Lookup[a, "id", "?"] <> "\"", Bold],
-    " \[CenterDot] ", Length[Lookup[a, "states", {}]], " states",
-    " \[CenterDot] ", Length[Lookup[a, "vars", {}]], " vars",
-    " \[CenterDot] @ \"", Lookup[a, "currentState", "?"], "\"",
-    "]"
-  }];
+(* MakeBoxes override para StandardForm/TraditionalForm.
+   InputForm/OutputForm/FullForm mantienen la representacion literal.
+   Usa BoxForm`ArrangeSummaryBox (mismo mecanismo que DateObject, Entity, Graph). *)
+HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association], form : (StandardForm | TraditionalForm)] :=
+  BoxForm`ArrangeSummaryBox[
+    HybridAgent,
+    obj,
+    None,
+    (* Filas siempre visibles *)
+    {
+      {BoxForm`SummaryItem[{"id: ",           a["id"]}]},
+      {BoxForm`SummaryItem[{"states: ",        a["states"]}]},
+      {BoxForm`SummaryItem[{"currentState: ",  a["currentState"]}]}
+    },
+    (* Filas en vista expandida *)
+    {
+      {BoxForm`SummaryItem[{"vars: ",          a["vars"]}]},
+      {BoxForm`SummaryItem[{"valuation: ",     a["valuation"]}]},
+      {BoxForm`SummaryItem[{"guards: ",        Length[a["guards"]], " guards"}]},
+      {BoxForm`SummaryItem[{"invariants: ",    Length[a["invariants"]], " invariants"}]},
+      {BoxForm`SummaryItem[{"trace: ",         Length[a["trace"]], " events"}]}
+    },
+    form
+  ];
 
 (* ============================================================== *)
 (* PROTECCION (D9)                                                *)
