@@ -14,7 +14,11 @@ LoadVerifier::usage = "LoadVerifier[] inicializa los modulos de verificacion.";
 
 Begin["`Private`"]
 
-(* TODO: implementar en ISSUE-XXXX *)
+Get[FileNameJoin[{DirectoryName[$InputFileName], "Certificate.wl"}]];
+Get[FileNameJoin[{DirectoryName[$InputFileName], "ContractChecker.wl"}]];
+Get[FileNameJoin[{DirectoryName[$InputFileName], "InvariantChecker.wl"}]];
+Get[FileNameJoin[{DirectoryName[$InputFileName], "ReachabilityChecker.wl"}]];
+Get[FileNameJoin[{DirectoryName[$InputFileName], "VectorFieldAnalysis.wl"}]];
 
 End[]
 EndPackage[]
