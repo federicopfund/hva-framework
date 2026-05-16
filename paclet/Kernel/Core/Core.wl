@@ -25,3 +25,5 @@ LoadCore[] := Module[{},
 
 End[]
 EndPackage[]
+
+LoadCore[];
