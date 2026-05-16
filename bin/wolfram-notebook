@@ -27,4 +27,4 @@ exec docker run --rm -i \
   -v /workspaces/hva-framework:/workspaces/hva-framework \
   -w /workspaces/hva-framework \
   hva:latest \
-  /usr/local/Wolfram/WolframEngine/14.3/Executables/wolfram "$@"
+  /usr/bin/wolframscript "$@"
