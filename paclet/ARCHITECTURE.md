@@ -111,7 +111,7 @@ paclet/
 - `PacletInfo.wl`: declares paclet metadata and kernel extension entrypoint.
 - `Kernel/HVA.wl`: ordered paclet bootstrap loader for all layers.
 - `Kernel/Core/Core.wl`: core layer initializer.
-- `Kernel/Core/HybridAgent.wl`: symbolic hybrid agent structure API placeholder.
+- `Kernel/Core/HybridAgent.wl`: Smart Constructor + Schema-Driven Validation (CORE-0002 complete). 30 exported symbols: 1 constructor/predicate pair, 10 option symbols, 13 accessors, 4 immutable updaters, 1 structural hash function. 5 cross-field constraints guarantee invariants over dynamics, guards, state initialization.
 - `Kernel/Core/Contract.wl`: assume/guarantee contract API placeholder.
 - `Kernel/Core/Message.wl`: message symbolic representation API placeholder.
 - `Kernel/Core/CausalModel.wl`: Bayesian causal model API placeholder.
@@ -163,16 +163,17 @@ paclet/
 - `Kernel/Adapters/MockAdapter.wl`: in-memory adapter API placeholder.
 - `Kernel/Adapters/Registry.wl`: adapter registry API placeholder.
 - `Kernel/Utilities/Utilities.wl`: utilities layer initializer.
-- `Kernel/Utilities/Validation.wl`: structure validation API placeholder.
+- `Kernel/Utilities/Validation.wl`: Schema-Driven Validation engine (CORE-0002 complete). 4-phase declarative validation (type, required, fields, constraints). Extensible constraint registry for cross-field invariants. Supports Type, NonEmpty, Unique, InSet predicates. Consumed by HybridAgent, Contract, CausalModel.
 - `Kernel/Utilities/Logging.wl`: structured logging API placeholder.
 - `Kernel/Utilities/Serialization.wl`: serialization API placeholder.
 - `Kernel/Utilities/ErrorHandling.wl`: error signaling API placeholder.
 - `Tests/TestRunner.wl`: recursive test discovery and execution orchestration.
-- `Tests/Core/HybridAgentTest.wlt`: load smoke test for hybrid agent context.
+- `Tests/Core/HybridAgentTest.wlt`: comprehensive unit tests for HybridAgent (26 tests: constructor, idempotence, 5 constraints, accessors, immutable updates, type predicate, structural hash, error handling).
 - `Tests/Core/ContractTest.wlt`: load smoke test for contract context.
 - `Tests/Core/MessageTest.wlt`: load smoke test for message context.
 - `Tests/Core/CausalModelTest.wlt`: load smoke test for causal model context.
 - `Tests/Core/TraceTest.wlt`: load smoke test for trace context.
+- `Tests/Utilities/ValidationTest.wlt`: comprehensive unit tests for Validation engine (16 tests: constraint registry, type validation, required fields, NonEmpty/Unique/InSet predicates, cross-field constraints).
 - `Tests/Services/VerifierTest.wlt`: load smoke test for verifier context.
 - `Tests/Services/SimulatorTest.wlt`: load smoke test for simulator context.
 - `Tests/Services/ExecutorTest.wlt`: load smoke test for executor context.
