@@ -24,3 +24,5 @@ LoadAdapters[] := Module[{},
 
 End[]
 EndPackage[]
+
+LoadAdapters[];
