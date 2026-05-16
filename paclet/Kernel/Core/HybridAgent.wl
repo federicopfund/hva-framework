@@ -520,29 +520,34 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
 (* FORMATO (D11)                                                  *)
 (* ============================================================== *)
 
-(* MakeBoxes override para StandardForm/TraditionalForm.
-   InputForm/OutputForm/FullForm mantienen la representacion literal.
-   Usa BoxForm`ArrangeSummaryBox (mismo mecanismo que DateObject, Entity, Graph). *)
-HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association], form : (StandardForm | TraditionalForm)] :=
-  BoxForm`ArrangeSummaryBox[
-    HybridAgent,
-    obj,
-    None,
-    (* Filas siempre visibles *)
-    {
-      {BoxForm`SummaryItem[{"id: ",           a["id"]}]},
-      {BoxForm`SummaryItem[{"states: ",        a["states"]}]},
-      {BoxForm`SummaryItem[{"currentState: ",  a["currentState"]}]}
-    },
-    (* Filas en vista expandida *)
-    {
-      {BoxForm`SummaryItem[{"vars: ",          a["vars"]}]},
-      {BoxForm`SummaryItem[{"valuation: ",     a["valuation"]}]},
-      {BoxForm`SummaryItem[{"guards: ",        Length[a["guards"]], " guards"}]},
-      {BoxForm`SummaryItem[{"invariants: ",    Length[a["invariants"]], " invariants"}]},
-      {BoxForm`SummaryItem[{"trace: ",         Length[a["trace"]], " events"}]}
-    },
-    form
+(* MakeBoxes override: InterpretationBox + RowBox funcionan en cualquier
+   contexto (VS Code extension, WolframScript, FrontEnd nativo).
+   InputForm / OutputForm / FullForm mantienen la representacion literal. *)
+HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
+                          form : (StandardForm | TraditionalForm)] :=
+  InterpretationBox[
+    RowBox[{
+      StyleBox["HybridAgent", FontWeight -> Bold],
+      RowBox[{"[",
+        RowBox[{
+          ToBoxes[a["id"], form],
+          " \[CenterDot] ",
+          ToBoxes[a["states"], form],
+          " \[CenterDot] ",
+          ToBoxes[Length[a["guards"]], form], " guards",
+          "  @  ",
+          ToBoxes[a["currentState"], form]
+        }],
+      "]"}]
+    }],
+    obj
+  ];
+
+(* OutputForm: representacion compacta en contextos de texto puro *)
+Format[HybridAgent[a_Association], OutputForm] :=
+  SequenceForm[
+    "HybridAgent[\"", a["id"], "\" \[CenterDot] ",
+    a["states"], "  @  ", a["currentState"], "]"
   ];
 
 (* ============================================================== *)
