@@ -201,7 +201,14 @@ $HybridAgentSchema := <|
 
 (* Helper privado: extrae variables de una EDO usando el simbolo temporal *)
 extractVarsFromEDO[edo_, timeSym_Symbol] :=
-  DeleteDuplicates @ Cases[edo, s_Symbol[timeSym] :> s, Infinity];
+  DeleteDuplicates @ Join[
+    (* Forma 1: x[t] en el RHS de una EDO *)
+    Cases[edo, s_Symbol[timeSym] :> s, Infinity],
+    (* Forma 2: x'[t] == ... donde aparece Derivative[n][x][t] *)
+    Cases[edo, Derivative[_][s_Symbol][timeSym] :> s, Infinity],
+    (* Forma 3: Derivative[n][x] == ... sin aplicar el simbolo temporal *)
+    Cases[edo, Derivative[_][s_Symbol] :> s, Infinity]
+  ];
 
 extractVarsFromEDOList[edos_List, timeSym_Symbol] :=
   DeleteDuplicates @ Flatten @ Map[extractVarsFromEDO[#, timeSym] &, edos];
@@ -347,10 +354,19 @@ HybridAgent[id_String, opts___?OptionQ] := Module[
 ];
 
 (* FASE 1: parseOptions valida que todas las opciones son simbolos conocidos *)
-parseOptions[optsList_List] := Module[{providedAssoc, unknownSymbols},
+(* Maneja shadowing de simbolos (ej: Contract en HVA`Core`Contract` vs
+   HVA`Core`HybridAgent`) comparando por SymbolName como fallback. *)
+normalizeOptionSym[sym_Symbol] :=
+  If[KeyExistsQ[$optionToKey, sym],
+    sym,
+    SelectFirst[Keys[$optionToKey], SymbolName[#] === SymbolName[sym] &, sym]
+  ];
+
+parseOptions[optsList_List] := Module[{providedAssoc, normalizedAssoc, unknownSymbols},
   providedAssoc = Association[optsList];
+  normalizedAssoc = KeyMap[normalizeOptionSym, providedAssoc];
   unknownSymbols = Select[
-    Keys[providedAssoc],
+    Keys[normalizedAssoc],
     !KeyExistsQ[$optionToKey, #] &
   ];
   If[unknownSymbols =!= {},
@@ -361,7 +377,7 @@ parseOptions[optsList_List] := Module[{providedAssoc, unknownSymbols},
       "UnknownSymbols" -> unknownSymbols,
       "ValidOptions" -> Keys[$optionToKey]
     |>],
-    providedAssoc
+    normalizedAssoc
   ]
 ];
 
