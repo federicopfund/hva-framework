@@ -43,7 +43,7 @@
      |>]
 *)
 
-BeginPackage["HVA`Core`HybridAgent`", {"HVA`Utilities`Validation`"}]
+BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`Contract`", "HVA`Utilities`Validation`"}]
 
 (* ============================================================== *)
 (* SIMBOLOS EXPORTADOS                                            *)
@@ -77,7 +77,7 @@ Guards::usage         = "Opcion Guards -> {<|from, to, condition, action|>..} pa
 Invariants::usage     = "Opcion Invariants -> {predicados} para HybridAgent.";
 InitialState::usage   = "Opcion InitialState -> _String para HybridAgent.";
 InitialValues::usage  = "Opcion InitialValues -> <|var -> valor|> para HybridAgent.";
-Contract::usage       = "Opcion Contract -> Contract[...] para HybridAgent.";
+(* Contract symbol is shared from HVA`Core`Contract` via BeginPackage dependency. *)
 Handlers::usage       = "Opcion Handlers -> {pattern :> action..} para HybridAgent.";
 TimeSymbol::usage     = "Opcion TimeSymbol -> _Symbol para HybridAgent (default t).";
 
@@ -119,7 +119,7 @@ $optionToKey = <|
   HVA`Core`HybridAgent`Invariants    -> "invariants",
   HVA`Core`HybridAgent`InitialState  -> "initialState",
   HVA`Core`HybridAgent`InitialValues -> "initialValues",
-  HVA`Core`HybridAgent`Contract      -> "contract",
+  HVA`Core`Contract`Contract         -> "contract",
   HVA`Core`HybridAgent`Handlers      -> "handlers",
   HVA`Core`HybridAgent`TimeSymbol    -> "time"
 |>;
@@ -146,7 +146,7 @@ $structuralFields = {
    CORE-0003 reemplazara este placeholder por la entidad Contract real,
    preservando la firma Contract[<|"assumes" -> _, "guarantees" -> _|>]. *)
 $trivialContract :=
-  HVA`Core`HybridAgent`Contract[<|"assumes" -> {}, "guarantees" -> {}|>];
+  HVA`Core`Contract`Contract[<|"assumes" -> {}, "guarantees" -> {}|>];
 
 (* Defaults para campos opcionales *)
 $defaultValues := <|
