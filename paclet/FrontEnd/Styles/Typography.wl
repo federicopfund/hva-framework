@@ -21,7 +21,7 @@ HVAValue[expr_]     := Style[expr, 9]
 HVAModeLabel[text_] := Style[text, Bold, HVABrandTeal, 9]
 HVASubtitle[text_]  := Style[text, GrayLevel[0.45], Italic, 9]
 HVAStatusDot[statusColor_, state_] :=
-  Row[{Style["\[FilledCircle]", statusColor, 11], "  ", Style[state, 9]}]
+  Row[{Style["\[FilledCircle]", statusColor, 10], " ", Style[state, 9]}]
 
 End[]
 EndPackage[]
