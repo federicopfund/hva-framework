@@ -1,0 +1,94 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1 — Tests con Wolfram Engine vía Docker
+  # ─────────────────────────────────────────────
+  test:
+    name: Tests (Wolfram Engine)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build imagen Docker
+        run: docker build -t hva:latest .
+
+      - name: Preparar licencia Wolfram
+        run: |
+          mkdir -p /tmp/wolfram-license
+          echo "${{ secrets.WOLFRAM_MATHPASS }}" | base64 -d > /tmp/wolfram-license/mathpass
+
+      - name: Ejecutar TestRunner
+        run: |
+          docker run --rm \
+            -v /tmp/wolfram-license/mathpass:/home/wolframengine/.WolframEngine/Licensing/mathpass:ro \
+            hva:latest \
+            wolframscript -file /app/run_tests.wl
+
+  # ─────────────────────────────────────────────
+  # JOB 2 — Empaquetar .paclet (solo en main o tags)
+  # ─────────────────────────────────────────────
+  build:
+    name: Build .paclet
+    needs: test
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extraer versión de PacletInfo.wl
+        id: version
+        run: |
+          VERSION=$(awk -F'"' '/"Version"/{print $4}' paclet/PacletInfo.wl)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Versión detectada: $VERSION"
+
+      - name: Empaquetar .paclet
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          mkdir -p build
+          cp -r paclet "build/HVA-${VERSION}"
+          cd build
+          zip -r "HVA-${VERSION}.paclet" "HVA-${VERSION}/"
+          echo "Empaquetado: HVA-${VERSION}.paclet ($(du -sh "HVA-${VERSION}.paclet" | cut -f1))"
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: HVA-paclet
+          path: build/HVA-${{ steps.version.outputs.version }}.paclet
+          retention-days: 30
+
+  # ─────────────────────────────────────────────
+  # JOB 3 — GitHub Release (solo en tags v*.*.*)
+  # ─────────────────────────────────────────────
+  release:
+    name: GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Descargar artefacto
+        uses: actions/download-artifact@v4
+        with:
+          name: HVA-paclet
+
+      - name: Crear Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HVA-${{ needs.build.outputs.version }}.paclet
+          generate_release_notes: true
+          fail_on_unmatched_files: true

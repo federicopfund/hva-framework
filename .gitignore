@@ -1,0 +1,7 @@
+build/
+.wolfram-paclets/
+.vscode/
+/bin/wl_kernel.py
+/notebooks/functional
+/notebooks/math
+/pyrightconfig.json

@@ -1,0 +1,47 @@
+#!/bin/bash
+# wolfram-notebook — wrapper para el kernel Jupyter de Wolfram Language.
+#
+# Problema: --network host no funciona en dev containers. En su lugar:
+#   1. Se parsea el connection file de Jupyter (ip=127.0.0.1, puertos ZMQ)
+#   2. Se crea una copia con ip=0.0.0.0 para que el kernel enlace en todas las interfaces
+#   3. Se mapean los 5 puertos ZMQ con -p 127.0.0.1:PORT:PORT
+#   4. Jupyter se conecta a 127.0.0.1:PORT en el host → Docker reenvía al contenedor
+#
+# Jupyter llama: wolfram-notebook -script /path/KernelForWolframLanguageForJupyter.wl {connection_file}
+
+JUPYTER_RUNTIME_DIR="$(python3 -c 'import jupyter_core.paths; print(jupyter_core.paths.jupyter_runtime_dir())' 2>/dev/null \
+  || echo "/home/codespace/.local/share/jupyter/runtime")"
+
+WLFJ_RESOURCES="/workspaces/hva-framework/.wolfram-paclets/WolframLanguageForJupyter-0.9.3/WolframLanguageForJupyter-0.9.3/Resources"
+
+# El último argumento es siempre el connection file
+ORIGINAL_CF="${!#}"
+
+# Crear connection file modificado con ip=0.0.0.0 y obtener los puertos
+read -r MOD_CF HB IOPUB CTRL SHELL STDIN < <(python3 - "$ORIGINAL_CF" << 'PYEOF'
+import sys, json, os, tempfile
+
+cf_path = sys.argv[1]
+cf = json.load(open(cf_path))
+ports = cf['hb_port'], cf['iopub_port'], cf['control_port'], cf['shell_port'], cf['stdin_port']
+cf['ip'] = '0.0.0.0'
+
+mod_path = tempfile.mktemp(dir=os.path.dirname(cf_path), suffix='.json')
+json.dump(cf, open(mod_path, 'w'))
+print(mod_path, *ports)
+PYEOF
+)
+
+# Limpiar el connection file temporal al salir
+trap "rm -f '$MOD_CF'" EXIT
+
+# Construir los flags -p para los 5 puertos ZMQ
+PORT_FLAGS="-p 127.0.0.1:${HB}:${HB} -p 127.0.0.1:${IOPUB}:${IOPUB} -p 127.0.0.1:${CTRL}:${CTRL} -p 127.0.0.1:${SHELL}:${SHELL} -p 127.0.0.1:${STDIN}:${STDIN}"
+
+exec docker run --rm -i \
+  $PORT_FLAGS \
+  -v /workspaces/hva-framework:/workspaces/hva-framework \
+  -v "${JUPYTER_RUNTIME_DIR}:${JUPYTER_RUNTIME_DIR}" \
+  -w /workspaces/hva-framework \
+  hva:latest \
+  /usr/local/bin/WolframKernel -script "${WLFJ_RESOURCES}/KernelForWolframLanguageForJupyter.wl" "${MOD_CF}"
