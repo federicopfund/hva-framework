@@ -531,22 +531,6 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     id          = a["id"],
     curState    = a["currentState"],
     states      = Row[a["states"], " | "],
-    vars        = Row[Map[ToString, a["vars"]], "  "],
-    valuation   = a["valuation"],
-    nGuards     = Length[a["guards"]],
-    nMsgs       = Length[a["mailbox"]],
-    nTrace      = Length[a["trace"]],
-    dynamicsView = Grid[
-      KeyValueMap[
-        {
-          Style[#1, Bold, RGBColor[0.10, 0.75, 0.62], 9],
-          Column[Map[TraditionalForm, #2], Spacings -> 0.1]
-        } &,
-        a["dynamics"]
-      ],
-      Alignment -> {{Right, Left}, Center},
-      Spacings  -> {0.8, 0.4}
-    ],
     statusColor = Which[
       MemberQ[{"on","running","active","started","initialized"}, a["currentState"]],
         RGBColor[0.10, 0.85, 0.35],
@@ -556,6 +540,32 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
         RGBColor[1.0, 0.65, 0.0],
       True,
         GrayLevel[0.55]
+    ],
+    (* expandable: vars + valuation + cabecera dynamics + un item por modo *)
+    expandedRows = Join[
+      {
+        BoxForm`SummaryItem[{"Vars: ",
+          Row[Map[ToString, a["vars"]], "  "]}],
+        BoxForm`SummaryItem[{"Valuation: ", a["valuation"]}],
+        BoxForm`SummaryItem[{
+          Style["Dynamics \[LongDash] " <> ToString[Length[a["dynamics"]]] <> " modes",
+                GrayLevel[0.45], Italic, 9],
+          ""}]
+      },
+      (* un SummaryItem por cada modo de dynamics *)
+      KeyValueMap[
+        BoxForm`SummaryItem[{
+          Row[{Style["  \[FilledRightTriangle] ", RGBColor[0.10,0.75,0.62], 10],
+               Style[#1 <> ": ", Bold, RGBColor[0.10,0.75,0.62], 9]}],
+          Column[Map[TraditionalForm, #2], Spacings -> 0.15]
+        }] &,
+        a["dynamics"]
+      ],
+      {
+        BoxForm`SummaryItem[{"Guards: ",  Length[a["guards"]]}],
+        BoxForm`SummaryItem[{"Mailbox: ", Length[a["mailbox"]]}],
+        BoxForm`SummaryItem[{"Trace: ",   Length[a["trace"]]}]
+      }
     ]
   },
     BoxForm`ArrangeSummaryBox[
@@ -564,44 +574,30 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
       (* ── ICONO: cara de agente AI ── *)
       Graphics[
         {
-          (* fondo negro *)
           GrayLevel[0.06],
           Rectangle[{0,0},{1,1}, RoundingRadius -> 0.18],
-          (* ojo izquierdo: anillo teal + pupila oscura *)
           RGBColor[0.10, 0.75, 0.62], Disk[{0.32, 0.60}, 0.155],
           GrayLevel[0.06],            Disk[{0.32, 0.60}, 0.072],
-          (* ojo derecho *)
           RGBColor[0.10, 0.75, 0.62], Disk[{0.68, 0.60}, 0.155],
           GrayLevel[0.06],            Disk[{0.68, 0.60}, 0.072],
-          (* barra boca / interfaz *)
-          RGBColor[0.10, 0.75, 0.62], Thickness[0.065],
-          CapForm["Round"],
-          Line[{{0.27, 0.30},{0.73, 0.30}}],
-          (* detalle: linea horizontal sobre los ojos (visera/HUD) *)
+          RGBColor[0.10, 0.75, 0.62], Thickness[0.065], CapForm["Round"],
+          Line[{{0.27,0.30},{0.73,0.30}}],
           GrayLevel[0.30], Thickness[0.030],
-          Line[{{0.10, 0.82},{0.90, 0.82}}],
-          (* status dot con borde blanco *)
-          statusColor, Disk[{0.82, 0.18}, 0.12],
+          Line[{{0.10,0.82},{0.90,0.82}}],
+          statusColor, Disk[{0.82,0.18},0.12],
           EdgeForm[{Thickness[0.026], White}],
-          FaceForm[statusColor], Disk[{0.82, 0.18}, 0.12]
+          FaceForm[statusColor], Disk[{0.82,0.18},0.12]
         },
         ImageSize -> 42, Background -> None, PlotRangePadding -> 0.05
       ],
-      (* ── filas siempre visibles ── *)
+      (* ── siempre visibles ── *)
       {
-        BoxForm`SummaryItem[{"ID: ",    id}],
-        BoxForm`SummaryItem[{"State: ", Row[{Style["\[FilledCircle]", statusColor, 11], "  ", curState}]}],
+        BoxForm`SummaryItem[{"ID: ",     id}],
+        BoxForm`SummaryItem[{"State: ",  Row[{Style["\[FilledCircle]", statusColor, 11], "  ", curState}]}],
         BoxForm`SummaryItem[{"States: ", states}]
       },
-      (* ── filas expandibles ▶ ── *)
-      {
-        BoxForm`SummaryItem[{"Vars: ",      vars}],
-        BoxForm`SummaryItem[{"Valuation: ", valuation}],
-        BoxForm`SummaryItem[{"Dynamics: ",  dynamicsView}],
-        BoxForm`SummaryItem[{"Guards: ",    nGuards}],
-        BoxForm`SummaryItem[{"Mailbox: ",   nMsgs}],
-        BoxForm`SummaryItem[{"Trace: ",     nTrace}]
-      },
+      (* ── expandibles con el boton + / - ── *)
+      expandedRows,
       form
     ]
   ];
