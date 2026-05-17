@@ -50,18 +50,20 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     varsRow     = If[Length[a["vars"]] > 0,
                    Row[Map[ToString, a["vars"]], ", "],
                    Style["none", Italic, GrayLevel[0.65]]],
-    (* resumen de modos de dynamics para la fila siempre visible *)
-    dynModes    = Row[Keys[a["dynamics"]], " | "],
     (* conteos con Lookup para tolerancia frente a claves ausentes *)
     nGuards     = Length[Lookup[a, "guards",     {}]],
     nInvs       = Length[Lookup[a, "invariants", {}]],
-    (* un SummaryItem por modo — label gris plano, ecuaciones en TraditionalForm *)
-    dynItems    = KeyValueMap[
-                    BoxForm`SummaryItem[{
-                      HVAModeLabel[#1 <> ": "],
-                      Column[Map[TraditionalForm, #2], Spacings -> 0.2]
-                    }] &,
-                    a["dynamics"]
+    (* dynView: un OpenerView por modo → produce ► nativo del FrontEnd
+       sin cambiar el esquema de datos del agente                      *)
+    dynView     = Column[
+                    KeyValueMap[
+                      OpenerView[{
+                        Style[#1, GrayLevel[0.5]],
+                        Column[Map[TraditionalForm, #2], Spacings -> 0.25]
+                      }, False] &,
+                      a["dynamics"]
+                    ],
+                    Spacings -> 0.5
                   ]
   },
     BoxForm`ArrangeSummaryBox[
@@ -74,19 +76,14 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
         BoxForm`SummaryItem[{"States: ", states}]
       },
       (* ── expandibles ───────────────────────────────────── *)
-      Join[
-        {
-          BoxForm`SummaryItem[{"Vars: ",      varsRow}],
-          BoxForm`SummaryItem[{"Dynamics: ",  dynModes}]
-        },
-        dynItems,
-        {
-          BoxForm`SummaryItem[{"Guards: ",     nGuards}],
-          BoxForm`SummaryItem[{"Invariants: ", nInvs}],
-          BoxForm`SummaryItem[{"Mailbox: ",    Length[a["mailbox"]]}],
-          BoxForm`SummaryItem[{"Trace: ",      Length[a["trace"]]}]
-        }
-      ],
+      {
+        BoxForm`SummaryItem[{"Vars: ",      varsRow}],
+        BoxForm`SummaryItem[{"Dynamics: ",  dynView}],
+        BoxForm`SummaryItem[{"Guards: ",     nGuards}],
+        BoxForm`SummaryItem[{"Invariants: ", nInvs}],
+        BoxForm`SummaryItem[{"Mailbox: ",    Length[a["mailbox"]]}],
+        BoxForm`SummaryItem[{"Trace: ",      Length[a["trace"]]}]
+      },
       form
     ]
   ];
