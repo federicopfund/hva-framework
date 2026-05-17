@@ -102,6 +102,19 @@ WithCurrentState::usage = "WithCurrentState[a, newState] devuelve nuevo HybridAg
 WithValuation::usage    = "WithValuation[a, newValuation] devuelve nuevo HybridAgent con valuation reemplazado.";
 AppendTrace::usage      = "AppendTrace[a, event] devuelve nuevo HybridAgent con evento agregado al trace.";
 
+(* Funcion de transicion discreta (1) *)
+FireGuard::usage =
+  "FireGuard[a, guard] dispara la transicion descrita por la guarda (Association)\n" <>
+  "sobre el agente a. Pasos:\n" <>
+  "  1. Verifica que guard[\"from\"] == AgentCurrentState[a].\n" <>
+  "  2. Evalua guard[\"condition\"] bajo la valuacion actual.\n" <>
+  "  3. Aplica guard[\"action\"] (reset map <|var -> expr|>) a la valuacion,\n" <>
+  "     evaluando cada expresion en el contexto de la valuacion actual.\n" <>
+  "  4. Devuelve nuevo HybridAgent con currentState = guard[\"to\"],\n" <>
+  "     valuation actualizada y evento de transicion en trace.\n" <>
+  "Retorna Failure[\"GuardNotApplicable\", ...] si from != currentState.\n" <>
+  "Retorna Failure[\"GuardConditionFalse\", ...] si la condicion no se cumple.";
+
 Begin["`Private`"]
 
 Needs["HVA`Utilities`Validation`"]
@@ -503,6 +516,62 @@ AppendTrace[expr_, _] /; !HybridAgentQ[expr] :=
   |>];
 
 (* ============================================================== *)
+(* TRANSICION DISCRETA: FireGuard                                 *)
+(* Aplica una guarda al agente: condicion + reset map + trace     *)
+(* ============================================================== *)
+
+FireGuard[HybridAgent[a_Association], guard_Association] := Module[
+  {curState, valuation, from, to, cond, action, condResult, newValuation},
+  curState  = a["currentState"];
+  valuation = a["valuation"];
+  from      = Lookup[guard, "from",      Missing[]];
+  to        = Lookup[guard, "to",        Missing[]];
+  cond      = Lookup[guard, "condition", True];
+  action    = Lookup[guard, "action",    <||>];
+  (* Paso 1: la guarda debe originarse desde el estado actual *)
+  If[from =!= curState,
+    Return[Failure["GuardNotApplicable", <|
+      "Message" -> "Guard 'from' (" <> ToString[from] <>
+                   ") != currentState (" <> ToString[curState] <> ")."
+    |>]]
+  ];
+  (* Paso 2: evaluar condicion bajo valuacion actual *)
+  condResult = TrueQ[cond /. Normal[valuation]];
+  If[!condResult,
+    Return[Failure["GuardConditionFalse", <|
+      "Message" -> "Condition " <> ToString[cond] <> " not satisfied under " <>
+                   ToString[Normal[valuation]]
+    |>]]
+  ];
+  (* Paso 3: aplicar reset map — cada rhs se evalua bajo valuacion actual *)
+  newValuation = If[AssociationQ[action] && Length[action] > 0,
+    <|valuation, Map[# /. Normal[valuation] &, action]|>,
+    valuation  (* accion vacia = reset identidad *)
+  ];
+  (* Paso 4: devolver nuevo agente (inmutable) con estado, valuacion y traza *)
+  AppendTrace[
+    WithValuation[
+      WithCurrentState[HybridAgent[a], to],
+      newValuation
+    ],
+    <|"type"           -> "transition",
+      "from"           -> from,
+      "to"             -> to,
+      "condition"      -> cond,
+      "action"         -> action,
+      "valuationAfter" -> newValuation|
+    >
+  ]
+];
+
+FireGuard[expr_, _Association] /; !HybridAgentQ[expr] :=
+  Failure["HVAArgumentError", <|
+    "Function" -> "FireGuard",
+    "Expected" -> "HybridAgent",
+    "Got"      -> ToString[Head[expr]]
+  |>];
+
+(* ============================================================== *)
 (* HASH ESTRUCTURAL (D12)                                         *)
 (* ============================================================== *)
 
@@ -541,7 +610,8 @@ Protect[
   AgentId, AgentStates, AgentVars, AgentDynamics, AgentGuards,
   AgentInvariants, AgentContract, AgentHandlers, AgentMailbox,
   AgentCurrentState, AgentValuation, AgentTrace, AgentTime,
-  WithMailbox, WithCurrentState, WithValuation, AppendTrace
+  WithMailbox, WithCurrentState, WithValuation, AppendTrace,
+  FireGuard
 ];
 
 End[]

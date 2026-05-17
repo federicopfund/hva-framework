@@ -91,9 +91,23 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                               If[KeyExistsQ[g, "condition"],
                                 {"condition:", TraditionalForm[g["condition"]]},
                                 Nothing],
-                              If[KeyExistsQ[g, "action"],
-                                {"action:",    TraditionalForm[g["action"]]},
-                                Nothing]
+                              (* action: mostrar solo si existe y no es Null/<||> *)
+                              With[{act = Lookup[g, "action", None]},
+                                If[act =!= None && act =!= Null &&
+                                   !(AssociationQ[act] && Length[act] == 0),
+                                  {"action:",
+                                    If[AssociationQ[act],
+                                      (* <|var -> expr|> → columna de asignaciones *)
+                                      Column[
+                                        Map[TraditionalForm[Rule @@ #] &, Normal[act]],
+                                        Spacings -> 0.1
+                                      ],
+                                      TraditionalForm[act]
+                                    ]
+                                  },
+                                  Nothing
+                                ]
+                              ]
                             }, Nothing],
                             Alignment -> {{Right, Left}}, Spacings -> {0.5, 0.3}
                           ]
