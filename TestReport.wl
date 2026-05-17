@@ -161,22 +161,48 @@ If[Length[allFailures] > 0,
     Print["  [", tag, "]  ", tr["TestID"]];
     Print["         Suite:    ", suite];
 
-    (* Expected vs Actual — truncar si es muy largo *)
-    expStr = ToString[tr["ExpectedOutput"]];
-    actStr = ToString[tr["ActualOutput"]];
-    Print["         Expected: ", StringTake[expStr, Min[StringLength[expStr], 120]]];
-    Print["         Actual:   ", StringTake[actStr, Min[StringLength[actStr], 120]]];
-
-    (* Para MessagesFailure mostrar mensajes inesperados *)
-    If[tr["Outcome"] === "MessagesFailure",
-      Print["         Messages: ", ToString[tr["ActualMessages"]]]
+    (* Input: expresion evaluada *)
+    inputStr = ToString[tr["Input"], InputForm];
+    If[StringLength[inputStr] > 0 && inputStr =!= "Null",
+      Print["         Input:    ",
+        StringTake[inputStr, Min[StringLength[inputStr], 240]]]
     ];
 
-    (* Timing del test individual *)
+    (* Expected vs Actual *)
+    expStr = ToString[tr["ExpectedOutput"], InputForm];
+    actStr = ToString[tr["ActualOutput"],   InputForm];
+    Print["         Expected: ", StringTake[expStr, Min[StringLength[expStr], 240]]];
+    Print["         Actual:   ", StringTake[actStr, Min[StringLength[actStr], 240]]];
+
+    (* Para Error: mostrar el mensaje de error completo *)
+    If[tr["Outcome"] === "Error",
+      errStr = ToString[tr["ActualOutput"], InputForm];
+      Print["         Error:    ", StringTake[errStr, Min[StringLength[errStr], 400]]]
+    ];
+
+    (* Mensajes generados (para MessagesFailure y cualquier fallo con mensajes) *)
+    actualMsgs = tr["ActualMessages"];
+    If[actualMsgs =!= {} && actualMsgs =!= Missing["KeyAbsent", "ActualMessages"],
+      Print["         Messages: "];
+      Map[Function[msg,
+        Print["           \[RightArrow] ", StringTake[ToString[msg], Min[StringLength[ToString[msg]], 200]]]
+      ], actualMsgs]
+    ];
+
+    (* Mensajes esperados que no llegaron *)
+    expMsgs = tr["ExpectedMessages"];
+    If[expMsgs =!= {} && expMsgs =!= Missing["KeyAbsent", "ExpectedMessages"] &&
+       expMsgs =!= actualMsgs,
+      Print["         ExpMsgs:  ", ToString[expMsgs]]
+    ];
+
+    (* Timing *)
     tms = Ceiling[toSec[tr["AbsoluteTimeUsed"]] * 1000];
     If[tms > $slowMs,
       Print["         Time:     ", tms, " ms  [SLOW]"]
-    ]
+    ];
+
+    Print["  ", hr[61]]
   ], allFailures]
 ];
 
