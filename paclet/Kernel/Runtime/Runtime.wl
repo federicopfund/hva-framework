@@ -32,3 +32,5 @@ LoadRuntime[] := Module[{},
 
 End[]
 EndPackage[]
+
+LoadRuntime[];

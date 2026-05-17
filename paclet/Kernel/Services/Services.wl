@@ -24,3 +24,5 @@ LoadServices[] := Module[{},
 
 End[]
 EndPackage[]
+
+LoadServices[];

@@ -14,8 +14,8 @@ LoadCore::usage = "LoadCore[] carga los componentes simbolicos del nucleo.";
 Begin["`Private`"]
 
 LoadCore[] := Module[{},
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "HybridAgent.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "Contract.wl"}]];
+  Get[FileNameJoin[{DirectoryName[$InputFileName], "HybridAgent.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "Message.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "CausalModel.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "Trace.wl"}]];
@@ -25,3 +25,5 @@ LoadCore[] := Module[{},
 
 End[]
 EndPackage[]
+
+LoadCore[];

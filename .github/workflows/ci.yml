@@ -34,11 +34,12 @@ jobs:
             wolframscript -file /app/run_tests.wl
 
   # ─────────────────────────────────────────────
-  # JOB 2 — Empaquetar .paclet
+  # JOB 2 — Empaquetar .paclet (solo en main o tags)
   # ─────────────────────────────────────────────
   build:
     name: Build .paclet
     needs: test
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}

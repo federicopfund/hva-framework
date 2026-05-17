@@ -26,3 +26,5 @@ LoadDSL[] := Module[{},
 
 End[]
 EndPackage[]
+
+LoadDSL[];
