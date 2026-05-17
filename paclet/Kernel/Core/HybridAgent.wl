@@ -520,50 +520,42 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
 (* FORMATO (D11)                                                  *)
 (* ============================================================== *)
 
-(* MakeBoxes override usando BoxForm`ArrangeSummaryBox:
-   genera el panel expandible estandar de Wolfram (igual que Graph,
-   TimeSeries, etc.).  With[] fuerza la evaluacion de los valores
-   ANTES de armar los boxes, evitando el bug "unknown box name ToBoxes". *)
-HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
-                          form : (StandardForm | TraditionalForm)] :=
-  With[{
-    id        = a["id"],
-    curState  = a["currentState"],
-    states    = a["states"],
-    vars      = a["vars"],
-    valuation = a["valuation"],
-    nGuards   = Length[a["guards"]],
-    nMsgs     = Length[a["mailbox"]],
-    nTrace    = Length[a["trace"]]
-  },
-    BoxForm`ArrangeSummaryBox[
-      HybridAgent,
-      obj,
-      (* icono: circulo azul con texto "HA" *)
-      Graphics[
-        {RGBColor[0.18, 0.44, 0.82], Disk[{0,0}, 1],
-         Text[Style["HA", Bold, White, 10], {0, 0}]},
-        ImageSize -> 28, Background -> None
-      ],
-      (* filas siempre visibles *)
-      {
-        BoxForm`SummaryItem[{"ID: ",     id}],
-        BoxForm`SummaryItem[{"State: ",  curState}]
-      },
-      (* filas colapsables (click en el triangulo) *)
-      {
-        BoxForm`SummaryItem[{"States: ",    states}],
-        BoxForm`SummaryItem[{"Vars: ",      vars}],
-        BoxForm`SummaryItem[{"Valuation: ", valuation}],
-        BoxForm`SummaryItem[{"Guards: ",    nGuards}],
-        BoxForm`SummaryItem[{"Mailbox: ",   nMsgs}],
-        BoxForm`SummaryItem[{"Trace: ",     nTrace}]
-      },
-      form
-    ]
+(* StandardForm: panel con Framed+Grid portable en Wolfram Cloud y Desktop.
+   Interpretation[] preserva la identidad del objeto para copia/paste. *)
+Format[HybridAgent[a_Association], StandardForm] :=
+  Interpretation[
+    Framed[
+      Column[{
+        Row[{
+          Style["HybridAgent", Bold, 13, RGBColor[0.18, 0.44, 0.82]],
+          "  ",
+          Style["\[FilledSmallCircle] " <> a["id"],
+                Italic, 12, RGBColor[0.3, 0.3, 0.3]]
+        }],
+        Sequence @@ {RGBColor[0.18, 0.44, 0.82]},
+        Grid[{
+          {Style["state",    GrayLevel[0.5], 9], Style[a["currentState"], Bold]},
+          {Style["states",   GrayLevel[0.5], 9], Row[a["states"], " | "]},
+          {Style["vars",     GrayLevel[0.5], 9], Row[Map[HoldForm @@ {#} &, a["vars"]], "  "]},
+          {Style["valuation",GrayLevel[0.5], 9], a["valuation"]},
+          {Style["guards",   GrayLevel[0.5], 9], Length[a["guards"]]},
+          {Style["mailbox",  GrayLevel[0.5], 9], Length[a["mailbox"]]},
+          {Style["trace",    GrayLevel[0.5], 9], Length[a["trace"]]}
+        },
+          Alignment -> {{Left, Left}, Center},
+          Spacings  -> {1, 0.35},
+          Dividers  -> None
+        ]
+      }, Spacings -> 0.5],
+      Background    -> RGBColor[0.96, 0.97, 1.0],
+      FrameStyle    -> RGBColor[0.18, 0.44, 0.82],
+      RoundingRadius -> 5,
+      FrameMargins  -> {{10, 10}, {6, 6}}
+    ],
+    HybridAgent[a]
   ];
 
-(* OutputForm: representacion compacta en contextos de texto puro *)
+(* OutputForm / texto puro *)
 Format[HybridAgent[a_Association], OutputForm] :=
   SequenceForm[
     "HybridAgent[\"", a["id"], "\" @ ", a["currentState"], "]"
