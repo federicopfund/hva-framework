@@ -1,4 +1,4 @@
 build/
 .wolfram-paclets/
 .vscode/
-./bin/wl_kernel.py
+/bin/wl_kernel.py
