@@ -520,34 +520,53 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
 (* FORMATO (D11)                                                  *)
 (* ============================================================== *)
 
-(* MakeBoxes override: InterpretationBox + RowBox funcionan en cualquier
-   contexto (VS Code extension, WolframScript, FrontEnd nativo).
-   InputForm / OutputForm / FullForm mantienen la representacion literal. *)
+(* MakeBoxes override usando BoxForm`ArrangeSummaryBox:
+   genera el panel expandible estandar de Wolfram (igual que Graph,
+   TimeSeries, etc.).  With[] fuerza la evaluacion de los valores
+   ANTES de armar los boxes, evitando el bug "unknown box name ToBoxes". *)
 HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                           form : (StandardForm | TraditionalForm)] :=
-  InterpretationBox[
-    RowBox[{
-      StyleBox["HybridAgent", FontWeight -> Bold],
-      RowBox[{"[",
-        RowBox[{
-          ToBoxes[a["id"], form],
-          " \[CenterDot] ",
-          ToBoxes[a["states"], form],
-          " \[CenterDot] ",
-          ToBoxes[Length[a["guards"]], form], " guards",
-          "  @  ",
-          ToBoxes[a["currentState"], form]
-        }],
-      "]"}]
-    }],
-    obj
+  With[{
+    id        = a["id"],
+    curState  = a["currentState"],
+    states    = a["states"],
+    vars      = a["vars"],
+    valuation = a["valuation"],
+    nGuards   = Length[a["guards"]],
+    nMsgs     = Length[a["mailbox"]],
+    nTrace    = Length[a["trace"]]
+  },
+    BoxForm`ArrangeSummaryBox[
+      HybridAgent,
+      obj,
+      (* icono: circulo azul con texto "HA" *)
+      Graphics[
+        {RGBColor[0.18, 0.44, 0.82], Disk[{0,0}, 1],
+         Text[Style["HA", Bold, White, 10], {0, 0}]},
+        ImageSize -> 28, Background -> None
+      ],
+      (* filas siempre visibles *)
+      {
+        BoxForm`SummaryItem[{"ID: ",     id}],
+        BoxForm`SummaryItem[{"State: ",  curState}]
+      },
+      (* filas colapsables (click en el triangulo) *)
+      {
+        BoxForm`SummaryItem[{"States: ",    states}],
+        BoxForm`SummaryItem[{"Vars: ",      vars}],
+        BoxForm`SummaryItem[{"Valuation: ", valuation}],
+        BoxForm`SummaryItem[{"Guards: ",    nGuards}],
+        BoxForm`SummaryItem[{"Mailbox: ",   nMsgs}],
+        BoxForm`SummaryItem[{"Trace: ",     nTrace}]
+      },
+      form
+    ]
   ];
 
 (* OutputForm: representacion compacta en contextos de texto puro *)
 Format[HybridAgent[a_Association], OutputForm] :=
   SequenceForm[
-    "HybridAgent[\"", a["id"], "\" \[CenterDot] ",
-    a["states"], "  @  ", a["currentState"], "]"
+    "HybridAgent[\"", a["id"], "\" @ ", a["currentState"], "]"
   ];
 
 (* ============================================================== *)
