@@ -550,30 +550,36 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     BoxForm`ArrangeSummaryBox[
       HybridAgent,
       obj,
-      (* ── ICONO industrial ── *)
+      (* ── ICONO: silueta de agente sobre fondo industrial ── *)
       Graphics[
         {
           (* fondo oscuro industrial *)
-          GrayLevel[0.10],
-          Rectangle[{0,0},{1,1}, RoundingRadius -> 0.14],
-          (* borde con acento cian *)
-          EdgeForm[{Thickness[0.045], RGBColor[0.0, 0.78, 0.60]}],
+          GrayLevel[0.08],
+          Rectangle[{0,0},{1,1}, RoundingRadius -> 0.16],
+          (* borde exterior sutil *)
+          EdgeForm[{Thickness[0.022], GrayLevel[0.28]}],
           FaceForm[None],
-          Rectangle[{0.03,0.03},{0.97,0.97}, RoundingRadius -> 0.12],
-          (* señal hibrida: escalon discreto + linea continua en cian *)
-          RGBColor[0.0, 0.82, 0.62], Thickness[0.062],
-          Line[{{0.10,0.38},{0.30,0.38},{0.30,0.66},{0.70,0.66},{0.70,0.38},{0.90,0.38}}],
-          PointSize[0.10],
-          Point[{0.10,0.38}], Point[{0.90,0.38}],
-          (* circulo de status en esquina inferior derecha *)
+          Rectangle[{0.02,0.02},{0.98,0.98}, RoundingRadius -> 0.15],
+          (* cabeza del agente - circulo lleno *)
+          RGBColor[0.12, 0.72, 0.62],
+          Disk[{0.50, 0.68}, 0.19],
+          (* cuerpo - arco de hombros *)
+          Thickness[0.07],
+          RGBColor[0.12, 0.72, 0.62],
+          Circle[{0.50, 0.26}, 0.27, {0.22 Pi, 0.78 Pi}],
+          (* antena / sensor (detalle industrial) *)
+          Thickness[0.04],
+          RGBColor[0.12, 0.72, 0.62],
+          Line[{{0.50, 0.87},{0.50, 0.96}}],
+          PointSize[0.07], Point[{0.50, 0.97}],
+          (* status dot con borde blanco - esquina inferior derecha *)
           statusColor,
-          Disk[{0.78, 0.22}, 0.13],
-          (* borde blanco fino alrededor del status dot *)
-          EdgeForm[{Thickness[0.03], White}],
-          FaceForm[None],
-          Disk[{0.78, 0.22}, 0.13]
+          Disk[{0.80, 0.20}, 0.13],
+          EdgeForm[{Thickness[0.028], White}],
+          FaceForm[statusColor],
+          Disk[{0.80, 0.20}, 0.13]
         },
-        ImageSize -> 40, Background -> None, PlotRangePadding -> 0.08
+        ImageSize -> 40, Background -> None, PlotRangePadding -> 0.06
       ],
       (* ── filas siempre visibles ── *)
       {
