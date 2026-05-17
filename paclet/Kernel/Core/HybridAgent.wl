@@ -536,27 +536,16 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     nGuards     = Length[a["guards"]],
     nMsgs       = Length[a["mailbox"]],
     nTrace      = Length[a["trace"]],
-    dynamicsView = OpenerView[
-      {
-        Style[
-          Row[{"\[RightTriangle] ", Length[a["dynamics"]], " modes"}],
-          GrayLevel[0.45], 9
-        ],
-        Grid[
-          KeyValueMap[
-            {
-              Style[#1, Bold, RGBColor[0.10, 0.75, 0.62], 9],
-              Column[Map[TraditionalForm, #2], Spacings -> 0.15]
-            } &,
-            a["dynamics"]
-          ],
-          Alignment  -> {{Right, Left}, Center},
-          Spacings   -> {1, 0.45},
-          FrameStyle -> GrayLevel[0.85],
-          Dividers   -> {False, {2 -> GrayLevel[0.9]}}
-        ]
-      },
-      False
+    dynamicsView = Grid[
+      KeyValueMap[
+        {
+          Style[#1, Bold, RGBColor[0.10, 0.75, 0.62], 9],
+          Column[Map[TraditionalForm, #2], Spacings -> 0.1]
+        } &,
+        a["dynamics"]
+      ],
+      Alignment -> {{Right, Left}, Center},
+      Spacings  -> {0.8, 0.4}
     ],
     statusColor = Which[
       MemberQ[{"on","running","active","started","initialized"}, a["currentState"]],
