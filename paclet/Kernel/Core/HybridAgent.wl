@@ -559,8 +559,8 @@ FireGuard[HybridAgent[a_Association], guard_Association] := Module[
       "to"             -> to,
       "condition"      -> cond,
       "action"         -> action,
-      "valuationAfter" -> newValuation|
-    >
+      "valuationAfter" -> newValuation
+    |>
   ]
 ];
 
