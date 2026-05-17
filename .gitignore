@@ -1,4 +1,7 @@
-build/
+# build: ignorar directorio excepto el artefacto .paclet publicado
+build/*
+!build/HVA-*.paclet
+!build/HVA-*/
 .wolfram-paclets/
 .vscode/
 /bin/wl_kernel.py
