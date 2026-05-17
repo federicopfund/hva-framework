@@ -22,7 +22,14 @@
    "languageId": "wolfram",
    "outputs": [],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007959265,
+     "endTime": 1779007959392
+    },
+    "executionOrder": 26,
+    "success": true
+   }
   },
   {
    "kind": 1,
@@ -34,19 +41,69 @@
   },
   {
    "kind": 2,
-   "value": "(* Agente termostat mínimo *)\nagent = HybridAgent[\"thermostat\",\n  States       -> {\"off\", \"on\"},\n  Vars         -> {temp},\n  Dynamics     -> <|\n    \"off\" -> {Derivative[1][temp] == 0},\n    \"on\"  -> {Derivative[1][temp] == 5 - temp}\n  |>,\n  Guards       -> {\n    <|\"from\" -> \"off\", \"to\" -> \"on\",  \"condition\" -> temp < 18|>,\n    <|\"from\" -> \"on\",  \"to\" -> \"off\", \"condition\" -> temp > 22|>\n  },\n  Invariants   -> {0 <= temp <= 30},\n  InitialState -> \"off\",\n  InitialValues -> <|temp -> 15|>\n]",
+   "value": "(* Agente termostat mínimo *)\nSpec = HybridAgent[\"thermostat\",\n  States       -> {\"off\", \"on\"},\n  Vars         -> {temp},\n  Dynamics     -> <|\n    \"off\" -> {Derivative[1][temp] == 0},\n    \"on\"  -> {Derivative[1][temp] == 5 - temp}\n  |>,\n  Guards       -> {\n    <|\"from\" -> \"off\", \"to\" -> \"on\",  \"condition\" -> temp < 18|>,\n    <|\"from\" -> \"on\",  \"to\" -> \"off\", \"condition\" -> temp > 22|>\n  },\n  Invariants   -> {0 <= temp <= 30},\n  InitialState -> \"off\",\n  InitialValues -> <|temp -> 15|>\n]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><w>HybridAgent</w><wrow><w></w><wb>[</wb><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>id</w><w class=\"symbol\"></w><w>thermostat</w></wrow><w>,</w><wrow><w></w><w>states</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wrow><w></w><w>off</w><w>,</w><w>on</w></wrow><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>vars</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><w>temp</w><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>time</w><w class=\"symbol\"></w><w>t</w></wrow><w>,</w><wrow><w></w><w>dynamics</w><w class=\"symbol\"></w><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>off</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wrow><w></w><wsup><w></w><w>temp</w><w><w class=\"small-symbol\"></w></w></wsup><w class=\"symbol\"></w><w>0</w></wrow><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>on</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wrow><w></w><wsup><w></w><w>temp</w><w><w class=\"small-symbol\"></w></w></wsup><w class=\"symbol\"></w><wrow><w></w><w>5</w><w>-</w><w>temp</w></wrow></wrow><wb>}</wb></wrow></wrow></wrow><wb></wb></wrow></wrow><w>,</w><wrow><w></w><w>guards</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wrow><w></w><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>from</w><w class=\"symbol\"></w><w>off</w></wrow><w>,</w><wrow><w></w><w>to</w><w class=\"symbol\"></w><w>on</w></wrow><w>,</w><wrow><w></w><w>condition</w><w class=\"symbol\"></w><wrow><w></w><w>temp</w><w>&lt;</w><w>18</w></wrow></wrow></wrow><wb></wb></wrow><w>,</w><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>from</w><w class=\"symbol\"></w><w>on</w></wrow><w>,</w><wrow><w></w><w>to</w><w class=\"symbol\"></w><w>off</w></wrow><w>,</w><wrow><w></w><w>condition</w><w class=\"symbol\"></w><wrow><w></w><w>temp</w><w>&gt;</w><w>22</w></wrow></wrow></wrow><wb></wb></wrow></wrow><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>invariants</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wrow><w></w><w>0</w><w>≤</w><w>temp</w><w>≤</w><w>30</w></wrow><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>contract</w><w class=\"symbol\"></w><wrow><w></w><w>Contract</w><wrow><w></w><wb>[</wb><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>assumes</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>guarantees</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wb>}</wb></wrow></wrow></wrow><wb></wb></wrow><wb>]</wb></wrow></wrow></wrow><w>,</w><wrow><w></w><w>handlers</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>initialState</w><w class=\"symbol\"></w><w>off</w></wrow><w>,</w><wrow><w></w><w>initialValues</w><w class=\"symbol\"></w><wrow><w></w><wb></wb><wrow><w></w><w>temp</w><w class=\"symbol\"></w><w>15</w></wrow><wb></wb></wrow></wrow><w>,</w><wrow><w></w><w>currentState</w><w class=\"symbol\"></w><w>off</w></wrow><w>,</w><wrow><w></w><w>valuation</w><w class=\"symbol\"></w><wrow><w></w><wb></wb><wrow><w></w><w>temp</w><w class=\"symbol\"></w><w>15</w></wrow><wb></wb></wrow></wrow><w>,</w><wrow><w></w><w>mailbox</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>trace</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wb>}</wb></wrow></wrow></wrow><wb></wb></wrow><wb>]</wb></wrow></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "HybridAgent[Association[\"id\" -> \"thermostat\", \"states\" -> {\"off\", \"on\"}, \"vars\" -> {temp}, \"time\" -> t, \"dynamics\" -> Association[\"off\" -> {Derivative[1][temp] == 0}, \"on\" -> {Derivative[1][temp] == 5 - temp}], \"guards\" -> {Association[\"from\" -> \"off\", \"to\" -> \"on\", \"condition\" -> temp < 18], Association[\"from\" -> \"on\", \"to\" -> \"off\", \"condition\" -> temp > 22]}, \"invariants\" -> {0 <= temp <= 30}, \"contract\" -> Contract[Association[\"assumes\" -> {}, \"guarantees\" -> {}]], \"handlers\" -> {}, \"initialState\" -> \"off\", \"initialValues\" -> Association[temp -> 15], \"currentState\" -> \"off\", \"valuation\" -> Association[temp -> 15], \"mailbox\" -> {}, \"trace\" -> {}]]",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "3a9f91b7-436b-4902-982e-eed057c7c90b",
+     "metadata": {
+      "cellLabel": "Out[28]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007959392,
+     "endTime": 1779007959525
+    },
+    "executionOrder": 28,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "(* Verificar que se construyó correctamente *)\nHybridAgentQ[agent]",
+   "value": "(* Verificar que se construyó correctamente *)\nHybridAgentQ[Spec]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><w>True</w></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "True",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "8386cde2-7559-49ca-be56-f5ef3b55ff35",
+     "metadata": {
+      "cellLabel": "Out[29]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007959525,
+     "endTime": 1779007959650
+    },
+    "executionOrder": 29,
+    "success": true
+   }
   },
   {
    "kind": 1,
@@ -58,27 +115,102 @@
   },
   {
    "kind": 2,
-   "value": "AgentId[agent]",
+   "value": "AgentId[Spec]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><w>thermostat</w></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "\"thermostat\"",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "9cde7972-363f-453a-95e6-c812dc91da95",
+     "metadata": {
+      "cellLabel": "Out[30]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007959650,
+     "endTime": 1779007959775
+    },
+    "executionOrder": 30,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "(* Verificar tipo de retorno *)\nStringQ[AgentId[agent]]",
+   "value": "(* Verificar tipo de retorno *)\nStringQ[AgentId[Spec]]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><w>True</w></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "True",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "29e5222f-3b9f-49b7-b2e0-a946bcefb7c8",
+     "metadata": {
+      "cellLabel": "Out[31]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007959775,
+     "endTime": 1779007959900
+    },
+    "executionOrder": 31,
+    "success": true
+   }
   },
   {
    "kind": 2,
    "value": "(* Error handling: non-HybridAgent *)\nAgentId[\"not an agent\"]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><w>Failure</w><wrow><w></w><wb>[</wb><wrow><w></w><w>HVAArgumentError</w><w>,</w><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>MessageTemplate</w><w class=\"symbol\"></w><w>Expected HybridAgent.</w></wrow><w>,</w><wrow><w></w><w>Function</w><w class=\"symbol\"></w><w>AgentId</w></wrow><w>,</w><wrow><w></w><w>Expected</w><w class=\"symbol\"></w><w>HybridAgent</w></wrow><w>,</w><wrow><w></w><w>Got</w><w class=\"symbol\"></w><w>String</w></wrow></wrow><wb></wb></wrow></wrow><wb>]</wb></wrow></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "Failure[\"HVAArgumentError\", Association[\"MessageTemplate\" -> \"Expected HybridAgent.\", \"Function\" -> \"AgentId\", \"Expected\" -> \"HybridAgent\", \"Got\" -> \"String\"]]",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "2bf47155-ae35-45ad-a4e7-13ea5ea8ef04",
+     "metadata": {
+      "cellLabel": "Out[32]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007959900,
+     "endTime": 1779007960026
+    },
+    "executionOrder": 32,
+    "success": true
+   }
   },
   {
    "kind": 1,
@@ -90,59 +222,234 @@
   },
   {
    "kind": 2,
-   "value": "AgentStates[agent]",
+   "value": "AgentStates[Spec]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><wb>{</wb><wrow><w></w><w>off</w><w>,</w><w>on</w></wrow><wb>}</wb></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "{\"off\", \"on\"}",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "7f29c858-115d-4064-9fdb-fca53b2dadbf",
+     "metadata": {
+      "cellLabel": "Out[33]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007960026,
+     "endTime": 1779007960154
+    },
+    "executionOrder": 33,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "AgentVars[agent]",
+   "value": "AgentVars[Spec]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><wb>{</wb><w>temp</w><wb>}</wb></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "{temp}",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "73c1c2c6-2f04-4538-b311-450da0d95b39",
+     "metadata": {
+      "cellLabel": "Out[34]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007960154,
+     "endTime": 1779007960280
+    },
+    "executionOrder": 34,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "AgentDynamics[agent]",
+   "value": "AgentDynamics[Spec]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>off</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wrow><w></w><wsup><w></w><w>temp</w><w><w class=\"small-symbol\"></w></w></wsup><w class=\"symbol\"></w><w>0</w></wrow><wb>}</wb></wrow></wrow><w>,</w><wrow><w></w><w>on</w><w class=\"symbol\"></w><wrow><w></w><wb>{</wb><wrow><w></w><wsup><w></w><w>temp</w><w><w class=\"small-symbol\"></w></w></wsup><w class=\"symbol\"></w><wrow><w></w><w>5</w><w>-</w><w>temp</w></wrow></wrow><wb>}</wb></wrow></wrow></wrow><wb></wb></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "Association[\"off\" -> {Derivative[1][temp] == 0}, \"on\" -> {Derivative[1][temp] == 5 - temp}]",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "d6cfb3e2-871e-454c-9369-27b70b3398a2",
+     "metadata": {
+      "cellLabel": "Out[35]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007960280,
+     "endTime": 1779007960417
+    },
+    "executionOrder": 35,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "AgentGuards[agent]",
+   "value": "AgentGuards[Spec]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><wb>{</wb><wrow><w></w><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>from</w><w class=\"symbol\"></w><w>off</w></wrow><w>,</w><wrow><w></w><w>to</w><w class=\"symbol\"></w><w>on</w></wrow><w>,</w><wrow><w></w><w>condition</w><w class=\"symbol\"></w><wrow><w></w><w>temp</w><w>&lt;</w><w>18</w></wrow></wrow></wrow><wb></wb></wrow><w>,</w><wrow><w></w><wb></wb><wrow><w></w><wrow><w></w><w>from</w><w class=\"symbol\"></w><w>on</w></wrow><w>,</w><wrow><w></w><w>to</w><w class=\"symbol\"></w><w>off</w></wrow><w>,</w><wrow><w></w><w>condition</w><w class=\"symbol\"></w><wrow><w></w><w>temp</w><w>&gt;</w><w>22</w></wrow></wrow></wrow><wb></wb></wrow></wrow><wb>}</wb></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "{Association[\"from\" -> \"off\", \"to\" -> \"on\", \"condition\" -> temp < 18], Association[\"from\" -> \"on\", \"to\" -> \"off\", \"condition\" -> temp > 22]}",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "d71f22fd-24c1-4ab6-a233-f145f02ee468",
+     "metadata": {
+      "cellLabel": "Out[36]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007960417,
+     "endTime": 1779007960548
+    },
+    "executionOrder": 36,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "AgentCurrentState[agent]",
+   "value": "AgentCurrentState[Spec]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><w>off</w></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "\"off\"",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "c87402ab-448f-4510-bfff-a77feb1d1360",
+     "metadata": {
+      "cellLabel": "Out[37]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007960549,
+     "endTime": 1779007960675
+    },
+    "executionOrder": 37,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "AgentValuation[agent]",
+   "value": "AgentValuation[Spec]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><wb></wb><wrow><w></w><w>temp</w><w class=\"symbol\"></w><w>15</w></wrow><wb></wb></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "Association[temp -> 15]",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "1f39555e-ae08-4974-901c-e797b2afaca8",
+     "metadata": {
+      "cellLabel": "Out[38]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007960675,
+     "endTime": 1779007960800
+    },
+    "executionOrder": 38,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "AgentValuation[agent][temp]",
+   "value": "AgentValuation[Spec][temp]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><w>15</w></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "15",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "8857804f-c047-4733-816f-bb3d7a1b30ce",
+     "metadata": {
+      "cellLabel": "Out[39]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007960800,
+     "endTime": 1779007960925
+    },
+    "executionOrder": 39,
+    "success": true
+   }
   },
   {
    "kind": 1,
@@ -154,27 +461,102 @@
   },
   {
    "kind": 2,
-   "value": "agent2 = WithCurrentState[agent, \"on\"];\n{AgentCurrentState[agent], AgentCurrentState[agent2]}",
+   "value": "agent2 = WithCurrentState[Spec, \"on\"];\n{AgentCurrentState[Spec], AgentCurrentState[agent2]}",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><wb>{</wb><wrow><w></w><w>off</w><w>,</w><w>on</w></wrow><wb>}</wb></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "{\"off\", \"on\"}",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "c3c01403-ee1e-437f-8ba2-aa22e1a7a5af",
+     "metadata": {
+      "cellLabel": "Out[41]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007960925,
+     "endTime": 1779007961111
+    },
+    "executionOrder": 40,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "agent3 = WithValuation[agent2, <|temp -> 20|>];\nAgentValuation[agent3][temp]",
+   "value": "Spec3 = WithValuation[agent2, <|temp -> 20|>];\nAgentValuation[Spec3][temp]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><w>20</w></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "20",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "f3d406b1-926f-4770-a7f8-97a01433935c",
+     "metadata": {
+      "cellLabel": "Out[43]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007961111,
+     "endTime": 1779007961296
+    },
+    "executionOrder": 42,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "agent4 = AppendTrace[agent3, \"transitioned to on\"];\nAgentTrace[agent4]",
+   "value": "Spec4 = AppendTrace[Spec3, \"transitioned to on\"];\nAgentTrace[Spec4]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><wb>{</wb><w>transitioned to on</w><wb>}</wb></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "{\"transitioned to on\"}",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "7e141dfd-9e27-4034-ae01-e77ccd9f005d",
+     "metadata": {
+      "cellLabel": "Out[45]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007961297,
+     "endTime": 1779007961480
+    },
+    "executionOrder": 44,
+    "success": true
+   }
   },
   {
    "kind": 1,
@@ -186,19 +568,69 @@
   },
   {
    "kind": 2,
-   "value": "(* Mismo hash en dos instancias con distintos runtime fields *)\nh1 = AgentStructuralHash[agent];\nh2 = AgentStructuralHash[agent4];\n{h1, h2, h1 === h2}",
+   "value": "(* Mismo hash en dos instancias con distintos runtime fields *)\nh1 = AgentStructuralHash[Spec3];\nh2 = AgentStructuralHash[Spec4];\n{h1, h2, h1 === h2}",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><wrow><w></w><wb>{</wb><wrow><w></w><w>259865744861799748825303145939090130599</w><w>,</w><w>259865744861799748825303145939090130599</w><w>,</w><w>True</w></wrow><wb>}</wb></wrow></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "{259865744861799748825303145939090130599, 259865744861799748825303145939090130599, True}",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "6b20dd86-cfe3-4260-bfb8-0f1debb4fc7f",
+     "metadata": {
+      "cellLabel": "Out[48]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007961480,
+     "endTime": 1779007961723
+    },
+    "executionOrder": 46,
+    "success": true
+   }
   },
   {
    "kind": 2,
-   "value": "(* Hash cambia si se modifica la estructura *)\nagentMod = HybridAgent[\"thermostat\",\n  States       -> {\"off\", \"on\", \"standby\"},\n  Vars         -> {temp},\n  Dynamics     -> <|\n    \"off\"     -> {Derivative[1][temp] == 0},\n    \"on\"      -> {Derivative[1][temp] == 5 - temp},\n    \"standby\" -> {Derivative[1][temp] == -0.1 * temp}\n  |>,\n  Guards       -> {},\n  Invariants   -> {},\n  InitialState -> \"off\",\n  InitialValues -> <|temp -> 15|>\n];\nAgentStructuralHash[agent] =!= AgentStructuralHash[agentMod]",
+   "value": "(* Hash cambia si se modifica la estructura *)\nSpecMod = HybridAgent[\"thermostat\",\n  States       -> {\"off\", \"on\", \"standby\"},\n  Vars         -> {temp},\n  Dynamics     -> <|\n    \"off\"     -> {Derivative[1][temp] == 0},\n    \"on\"      -> {Derivative[1][temp] == 5 - temp},\n    \"standby\" -> {Derivative[1][temp] == -0.1 * temp}\n  |>,\n  Guards       -> {},\n  Invariants   -> {},\n  InitialState -> \"off\",\n  InitialValues -> <|temp -> 15|>\n];\nAgentStructuralHash[Spec3] =!= AgentStructuralHash[SpecMod]",
    "languageId": "wolfram",
-   "outputs": [],
+   "outputs": [
+    {
+     "items": [
+      {
+       "data": "<div class=\"wexpr\"><w>True</w></div>",
+       "mime": "x-application/wolfram-language-html"
+      },
+      {
+       "data": "True",
+       "mime": "text/plain"
+      }
+     ],
+     "id": "2e516560-6ca8-4665-a036-56dcb792ce7a",
+     "metadata": {
+      "cellLabel": "Out[50]= ",
+      "isBoxData": false
+     }
+    }
+   ],
    "metadata": {},
-   "executionSummary": {}
+   "executionSummary": {
+    "timing": {
+     "startTime": 1779007961723,
+     "endTime": 1779007961908
+    },
+    "executionOrder": 49,
+    "success": true
+   }
   }
  ]
 }
