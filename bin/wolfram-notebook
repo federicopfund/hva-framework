@@ -1,18 +1,21 @@
 #!/bin/bash
-# wolfram-notebook — wrapper for njpipeorgan.wolfram-language-notebook VS Code extension.
+# wolfram-notebook — wrapper para el kernel Jupyter de Wolfram Language.
 #
-# The extension starts the kernel with:
-#   wolframscript -code 'ToExpression["zmqPort=XXXXX;"<>Uncompress["..."]]'
-# and then connects to localhost:XXXXX via ZMQ.
+# Jupyter llama: wolfram-notebook -ZMQApplication ZMQKernelApp /path/to/connection_file.json
 #
-# The kernel binds ZMQ to 127.0.0.1:XXXXX (loopback) inside the container.
-# Docker -p port mapping cannot reach a loopback-bound socket, so we use
-# --network host to share the dev container's network namespace — making
-# 127.0.0.1 inside the Docker container identical to 127.0.0.1 in the dev container.
+# WolframKernel (no wolframscript) es el binario que soporta -ZMQApplication.
+# El connection_file está en el runtime de Jupyter del dev container; lo montamos
+# para que el contenedor pueda leerlo.
+# --network host comparte el namespace de red del dev container, por lo que
+# los puertos ZMQ enlazados dentro del contenedor son accesibles directamente.
+
+JUPYTER_RUNTIME_DIR="$(python3 -c 'import jupyter_core.paths; print(jupyter_core.paths.jupyter_runtime_dir())' 2>/dev/null \
+  || echo "/home/codespace/.local/share/jupyter/runtime")"
 
 exec docker run --rm -i \
   --network host \
   -v /workspaces/hva-framework:/workspaces/hva-framework \
+  -v "${JUPYTER_RUNTIME_DIR}:${JUPYTER_RUNTIME_DIR}" \
   -w /workspaces/hva-framework \
   hva:latest \
-  /usr/bin/wolframscript "$@"
+  /usr/local/bin/WolframKernel "$@"
