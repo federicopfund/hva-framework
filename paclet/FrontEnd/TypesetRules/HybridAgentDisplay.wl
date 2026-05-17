@@ -41,28 +41,86 @@ Unprotect[HybridAgent];
 (* ── Panel expandible: icono + resumen + sección +/- ── *)
 HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                           form : (StandardForm | TraditionalForm)] :=
+  (* ── Nivel 1: valores primitivos del agente ─────────────────── *)
   With[{
-    id          = a["id"],
-    curState    = a["currentState"],
-    states      = Row[a["states"], " | "],
+    id         = a["id"],
+    curState   = a["currentState"],
+    states     = Row[a["states"], " | "],
     statusColor = HVAStatusColor[a["currentState"]],
-    (* vars: lista de símbolos separados por coma, o "none" en itálica *)
-    varsRow     = If[Length[a["vars"]] > 0,
-                   Row[Map[ToString, a["vars"]], ", "],
-                   Style["none", Italic, GrayLevel[0.65]]],
-    (* resumen de modos de dynamics para la fila siempre visible *)
-    dynModes    = Row[Keys[a["dynamics"]], " | "],
-    (* conteos con Lookup para tolerancia frente a claves ausentes *)
-    nGuards     = Length[Lookup[a, "guards",     {}]],
-    nInvs       = Length[Lookup[a, "invariants", {}]],
-    (* un SummaryItem por modo — label en HVAModeLabel, valor en ecuaciones *)
-    dynItems    = KeyValueMap[
-                    BoxForm`SummaryItem[{
-                      HVAModeLabel[#1],
-                      Column[Map[TraditionalForm, #2], Spacings -> 0.15]
+    vars       = a["vars"],
+    dynamics   = a["dynamics"],
+    guards     = Lookup[a, "guards",     {}],
+    invs       = Lookup[a, "invariants", {}],
+    mailboxLen = Length[a["mailbox"]],
+    traceLen   = Length[a["trace"]]
+  },
+  (* ── Nivel 2: filas del panel derivadas de nivel 1 ──────────── *)
+  With[{
+    varsRow   = If[Length[vars] > 0,
+                  Row[Map[ToString, vars], ", "],
+                  Style["none", Italic, GrayLevel[0.65]]],
+
+    (* Dynamics: header vacío + un ► OpenerView por modo (árbol) *)
+    dynTree   = Flatten[{
+                  BoxForm`SummaryItem[{"Dynamics:", ""}],
+                  KeyValueMap[
+                    BoxForm`SummaryItem[{"",
+                      OpenerView[{
+                        Style[#1, GrayLevel[0.5]],
+                        Column[Map[TraditionalForm, #2], Spacings -> 0.25]
+                      }, False]
                     }] &,
-                    a["dynamics"]
+                    dynamics
                   ]
+                }, 1],
+
+    (* Guards: árbol si hay, contador si vacío *)
+    guardTree = If[Length[guards] > 0,
+                  Flatten[{
+                    BoxForm`SummaryItem[{"Guards:", ""}],
+                    Map[
+                      Function[g, BoxForm`SummaryItem[{"",
+                        OpenerView[{
+                          Style[
+                            Lookup[g, "from", "?"] <> " \[Rule] " <>
+                            Lookup[g, "to",   "?"],
+                            GrayLevel[0.5]
+                          ],
+                          Grid[
+                            DeleteCases[{
+                              If[KeyExistsQ[g, "condition"],
+                                {"condition:", TraditionalForm[g["condition"]]},
+                                Nothing],
+                              If[KeyExistsQ[g, "action"],
+                                {"action:",    TraditionalForm[g["action"]]},
+                                Nothing]
+                            }, Nothing],
+                            Alignment -> {{Right, Left}}, Spacings -> {0.5, 0.3}
+                          ]
+                        }, False]
+                      }]],
+                      guards
+                    ]
+                  }, 1],
+                  {BoxForm`SummaryItem[{"Guards:", Style["none", Italic, GrayLevel[0.65]]}]}
+                ],
+
+    (* Invariants: árbol si hay, contador si vacío *)
+    invTree   = If[Length[invs] > 0,
+                  Flatten[{
+                    BoxForm`SummaryItem[{"Invariants:", ""}],
+                    MapIndexed[
+                      Function[{inv, idx}, BoxForm`SummaryItem[{"",
+                        OpenerView[{
+                          Style["inv\[ThinSpace]" <> ToString[First[idx]], GrayLevel[0.5]],
+                          TraditionalForm[inv]
+                        }, False]
+                      }]],
+                      invs
+                    ]
+                  }, 1],
+                  {BoxForm`SummaryItem[{"Invariants:", Style["none", Italic, GrayLevel[0.65]]}]}
+                ]
   },
     BoxForm`ArrangeSummaryBox[
       HybridAgent, obj,
@@ -73,23 +131,20 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
         BoxForm`SummaryItem[{"State: ",  HVAStatusDot[statusColor, curState]}],
         BoxForm`SummaryItem[{"States: ", states}]
       },
-      (* ── expandibles ───────────────────────────────────── *)
+      (* ── expandibles en árbol ──────────────────────────── *)
       Join[
+        {BoxForm`SummaryItem[{"Vars: ", varsRow}]},
+        dynTree,
+        guardTree,
+        invTree,
         {
-          BoxForm`SummaryItem[{"Vars: ",      varsRow}],
-          BoxForm`SummaryItem[{"Dynamics: ",  dynModes}]
-        },
-        dynItems,
-        {
-          BoxForm`SummaryItem[{"Guards: ",     nGuards}],
-          BoxForm`SummaryItem[{"Invariants: ", nInvs}],
-          BoxForm`SummaryItem[{"Mailbox: ",    Length[a["mailbox"]]}],
-          BoxForm`SummaryItem[{"Trace: ",      Length[a["trace"]]}]
+          BoxForm`SummaryItem[{"Mailbox: ", mailboxLen}],
+          BoxForm`SummaryItem[{"Trace: ",   traceLen}]
         }
       ],
       form
     ]
-  ];
+  ]];
 
 (* OutputForm: texto plano para WolframScript y terminales *)
 Format[HybridAgent[a_Association], OutputForm] :=
