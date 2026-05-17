@@ -521,44 +521,69 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
 (* ============================================================== *)
 
 (* MakeBoxes con BoxForm`ArrangeSummaryBox:
-   produce el panel expandible nativo de Wolfram (igual que Graph,
-   PacletObject, TimeSeries, etc.).
-   With[] evalua todos los valores ANTES de que MakeBoxes (HoldAll)
-   los congele, garantizando que ArrangeSummaryBox reciba datos ya
-   evaluados y no simbolos sin resolver. *)
+   produce el panel expandible nativo de Wolfram con estilo industrial.
+   statusColor es dinamico: verde = activo, rojo = error, gris = inactivo.
+   With[] evalua todos los valores ANTES de que MakeBoxes (HoldAll) los
+   congele, garantizando que ArrangeSummaryBox reciba datos evaluados. *)
 HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                           form : (StandardForm | TraditionalForm)] :=
   With[{
-    id        = a["id"],
-    curState  = a["currentState"],
-    states    = Row[a["states"], " | "],
-    vars      = Row[Map[ToString, a["vars"]], "  "],
-    valuation = a["valuation"],
-    nGuards   = Length[a["guards"]],
-    nMsgs     = Length[a["mailbox"]],
-    nTrace    = Length[a["trace"]]
+    id          = a["id"],
+    curState    = a["currentState"],
+    states      = Row[a["states"], " | "],
+    vars        = Row[Map[ToString, a["vars"]], "  "],
+    valuation   = a["valuation"],
+    nGuards     = Length[a["guards"]],
+    nMsgs       = Length[a["mailbox"]],
+    nTrace      = Length[a["trace"]],
+    statusColor = Which[
+      MemberQ[{"on","running","active","started","initialized"}, a["currentState"]],
+        RGBColor[0.10, 0.85, 0.35],   (* verde industrial *)
+      MemberQ[{"error","failed","crashed"}, a["currentState"]],
+        RGBColor[0.92, 0.18, 0.18],   (* rojo alerta *)
+      MemberQ[{"warn","degraded","pending"}, a["currentState"]],
+        RGBColor[1.0, 0.65, 0.0],     (* ambar advertencia *)
+      True,
+        GrayLevel[0.55]               (* gris = inactivo/off *)
+    ]
   },
     BoxForm`ArrangeSummaryBox[
       HybridAgent,
       obj,
-      (* icono: rectangulo azul con senial hibrida discreta/continua *)
+      (* ── ICONO industrial ── *)
       Graphics[
         {
-          RGBColor[0.18, 0.44, 0.82],
-          Rectangle[{0,0}, {1,1}, RoundingRadius -> 0.18],
-          White, Thickness[0.07],
-          Line[{{0.12,0.45},{0.35,0.45},{0.35,0.72},{0.65,0.72},{0.65,0.45},{0.88,0.45}}],
-          PointSize[0.14], Point[{0.12,0.45}], Point[{0.88,0.45}]
+          (* fondo oscuro industrial *)
+          GrayLevel[0.10],
+          Rectangle[{0,0},{1,1}, RoundingRadius -> 0.14],
+          (* borde con acento cian *)
+          EdgeForm[{Thickness[0.045], RGBColor[0.0, 0.78, 0.60]}],
+          FaceForm[None],
+          Rectangle[{0.03,0.03},{0.97,0.97}, RoundingRadius -> 0.12],
+          (* señal hibrida: escalon discreto + linea continua en cian *)
+          RGBColor[0.0, 0.82, 0.62], Thickness[0.062],
+          Line[{{0.10,0.38},{0.30,0.38},{0.30,0.66},{0.70,0.66},{0.70,0.38},{0.90,0.38}}],
+          PointSize[0.10],
+          Point[{0.10,0.38}], Point[{0.90,0.38}],
+          (* circulo de status en esquina inferior derecha *)
+          statusColor,
+          Disk[{0.78, 0.22}, 0.13],
+          (* borde blanco fino alrededor del status dot *)
+          EdgeForm[{Thickness[0.03], White}],
+          FaceForm[None],
+          Disk[{0.78, 0.22}, 0.13]
         },
-        ImageSize -> 35, Background -> None, PlotRangePadding -> 0.12
+        ImageSize -> 40, Background -> None, PlotRangePadding -> 0.08
       ],
-      (* filas siempre visibles *)
+      (* ── filas siempre visibles ── *)
       {
-        BoxForm`SummaryItem[{"ID: ",      id}],
-        BoxForm`SummaryItem[{"State: ",   curState}],
-        BoxForm`SummaryItem[{"States: ",  states}]
+        BoxForm`SummaryItem[{"ID: ",     id}],
+        BoxForm`SummaryItem[{"State: ",
+          Row[{Style["\[FilledCircle]", statusColor, 11], "  ", curState}]
+        }],
+        BoxForm`SummaryItem[{"States: ", states}]
       },
-      (* filas expandibles (click en el triangulo ▶) *)
+      (* ── filas expandibles ▶ ── *)
       {
         BoxForm`SummaryItem[{"Vars: ",      vars}],
         BoxForm`SummaryItem[{"Valuation: ", valuation}],
