@@ -34,6 +34,10 @@ BeginPackage[
 
 Begin["`Private`"]
 
+(* HybridAgent esta Protect-ido en Core; lo desprotegemos solo el tiempo
+   necesario para instalar el UpValue MakeBoxes y Format, luego re-protegemos. *)
+Unprotect[HybridAgent];
+
 (* ── Panel expandible: icono + resumen + seccion +/- ── *)
 HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                           form : (StandardForm | TraditionalForm)] :=
@@ -84,6 +88,8 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
 (* OutputForm: texto plano para WolframScript y terminales *)
 Format[HybridAgent[a_Association], OutputForm] :=
   SequenceForm["HybridAgent[\"", a["id"], "\" @ ", a["currentState"], "]"];
+
+Protect[HybridAgent];
 
 End[]
 EndPackage[]
