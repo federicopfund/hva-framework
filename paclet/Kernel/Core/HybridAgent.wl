@@ -533,66 +533,61 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     states      = Row[a["states"], " | "],
     vars        = Row[Map[ToString, a["vars"]], "  "],
     valuation   = a["valuation"],
+    dynamics    = a["dynamics"],
     nGuards     = Length[a["guards"]],
     nMsgs       = Length[a["mailbox"]],
     nTrace      = Length[a["trace"]],
     statusColor = Which[
       MemberQ[{"on","running","active","started","initialized"}, a["currentState"]],
-        RGBColor[0.10, 0.85, 0.35],   (* verde industrial *)
+        RGBColor[0.10, 0.85, 0.35],
       MemberQ[{"error","failed","crashed"}, a["currentState"]],
-        RGBColor[0.92, 0.18, 0.18],   (* rojo alerta *)
+        RGBColor[0.92, 0.18, 0.18],
       MemberQ[{"warn","degraded","pending"}, a["currentState"]],
-        RGBColor[1.0, 0.65, 0.0],     (* ambar advertencia *)
+        RGBColor[1.0, 0.65, 0.0],
       True,
-        GrayLevel[0.55]               (* gris = inactivo/off *)
+        GrayLevel[0.55]
     ]
   },
     BoxForm`ArrangeSummaryBox[
       HybridAgent,
       obj,
-      (* ── ICONO: silueta de agente sobre fondo industrial ── *)
+      (* ── ICONO: cara de agente AI ── *)
       Graphics[
         {
-          (* fondo oscuro industrial *)
-          GrayLevel[0.08],
-          Rectangle[{0,0},{1,1}, RoundingRadius -> 0.16],
-          (* borde exterior sutil *)
-          EdgeForm[{Thickness[0.022], GrayLevel[0.28]}],
-          FaceForm[None],
-          Rectangle[{0.02,0.02},{0.98,0.98}, RoundingRadius -> 0.15],
-          (* cabeza del agente - circulo lleno *)
-          RGBColor[0.12, 0.72, 0.62],
-          Disk[{0.50, 0.68}, 0.19],
-          (* cuerpo - arco de hombros *)
-          Thickness[0.07],
-          RGBColor[0.12, 0.72, 0.62],
-          Circle[{0.50, 0.26}, 0.27, {0.22 Pi, 0.78 Pi}],
-          (* antena / sensor (detalle industrial) *)
-          Thickness[0.04],
-          RGBColor[0.12, 0.72, 0.62],
-          Line[{{0.50, 0.87},{0.50, 0.96}}],
-          PointSize[0.07], Point[{0.50, 0.97}],
-          (* status dot con borde blanco - esquina inferior derecha *)
-          statusColor,
-          Disk[{0.80, 0.20}, 0.13],
-          EdgeForm[{Thickness[0.028], White}],
-          FaceForm[statusColor],
-          Disk[{0.80, 0.20}, 0.13]
+          (* fondo negro *)
+          GrayLevel[0.06],
+          Rectangle[{0,0},{1,1}, RoundingRadius -> 0.18],
+          (* ojo izquierdo: anillo teal + pupila oscura *)
+          RGBColor[0.10, 0.75, 0.62], Disk[{0.32, 0.60}, 0.155],
+          GrayLevel[0.06],            Disk[{0.32, 0.60}, 0.072],
+          (* ojo derecho *)
+          RGBColor[0.10, 0.75, 0.62], Disk[{0.68, 0.60}, 0.155],
+          GrayLevel[0.06],            Disk[{0.68, 0.60}, 0.072],
+          (* barra boca / interfaz *)
+          RGBColor[0.10, 0.75, 0.62], Thickness[0.065],
+          CapForm["Round"],
+          Line[{{0.27, 0.30},{0.73, 0.30}}],
+          (* detalle: linea horizontal sobre los ojos (visera/HUD) *)
+          GrayLevel[0.30], Thickness[0.030],
+          Line[{{0.10, 0.82},{0.90, 0.82}}],
+          (* status dot con borde blanco *)
+          statusColor, Disk[{0.82, 0.18}, 0.12],
+          EdgeForm[{Thickness[0.026], White}],
+          FaceForm[statusColor], Disk[{0.82, 0.18}, 0.12]
         },
-        ImageSize -> 40, Background -> None, PlotRangePadding -> 0.06
+        ImageSize -> 42, Background -> None, PlotRangePadding -> 0.05
       ],
       (* ── filas siempre visibles ── *)
       {
-        BoxForm`SummaryItem[{"ID: ",     id}],
-        BoxForm`SummaryItem[{"State: ",
-          Row[{Style["\[FilledCircle]", statusColor, 11], "  ", curState}]
-        }],
+        BoxForm`SummaryItem[{"ID: ",    id}],
+        BoxForm`SummaryItem[{"State: ", Row[{Style["\[FilledCircle]", statusColor, 11], "  ", curState}]}],
         BoxForm`SummaryItem[{"States: ", states}]
       },
       (* ── filas expandibles ▶ ── *)
       {
         BoxForm`SummaryItem[{"Vars: ",      vars}],
         BoxForm`SummaryItem[{"Valuation: ", valuation}],
+        BoxForm`SummaryItem[{"Dynamics: ",  dynamics}],
         BoxForm`SummaryItem[{"Guards: ",    nGuards}],
         BoxForm`SummaryItem[{"Mailbox: ",   nMsgs}],
         BoxForm`SummaryItem[{"Trace: ",     nTrace}]
