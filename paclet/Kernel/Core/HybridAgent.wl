@@ -517,94 +517,18 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
   |>];
 
 (* ============================================================== *)
-(* FORMATO (D11)                                                  *)
+(* FORMATO (D11)  →  delegado a FrontEnd                         *)
 (* ============================================================== *)
 
-(* MakeBoxes con BoxForm`ArrangeSummaryBox:
-   produce el panel expandible nativo de Wolfram con estilo industrial.
-   statusColor es dinamico: verde = activo, rojo = error, gris = inactivo.
-   With[] evalua todos los valores ANTES de que MakeBoxes (HoldAll) los
-   congele, garantizando que ArrangeSummaryBox reciba datos evaluados. *)
-HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
-                          form : (StandardForm | TraditionalForm)] :=
-  With[{
-    id          = a["id"],
-    curState    = a["currentState"],
-    states      = Row[a["states"], " | "],
-    statusColor = Which[
-      MemberQ[{"on","running","active","started","initialized"}, a["currentState"]],
-        RGBColor[0.10, 0.85, 0.35],
-      MemberQ[{"error","failed","crashed"}, a["currentState"]],
-        RGBColor[0.92, 0.18, 0.18],
-      MemberQ[{"warn","degraded","pending"}, a["currentState"]],
-        RGBColor[1.0, 0.65, 0.0],
-      True,
-        GrayLevel[0.55]
-    ],
-    (* expandable: vars + valuation + cabecera dynamics + un item por modo *)
-    expandedRows = Join[
-      {
-        BoxForm`SummaryItem[{"Vars: ",
-          Row[Map[ToString, a["vars"]], "  "]}],
-        BoxForm`SummaryItem[{"Valuation: ", a["valuation"]}],
-        BoxForm`SummaryItem[{
-          Style["Dynamics \[LongDash] " <> ToString[Length[a["dynamics"]]] <> " modes",
-                GrayLevel[0.45], Italic, 9],
-          ""}]
-      },
-      (* un SummaryItem por cada modo de dynamics *)
-      KeyValueMap[
-        BoxForm`SummaryItem[{
-          Row[{Style["  \[FilledRightTriangle] ", RGBColor[0.10,0.75,0.62], 10],
-               Style[#1 <> ": ", Bold, RGBColor[0.10,0.75,0.62], 9]}],
-          Column[Map[TraditionalForm, #2], Spacings -> 0.15]
-        }] &,
-        a["dynamics"]
-      ],
-      {
-        BoxForm`SummaryItem[{"Guards: ",  Length[a["guards"]]}],
-        BoxForm`SummaryItem[{"Mailbox: ", Length[a["mailbox"]]}],
-        BoxForm`SummaryItem[{"Trace: ",   Length[a["trace"]]}]
-      }
-    ]
-  },
-    BoxForm`ArrangeSummaryBox[
-      HybridAgent,
-      obj,
-      (* ── ICONO: cara de agente AI ── *)
-      Graphics[
-        {
-          GrayLevel[0.06],
-          Rectangle[{0,0},{1,1}, RoundingRadius -> 0.18],
-          RGBColor[0.10, 0.75, 0.62], Disk[{0.32, 0.60}, 0.155],
-          GrayLevel[0.06],            Disk[{0.32, 0.60}, 0.072],
-          RGBColor[0.10, 0.75, 0.62], Disk[{0.68, 0.60}, 0.155],
-          GrayLevel[0.06],            Disk[{0.68, 0.60}, 0.072],
-          RGBColor[0.10, 0.75, 0.62], Thickness[0.065], CapForm["Round"],
-          Line[{{0.27,0.30},{0.73,0.30}}],
-          GrayLevel[0.30], Thickness[0.030],
-          Line[{{0.10,0.82},{0.90,0.82}}],
-          statusColor, Disk[{0.82,0.18},0.12],
-          EdgeForm[{Thickness[0.026], White}],
-          FaceForm[statusColor], Disk[{0.82,0.18},0.12]
-        },
-        ImageSize -> 42, Background -> None, PlotRangePadding -> 0.05
-      ],
-      (* ── siempre visibles ── *)
-      {
-        BoxForm`SummaryItem[{"ID: ",     id}],
-        BoxForm`SummaryItem[{"State: ",  Row[{Style["\[FilledCircle]", statusColor, 11], "  ", curState}]}],
-        BoxForm`SummaryItem[{"States: ", states}]
-      },
-      (* ── expandibles con el boton + / - ── *)
-      expandedRows,
-      form
-    ]
-  ];
-
-(* OutputForm / texto puro (WolframScript, terminales) *)
-Format[HybridAgent[a_Association], OutputForm] :=
-  SequenceForm["HybridAgent[\"", a["id"], "\" @ ", a["currentState"], "]"];
+(* Las reglas MakeBoxes y Format para HybridAgent se encuentran en:
+     Kernel/FrontEnd/TypesetRules/HybridAgentDisplay.wl
+   Cargadas via:
+     HVA`FrontEnd` -> LoadFrontEnd[] -> LoadTypesetRules[]
+   Separacion de responsabilidades:
+     Core/HybridAgent.wl  -> constructor, accessors, logica (sin display)
+     FrontEnd/Styles/     -> paleta y tipografia
+     FrontEnd/Icons/      -> graficos de iconos
+     FrontEnd/TypesetRules/ -> UpValues MakeBoxes por tipo de objeto *)
 
 (* ============================================================== *)
 (* PROTECCION (D9)                                                *)
