@@ -520,11 +520,11 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
 (* FORMATO (D11)                                                  *)
 (* ============================================================== *)
 
-(* MakeBoxes con BoxForm`ArrangeSummaryBox:
-   produce el panel expandible nativo de Wolfram con estilo industrial.
-   statusColor es dinamico: verde = activo, rojo = error, gris = inactivo.
-   With[] evalua todos los valores ANTES de que MakeBoxes (HoldAll) los
-   congele, garantizando que ArrangeSummaryBox reciba datos evaluados. *)
+(* Panel interactivo con DynamicModule: soporta OpenerView por modo en Cloud.
+   Interpretation[DynamicModule[...], obj] wrappea el display custom y conserva
+   la identidad del objeto HybridAgent.
+   With[] evalua id/statusColor/icon ANTES de que MakeBoxes (HoldAll) los
+   congele; DynamicModule gestiona el estado open/closed en el frontend. *)
 HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                           form : (StandardForm | TraditionalForm)] :=
   With[{
@@ -541,66 +541,101 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
       True,
         GrayLevel[0.55]
     ],
-    (* expandable: vars + valuation + cabecera dynamics + un item por modo *)
-    expandedRows = Join[
+    icon = Graphics[
       {
-        BoxForm`SummaryItem[{"Vars: ",
-          Row[Map[ToString, a["vars"]], "  "]}],
-        BoxForm`SummaryItem[{"Valuation: ", a["valuation"]}],
-        BoxForm`SummaryItem[{
-          Style["Dynamics \[LongDash] " <> ToString[Length[a["dynamics"]]] <> " modes",
-                GrayLevel[0.45], Italic, 9],
-          ""}]
+        GrayLevel[0.06],
+        Rectangle[{0,0},{1,1}, RoundingRadius -> 0.18],
+        RGBColor[0.10,0.75,0.62], Disk[{0.32,0.60},0.155],
+        GrayLevel[0.06],           Disk[{0.32,0.60},0.072],
+        RGBColor[0.10,0.75,0.62], Disk[{0.68,0.60},0.155],
+        GrayLevel[0.06],           Disk[{0.68,0.60},0.072],
+        RGBColor[0.10,0.75,0.62], Thickness[0.065], CapForm["Round"],
+        Line[{{0.27,0.30},{0.73,0.30}}],
+        GrayLevel[0.30], Thickness[0.030],
+        Line[{{0.10,0.82},{0.90,0.82}}],
+        statusColor, Disk[{0.82,0.18},0.12],
+        EdgeForm[{Thickness[0.026], White}],
+        FaceForm[statusColor], Disk[{0.82,0.18},0.12]
       },
-      (* un SummaryItem por cada modo de dynamics *)
-      KeyValueMap[
-        BoxForm`SummaryItem[{
-          Row[{Style["  \[FilledRightTriangle] ", RGBColor[0.10,0.75,0.62], 10],
-               Style[#1 <> ": ", Bold, RGBColor[0.10,0.75,0.62], 9]}],
-          Column[Map[TraditionalForm, #2], Spacings -> 0.15]
-        }] &,
-        a["dynamics"]
-      ],
-      {
-        BoxForm`SummaryItem[{"Guards: ",  Length[a["guards"]]}],
-        BoxForm`SummaryItem[{"Mailbox: ", Length[a["mailbox"]]}],
-        BoxForm`SummaryItem[{"Trace: ",   Length[a["trace"]]}]
-      }
-    ]
+      ImageSize -> 42, Background -> None, PlotRangePadding -> 0.05
+    ],
+    dynModes  = a["dynamics"],
+    varsRow   = Row[Map[ToString, a["vars"]], "  "],
+    valuation = a["valuation"],
+    nguards   = Length[a["guards"]],
+    nmailbox  = Length[a["mailbox"]],
+    ntrace    = Length[a["trace"]]
   },
-    BoxForm`ArrangeSummaryBox[
-      HybridAgent,
-      obj,
-      (* ── ICONO: cara de agente AI ── *)
-      Graphics[
-        {
-          GrayLevel[0.06],
-          Rectangle[{0,0},{1,1}, RoundingRadius -> 0.18],
-          RGBColor[0.10, 0.75, 0.62], Disk[{0.32, 0.60}, 0.155],
-          GrayLevel[0.06],            Disk[{0.32, 0.60}, 0.072],
-          RGBColor[0.10, 0.75, 0.62], Disk[{0.68, 0.60}, 0.155],
-          GrayLevel[0.06],            Disk[{0.68, 0.60}, 0.072],
-          RGBColor[0.10, 0.75, 0.62], Thickness[0.065], CapForm["Round"],
-          Line[{{0.27,0.30},{0.73,0.30}}],
-          GrayLevel[0.30], Thickness[0.030],
-          Line[{{0.10,0.82},{0.90,0.82}}],
-          statusColor, Disk[{0.82,0.18},0.12],
-          EdgeForm[{Thickness[0.026], White}],
-          FaceForm[statusColor], Disk[{0.82,0.18},0.12]
-        },
-        ImageSize -> 42, Background -> None, PlotRangePadding -> 0.05
+  ToBoxes[
+    Interpretation[
+      DynamicModule[{open = False},
+        Framed[
+          Row[{
+            icon,
+            Spacer[6],
+            Column[{
+              (* ── cabecera siempre visible ── *)
+              Row[{
+                Style["HybridAgent  ", GrayLevel[0.45], 9],
+                Style[id, Bold, 9],
+                Spacer[8],
+                Button[
+                  Dynamic[Style[If[open, " \[FilledUpTriangle] ", " \[FilledDownTriangle] "],
+                               GrayLevel[0.5], 9]],
+                  open = !open,
+                  Appearance -> "Frameless"
+                ]
+              }],
+              Row[{Style["State:  ", GrayLevel[0.5], 9],
+                   Style["\[FilledCircle]", statusColor, 10],
+                   "  ", Style[curState, 9]}],
+              Row[{Style["States: ", GrayLevel[0.5], 9], Style[states, 9]}],
+              (* ── seccion expandible: se muestra solo cuando open=True ── *)
+              Dynamic[If[open,
+                Column[{
+                  Pane["", ImageSize -> {160, 1}, Background -> GrayLevel[0.85]],
+                  Row[{Style["Vars:      ", GrayLevel[0.5], 9], Style[varsRow, 9]}],
+                  Row[{Style["Valuation: ", GrayLevel[0.5], 9], valuation}],
+                  Style[
+                    "Dynamics \[LongDash] " <> ToString[Length[dynModes]] <> " modes",
+                    GrayLevel[0.45], Italic, 9
+                  ],
+                  (* ── un OpenerView por cada modo de dynamics ── *)
+                  Column[
+                    KeyValueMap[Function[{mode, eqs},
+                      OpenerView[{
+                        Row[{
+                          Style["\[FilledRightTriangle]  ", RGBColor[0.10,0.75,0.62], 10],
+                          Style[mode, Bold, RGBColor[0.10,0.75,0.62], 9]
+                        }],
+                        Framed[
+                          Column[Map[TraditionalForm, eqs], Spacings -> 0.3],
+                          FrameStyle -> None,
+                          FrameMargins -> {{14, 0}, {2, 2}}
+                        ]
+                      }, False]
+                    ], dynModes],
+                    Spacings -> 0.3
+                  ],
+                  Row[{Style["Guards:  ", GrayLevel[0.5], 9], nguards}],
+                  Row[{Style["Mailbox: ", GrayLevel[0.5], 9], nmailbox}],
+                  Row[{Style["Trace:   ", GrayLevel[0.5], 9], ntrace}]
+                }, Spacings -> 0.35],
+                Nothing
+              ]]
+            }, Spacings -> 0.3]
+          }],
+          FrameStyle   -> GrayLevel[0.82],
+          Background   -> GrayLevel[0.975],
+          RoundingRadius -> 5,
+          FrameMargins -> {{8, 8}, {6, 6}}
+        ]
       ],
-      (* ── siempre visibles ── *)
-      {
-        BoxForm`SummaryItem[{"ID: ",     id}],
-        BoxForm`SummaryItem[{"State: ",  Row[{Style["\[FilledCircle]", statusColor, 11], "  ", curState}]}],
-        BoxForm`SummaryItem[{"States: ", states}]
-      },
-      (* ── expandibles con el boton + / - ── *)
-      expandedRows,
-      form
-    ]
-  ];
+      obj
+    ],
+    form
+  ]
+];
 
 (* OutputForm / texto puro (WolframScript, terminales) *)
 Format[HybridAgent[a_Association], OutputForm] :=
