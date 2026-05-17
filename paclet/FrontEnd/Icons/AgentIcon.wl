@@ -35,7 +35,7 @@ HybridAgentIcon[statusColor_] :=
       EdgeForm[{Thickness[0.026], White}],
       FaceForm[statusColor], Disk[{0.82, 0.18}, 0.12]
     },
-    ImageSize -> 42, Background -> None, PlotRangePadding -> 0.05
+    ImageSize -> 38, Background -> None, PlotRangePadding -> None
   ]
 
 End[]

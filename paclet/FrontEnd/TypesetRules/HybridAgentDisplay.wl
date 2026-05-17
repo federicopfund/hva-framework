@@ -38,7 +38,7 @@ Begin["`Private`"]
    necesario para instalar el UpValue MakeBoxes y Format, luego re-protegemos. *)
 Unprotect[HybridAgent];
 
-(* ── Panel expandible: icono + resumen + seccion +/- ── *)
+(* ── Panel expandible: icono + resumen + sección +/- ── *)
 HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                           form : (StandardForm | TraditionalForm)] :=
   With[{
@@ -46,41 +46,47 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     curState    = a["currentState"],
     states      = Row[a["states"], " | "],
     statusColor = HVAStatusColor[a["currentState"]],
-    expandedRows = Join[
-      {
-        BoxForm`SummaryItem[{"Vars: ",      Row[Map[ToString, a["vars"]], "  "]}],
-        BoxForm`SummaryItem[{"Valuation: ", a["valuation"]}],
-        BoxForm`SummaryItem[{
-          HVASubtitle["Dynamics \[LongDash] " <> ToString[Length[a["dynamics"]]] <> " modes"],
-          ""}]
-      },
-      (* un SummaryItem por modo de dynamics *)
-      KeyValueMap[
-        BoxForm`SummaryItem[{
-          Row[{Style["  \[FilledRightTriangle] ", HVABrandTeal, 10],
-               HVAModeLabel[#1 <> ": "]}],
-          Column[Map[TraditionalForm, #2], Spacings -> 0.15]
-        }] &,
-        a["dynamics"]
-      ],
-      {
-        BoxForm`SummaryItem[{"Guards: ",  Length[a["guards"]]}],
-        BoxForm`SummaryItem[{"Mailbox: ", Length[a["mailbox"]]}],
-        BoxForm`SummaryItem[{"Trace: ",   Length[a["trace"]]}]
-      }
-    ]
+    (* vars: lista de símbolos separados por coma, o "none" en itálica *)
+    varsRow     = If[Length[a["vars"]] > 0,
+                   Row[Map[ToString, a["vars"]], ", "],
+                   Style["none", Italic, GrayLevel[0.65]]],
+    (* resumen de modos de dynamics para la fila siempre visible *)
+    dynModes    = Row[Keys[a["dynamics"]], " | "],
+    (* conteos con Lookup para tolerancia frente a claves ausentes *)
+    nGuards     = Length[Lookup[a, "guards",     {}]],
+    nInvs       = Length[Lookup[a, "invariants", {}]],
+    (* un SummaryItem por modo — label en HVAModeLabel, valor en ecuaciones *)
+    dynItems    = KeyValueMap[
+                    BoxForm`SummaryItem[{
+                      HVAModeLabel[#1],
+                      Column[Map[TraditionalForm, #2], Spacings -> 0.15]
+                    }] &,
+                    a["dynamics"]
+                  ]
   },
     BoxForm`ArrangeSummaryBox[
       HybridAgent, obj,
       HybridAgentIcon[statusColor],
-      (* siempre visibles *)
+      (* ── siempre visibles ──────────────────────────────── *)
       {
         BoxForm`SummaryItem[{"ID: ",     id}],
         BoxForm`SummaryItem[{"State: ",  HVAStatusDot[statusColor, curState]}],
         BoxForm`SummaryItem[{"States: ", states}]
       },
-      (* expandibles con +/- *)
-      expandedRows,
+      (* ── expandibles ───────────────────────────────────── *)
+      Join[
+        {
+          BoxForm`SummaryItem[{"Vars: ",      varsRow}],
+          BoxForm`SummaryItem[{"Dynamics: ",  dynModes}]
+        },
+        dynItems,
+        {
+          BoxForm`SummaryItem[{"Guards: ",     nGuards}],
+          BoxForm`SummaryItem[{"Invariants: ", nInvs}],
+          BoxForm`SummaryItem[{"Mailbox: ",    Length[a["mailbox"]]}],
+          BoxForm`SummaryItem[{"Trace: ",      Length[a["trace"]]}]
+        }
+      ],
       form
     ]
   ];
