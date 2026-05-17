@@ -520,46 +520,59 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
 (* FORMATO (D11)                                                  *)
 (* ============================================================== *)
 
-(* StandardForm: panel con Framed+Grid portable en Wolfram Cloud y Desktop.
-   Interpretation[] preserva la identidad del objeto para copia/paste. *)
-Format[HybridAgent[a_Association], StandardForm] :=
-  Interpretation[
-    Framed[
-      Column[{
-        Row[{
-          Style["HybridAgent", Bold, 13, RGBColor[0.18, 0.44, 0.82]],
-          "  ",
-          Style["\[FilledSmallCircle] " <> a["id"],
-                Italic, 12, RGBColor[0.3, 0.3, 0.3]]
-        }],
-        Sequence @@ {RGBColor[0.18, 0.44, 0.82]},
-        Grid[{
-          {Style["state",    GrayLevel[0.5], 9], Style[a["currentState"], Bold]},
-          {Style["states",   GrayLevel[0.5], 9], Row[a["states"], " | "]},
-          {Style["vars",     GrayLevel[0.5], 9], Row[Map[HoldForm @@ {#} &, a["vars"]], "  "]},
-          {Style["valuation",GrayLevel[0.5], 9], a["valuation"]},
-          {Style["guards",   GrayLevel[0.5], 9], Length[a["guards"]]},
-          {Style["mailbox",  GrayLevel[0.5], 9], Length[a["mailbox"]]},
-          {Style["trace",    GrayLevel[0.5], 9], Length[a["trace"]]}
+(* MakeBoxes con BoxForm`ArrangeSummaryBox:
+   produce el panel expandible nativo de Wolfram (igual que Graph,
+   PacletObject, TimeSeries, etc.).
+   With[] evalua todos los valores ANTES de que MakeBoxes (HoldAll)
+   los congele, garantizando que ArrangeSummaryBox reciba datos ya
+   evaluados y no simbolos sin resolver. *)
+HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
+                          form : (StandardForm | TraditionalForm)] :=
+  With[{
+    id        = a["id"],
+    curState  = a["currentState"],
+    states    = Row[a["states"], " | "],
+    vars      = Row[Map[ToString, a["vars"]], "  "],
+    valuation = a["valuation"],
+    nGuards   = Length[a["guards"]],
+    nMsgs     = Length[a["mailbox"]],
+    nTrace    = Length[a["trace"]]
+  },
+    BoxForm`ArrangeSummaryBox[
+      HybridAgent,
+      obj,
+      (* icono: rectangulo azul con senial hibrida discreta/continua *)
+      Graphics[
+        {
+          RGBColor[0.18, 0.44, 0.82],
+          Rectangle[{0,0}, {1,1}, RoundingRadius -> 0.18],
+          White, Thickness[0.07],
+          Line[{{0.12,0.45},{0.35,0.45},{0.35,0.72},{0.65,0.72},{0.65,0.45},{0.88,0.45}}],
+          PointSize[0.14], Point[{0.12,0.45}], Point[{0.88,0.45}]
         },
-          Alignment -> {{Left, Left}, Center},
-          Spacings  -> {1, 0.35},
-          Dividers  -> None
-        ]
-      }, Spacings -> 0.5],
-      Background    -> RGBColor[0.96, 0.97, 1.0],
-      FrameStyle    -> RGBColor[0.18, 0.44, 0.82],
-      RoundingRadius -> 5,
-      FrameMargins  -> {{10, 10}, {6, 6}}
-    ],
-    HybridAgent[a]
+        ImageSize -> 35, Background -> None, PlotRangePadding -> 0.12
+      ],
+      (* filas siempre visibles *)
+      {
+        BoxForm`SummaryItem[{"ID: ",      id}],
+        BoxForm`SummaryItem[{"State: ",   curState}],
+        BoxForm`SummaryItem[{"States: ",  states}]
+      },
+      (* filas expandibles (click en el triangulo ▶) *)
+      {
+        BoxForm`SummaryItem[{"Vars: ",      vars}],
+        BoxForm`SummaryItem[{"Valuation: ", valuation}],
+        BoxForm`SummaryItem[{"Guards: ",    nGuards}],
+        BoxForm`SummaryItem[{"Mailbox: ",   nMsgs}],
+        BoxForm`SummaryItem[{"Trace: ",     nTrace}]
+      },
+      form
+    ]
   ];
 
-(* OutputForm / texto puro *)
+(* OutputForm / texto puro (WolframScript, terminales) *)
 Format[HybridAgent[a_Association], OutputForm] :=
-  SequenceForm[
-    "HybridAgent[\"", a["id"], "\" @ ", a["currentState"], "]"
-  ];
+  SequenceForm["HybridAgent[\"", a["id"], "\" @ ", a["currentState"], "]"];
 
 (* ============================================================== *)
 (* PROTECCION (D9)                                                *)
