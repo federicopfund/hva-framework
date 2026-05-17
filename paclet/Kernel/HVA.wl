@@ -20,8 +20,8 @@ LoadHVA[] := Module[{},
   Get[FileNameJoin[{DirectoryName[$InputFileName], "Services",   "Services.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "Adapters",   "Adapters.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "DSL",        "DSL.wl"}]];
-  (* FrontEnd se carga ultimo: depende de Core para instalar UpValues *)
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "FrontEnd",   "FrontEnd.wl"}]];
+  (* FrontEnd esta a la altura de Kernel/; subimos un nivel con DirectoryName anidado *)
+  Get[FileNameJoin[{DirectoryName[DirectoryName[$InputFileName]], "FrontEnd", "FrontEnd.wl"}]];
 ];
 
 (* TODO: implementar en ISSUE-XXXX *)

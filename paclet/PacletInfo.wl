@@ -6,7 +6,8 @@ PacletObject[
     "Creator" -> "HVA Maintainer (placeholder)",
     "Description" -> "Hybrid Verifiable Agents paclet scaffold.",
     "Extensions" -> {
-      {"Kernel", "Root" -> "Kernel", "Context" -> {"HVA`"}}
+      {"Kernel", "Root" -> "Kernel",   "Context" -> {"HVA`"}},
+      {"Kernel", "Root" -> "FrontEnd", "Context" -> {"HVA`FrontEnd`"}}
     }
   |>
 ]
