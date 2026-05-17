@@ -16,12 +16,15 @@ HVAStatusDot::usage = "HVAStatusDot[statusColor, state] fila de estado con punto
 
 Begin["`Private`"]
 
-HVALabel[text_]     := Style[text, GrayLevel[0.5], 9]
-HVAValue[expr_]     := Style[expr, 9]
-HVAModeLabel[text_] := Style[text, Bold, HVABrandTeal, 9]
-HVASubtitle[text_]  := Style[text, GrayLevel[0.45], Italic, 9]
+(* Labels en gris plano — igual que el estilo nativo de BoxForm`SummaryItem *)
+HVALabel[text_]     := Style[text, GrayLevel[0.5]]
+HVAValue[expr_]     := expr
+(* HVAModeLabel: gris plano (no teal/bold) para ser consistente con Workflow *)
+HVAModeLabel[text_] := Style[text, GrayLevel[0.5]]
+HVASubtitle[text_]  := Style[text, GrayLevel[0.45], Italic]
+(* HVAStatusDot: tamaño por defecto del FrontEnd, sin pt forzado *)
 HVAStatusDot[statusColor_, state_] :=
-  Row[{Style["\[FilledCircle]", statusColor, 10], " ", Style[state, 9]}]
+  Row[{Style["\[FilledCircle]", statusColor], " ", state}]
 
 End[]
 EndPackage[]

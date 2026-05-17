@@ -55,11 +55,11 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     (* conteos con Lookup para tolerancia frente a claves ausentes *)
     nGuards     = Length[Lookup[a, "guards",     {}]],
     nInvs       = Length[Lookup[a, "invariants", {}]],
-    (* un SummaryItem por modo — label en HVAModeLabel, valor en ecuaciones *)
+    (* un SummaryItem por modo — label gris plano, ecuaciones en TraditionalForm *)
     dynItems    = KeyValueMap[
                     BoxForm`SummaryItem[{
-                      HVAModeLabel[#1],
-                      Column[Map[TraditionalForm, #2], Spacings -> 0.15]
+                      HVAModeLabel[#1 <> ": "],
+                      Column[Map[TraditionalForm, #2], Spacings -> 0.2]
                     }] &,
                     a["dynamics"]
                   ]
