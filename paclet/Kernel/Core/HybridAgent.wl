@@ -533,10 +533,31 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     states      = Row[a["states"], " | "],
     vars        = Row[Map[ToString, a["vars"]], "  "],
     valuation   = a["valuation"],
-    dynamics    = a["dynamics"],
     nGuards     = Length[a["guards"]],
     nMsgs       = Length[a["mailbox"]],
     nTrace      = Length[a["trace"]],
+    dynamicsView = OpenerView[
+      {
+        Style[
+          Row[{"\[RightTriangle] ", Length[a["dynamics"]], " modes"}],
+          GrayLevel[0.45], 9
+        ],
+        Grid[
+          KeyValueMap[
+            {
+              Style[#1, Bold, RGBColor[0.10, 0.75, 0.62], 9],
+              Column[Map[TraditionalForm, #2], Spacings -> 0.15]
+            } &,
+            a["dynamics"]
+          ],
+          Alignment  -> {{Right, Left}, Center},
+          Spacings   -> {1, 0.45},
+          FrameStyle -> GrayLevel[0.85],
+          Dividers   -> {False, {2 -> GrayLevel[0.9]}}
+        ]
+      },
+      False
+    ],
     statusColor = Which[
       MemberQ[{"on","running","active","started","initialized"}, a["currentState"]],
         RGBColor[0.10, 0.85, 0.35],
@@ -587,7 +608,7 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
       {
         BoxForm`SummaryItem[{"Vars: ",      vars}],
         BoxForm`SummaryItem[{"Valuation: ", valuation}],
-        BoxForm`SummaryItem[{"Dynamics: ",  dynamics}],
+        BoxForm`SummaryItem[{"Dynamics: ",  dynamicsView}],
         BoxForm`SummaryItem[{"Guards: ",    nGuards}],
         BoxForm`SummaryItem[{"Mailbox: ",   nMsgs}],
         BoxForm`SummaryItem[{"Trace: ",     nTrace}]
