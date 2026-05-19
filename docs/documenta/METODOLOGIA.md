@@ -208,6 +208,19 @@ Contract[<|
  
 Los comentarios de diseño van en español rioplatense. Los nombres de funciones Wolfram nativas y de símbolos del framework van en inglés siempre (`NDSolve`, `Resolve`, `WhenEvent`, `HybridAgent`, `AgentStates`). No se traducen.
  
+#### Glosario canónico del espacio de nombres
+ 
+El framework mantiene un glosario de términos semánticos que se irá ampliando a lo largo del desarrollo. Todo símbolo público del paclet cuyo nombre pueda derivarse de un concepto del formalismo **DEBE** usar la terminología de este glosario. La sección 5.7 de la spec fija el idioma (inglés); este documento fija el vocabulario semántico.
+ 
+Las reglas de uso son:
+ 
+1. **Derivación directa** — si el concepto aparece nombrado en FORM o SPEC, el símbolo Wolfram usa esa misma palabra (e.g., `GuardViolation`, `Contract`, `HybridAgent`).
+2. **Derivación compuesta** — combinaciones de términos del glosario se forman en CamelCase sin separadores (e.g., `AgentValuation`, `PowerRequest`).
+3. **Términos nuevos** — si un concepto no está en el glosario, se propone el nombre en la fase de diseño (§ 6.3) y se registra en el glosario antes de fusionar el módulo.
+4. **Prohibición de sinónimos ad-hoc** — no se introducen sinónimos locales de términos ya registrados en el glosario; la coherencia semántica entre módulos depende de esta restricción.
+ 
+El glosario canónico se mantiene en `docs/documenta/GLOSARIO.md` y es parte del contrato de interfaz pública del paclet.
+ 
 ## 6. Protocolo de sesión
  
 Cada sesión de trabajo (humano o agente) sigue cinco fases. El protocolo es repetible y produce un cierre estructurado verificable.
@@ -220,7 +233,7 @@ Identificar issue, capa, módulo y dependencias ascendentes ya implementadas. Un
  
 Antes de escribir código:
  
-1. `project_knowledge_search` sobre SPEC (sección del módulo) y FORM (definición/teorema/anexo asociado).
+1. `project_knowledge_search` sobre SPEC (sección del módulo), `SPEC_TECNICA.md` (detalles técnicos del módulo) y FORM (definición/teorema/anexo asociado).
 2. Si el módulo existe, `view` del archivo actual antes de editar.
 3. Si el módulo es nuevo, `view` del inicializador de capa correspondiente para saber cómo registrarlo.
 La salida es cita textual (no parafraseada) de la spec y del formalismo, más el estado actual del archivo o de la capa.
