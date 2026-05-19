@@ -4,6 +4,9 @@
 (* :Summary: Motor de validacion declarativa sobre estructuras Wolfram. *)
 (* :Capa: Utilities (cross-cutting) *)
 (* :Depends: None *)
+(* :Formalismo: N/A (infraestructura) — provee motor de validacion consumido por modulos con contraparte formal *)
+(* :Spec: 4.5 ADR-002, 5.1 (schema-driven validation), 6.2 (verificacion B1-B4 en construccion) *)
+(* :Methodology: METHODOLOGY.md §5, §3.4 (excepcion de trazabilidad para Utilities) *)
 (* :Issues: CORE-0002 *)
 (* :License: MIT *)
 
@@ -34,21 +37,26 @@ ValidateStructure::usage =
   "ValidateStructure[expr, schema] valida que expr satisface el schema declarativo.\n" <>
   "Devuelve True si expr es valida, o una Association\n" <>
   "  <|\"Status\" -> \"Invalid\", \"Errors\" -> {...}|>\n" <>
-  "donde cada error es <|\"Code\" -> _, \"Path\" -> _, \"Message\" -> _|>.";
+  "donde cada error es <|\"Code\" -> _, \"Path\" -> _, \"Message\" -> _|>.\n" <>
+  "Infraestructura: sin contraparte formal directa. Consumido por HybridAgent (FORM Def. 2.1) para verificar B1-B4 en construccion.";
 
 RegisterConstraint::usage =
   "RegisterConstraint[name, fn] registra una constraint cross-field nombrada.\n" <>
   "fn recibe la Association completa y devuelve True si valida,\n" <>
-  "o una Association <|\"Code\" -> _, \"Path\" -> _, \"Message\" -> _|> si no.";
+  "o una Association <|\"Code\" -> _, \"Path\" -> _, \"Message\" -> _|> si no.\n" <>
+  "Infraestructura: habilita la verificacion de condiciones B1-B4 (FORM Def. 2.7) como constraints declarativas.";
 
 UnregisterConstraint::usage =
-  "UnregisterConstraint[name] elimina una constraint registrada (util en tests).";
+  "UnregisterConstraint[name] elimina una constraint registrada (util en tests).\n" <>
+  "Infraestructura de ciclo de vida del registro de constraints.";
 
 RegisteredConstraintQ::usage =
-  "RegisteredConstraintQ[name] devuelve True si name es una constraint registrada.";
+  "RegisteredConstraintQ[name] devuelve True si name es una constraint registrada.\n" <>
+  "Predicado de consulta del registro de constraints.";
 
 ListRegisteredConstraints::usage =
-  "ListRegisteredConstraints[] lista los nombres de todas las constraints registradas.";
+  "ListRegisteredConstraints[] lista los nombres de todas las constraints registradas.\n" <>
+  "Util para introspection y tests de integracion.";
 
 Begin["`Private`"]
 
