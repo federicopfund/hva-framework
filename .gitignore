@@ -8,3 +8,6 @@ build/*
 /notebooks/functional
 /notebooks/math
 /pyrightconfig.json
+/docs/documenta/HVA_Formalismo_Matematico.docx
+/docs/documenta/HVA_Spec_Tecnica_final.docx
+/.claude/skills
