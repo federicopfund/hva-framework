@@ -3,7 +3,7 @@
 VerificationTest[
   Quiet[Needs["HVA`Utilities`Validation`"]; True],
   True,
-  TestID -> "Utilities-Validation-Loads"
+  TestID -> "Utilities-Validation-01-loads"
 ]
 
 (* ============================================================== *)
@@ -14,14 +14,14 @@ VerificationTest[
   RegisterConstraint["Test.AlwaysTrue", Function[x, True]];
   RegisteredConstraintQ["Test.AlwaysTrue"],
   True,
-  TestID -> "Utilities-Validation-RegisterConstraint"
+  TestID -> "Utilities-Validation-02-register-constraint"
 ]
 
 VerificationTest[
   UnregisterConstraint["Test.AlwaysTrue"];
   RegisteredConstraintQ["Test.AlwaysTrue"],
   False,
-  TestID -> "Utilities-Validation-UnregisterConstraint"
+  TestID -> "Utilities-Validation-03-unregister-constraint"
 ]
 
 VerificationTest[
@@ -29,7 +29,7 @@ VerificationTest[
   RegisterConstraint["Test.Constraint2", Function[x, True]];
   MemberQ[ListRegisteredConstraints[], "Test.Constraint1"],
   True,
-  TestID -> "Utilities-Validation-ListRegisteredConstraints"
+  TestID -> "Utilities-Validation-04-list-registered-constraints"
 ]
 
 (* ============================================================== *)
@@ -39,7 +39,7 @@ VerificationTest[
 VerificationTest[
   ValidateStructure[<|"x" -> 1|>, <|"Type" -> _Association|>],
   True,
-  TestID -> "Utilities-Validation-TopType-Valid"
+  TestID -> "Utilities-Validation-05-top-type-valid"
 ]
 
 VerificationTest[
@@ -48,7 +48,7 @@ VerificationTest[
   Length[result["Errors"]] > 0 &&
   First[result["Errors"]]["Code"] === "InvalidType",
   True,
-  TestID -> "Utilities-Validation-TopType-Invalid"
+  TestID -> "Utilities-Validation-06-top-type-invalid"
 ]
 
 (* ============================================================== *)
@@ -61,7 +61,7 @@ VerificationTest[
     <|"Type" -> _Association, "Required" -> {"id", "name"}|>
   ],
   True,
-  TestID -> "Utilities-Validation-Required-AllPresent"
+  TestID -> "Utilities-Validation-07-required-all-present"
 ]
 
 VerificationTest[
@@ -72,7 +72,7 @@ VerificationTest[
   AssociationQ[result] && result["Status"] === "Invalid" &&
   Cases[result["Errors"], <|"Code" -> "MissingField", "Path" -> "name", ___|>] =!= {},
   True,
-  TestID -> "Utilities-Validation-Required-Missing"
+  TestID -> "Utilities-Validation-08-required-missing"
 ]
 
 (* ============================================================== *)
@@ -88,7 +88,7 @@ VerificationTest[
     |>
   ],
   True,
-  TestID -> "Utilities-Validation-Field-Type-Valid"
+  TestID -> "Utilities-Validation-09-field-type-valid"
 ]
 
 VerificationTest[
@@ -102,7 +102,7 @@ VerificationTest[
   AssociationQ[result] && result["Status"] === "Invalid" &&
   Cases[result["Errors"], <|"Code" -> "InvalidType", "Path" -> "id", ___|>] =!= {},
   True,
-  TestID -> "Utilities-Validation-Field-Type-Invalid"
+  TestID -> "Utilities-Validation-10-field-type-invalid"
 ]
 
 (* ============================================================== *)
@@ -118,7 +118,7 @@ VerificationTest[
     |>
   ],
   True,
-  TestID -> "Utilities-Validation-NonEmpty-Valid"
+  TestID -> "Utilities-Validation-11-nonempty-valid"
 ]
 
 VerificationTest[
@@ -132,7 +132,7 @@ VerificationTest[
   AssociationQ[result] && result["Status"] === "Invalid" &&
   Cases[result["Errors"], <|"Code" -> "EmptyValue", "Path" -> "name", ___|>] =!= {},
   True,
-  TestID -> "Utilities-Validation-NonEmpty-Fails"
+  TestID -> "Utilities-Validation-12-nonempty-fails"
 ]
 
 (* ============================================================== *)
@@ -148,7 +148,7 @@ VerificationTest[
     |>
   ],
   True,
-  TestID -> "Utilities-Validation-Unique-Valid"
+  TestID -> "Utilities-Validation-13-unique-valid"
 ]
 
 VerificationTest[
@@ -162,7 +162,7 @@ VerificationTest[
   AssociationQ[result] && result["Status"] === "Invalid" &&
   Cases[result["Errors"], <|"Code" -> "DuplicateValue", "Path" -> "items", ___|>] =!= {},
   True,
-  TestID -> "Utilities-Validation-Unique-Fails"
+  TestID -> "Utilities-Validation-14-unique-fails"
 ]
 
 (* ============================================================== *)
@@ -178,7 +178,7 @@ VerificationTest[
     |>
   ],
   True,
-  TestID -> "Utilities-Validation-InSet-Valid"
+  TestID -> "Utilities-Validation-15-inset-valid"
 ]
 
 VerificationTest[
@@ -192,7 +192,7 @@ VerificationTest[
   AssociationQ[result] && result["Status"] === "Invalid" &&
   Cases[result["Errors"], <|"Code" -> "NotInSet", "Path" -> "status", ___|>] =!= {},
   True,
-  TestID -> "Utilities-Validation-InSet-Fails"
+  TestID -> "Utilities-Validation-16-inset-fails"
 ]
 
 (* ============================================================== *)
@@ -214,7 +214,7 @@ VerificationTest[
     |>
   ],
   True,
-  TestID -> "Utilities-Validation-Constraint-Valid"
+  TestID -> "Utilities-Validation-17-constraint-valid"
 ]
 
 VerificationTest[
@@ -228,7 +228,7 @@ VerificationTest[
   AssociationQ[result] && result["Status"] === "Invalid" &&
   Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "c", ___|>] =!= {},
   True,
-  TestID -> "Utilities-Validation-Constraint-Fails"
+  TestID -> "Utilities-Validation-18-constraint-fails"
 ]
 
 (* ============================================================== *)
@@ -242,5 +242,5 @@ VerificationTest[
   UnregisterConstraint["Test.Sum"];
   True,
   True,
-  TestID -> "Utilities-Validation-Cleanup"
+  TestID -> "Utilities-Validation-19-cleanup"
 ]
