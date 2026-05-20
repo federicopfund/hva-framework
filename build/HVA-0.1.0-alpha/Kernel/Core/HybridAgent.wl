@@ -4,6 +4,10 @@
 (* :Summary: Estructura simbolica canonica del agente hibrido verificable. *)
 (* :Capa: Core (2) *)
 (* :Depends: HVA`Utilities`Validation` *)
+(* :Formalismo: Def. 2.1 (tupla 𝒜), Def. 2.2 (estado s(t)), Def. 2.7 (B1-B4), Def. 4.3 (hash en certificados) *)
+(* :Spec: 5.1, 5.2, 5.3, 5.4, 4.5 ADR-002, 4.5 ADR-005 *)
+(* :Methodology: METHODOLOGY.md §5 *)
+(* :Assumes: ℱ(q) es Lipschitz-continua en un entorno de cada ν ⊨ ℐ(q) (FORM Def. 2.7 B3, Lema C.2) — verificacion diferida a VER-0001 *)
 (* :Issues: CORE-0002 *)
 (* :License: MIT *)
 
@@ -16,7 +20,7 @@
        esta Protect-ido contra reasignacion.
      - Bridge sintactico (D1, D3): forma de input usa simbolos wolframonicos,
        forma canonica almacenada usa keys de string para serializacion.
-     - Null Object (D4): Contract y Handlers ausentes se reemplazan por
+     - Null Object (D4): Contract y RewriteRules ausentes se reemplazan por
        valores neutros que el codigo downstream puede consumir sin chequear.
      - Result Type (D6, D10): errores devuelven Failure[tag, payload], se
        autopropagan en pipelines sin warnings encadenados.
@@ -53,60 +57,63 @@ BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`Contract`", "HVA`Utilities`Vali
 HybridAgent::usage =
   "HybridAgent[id, opts] construye un agente hibrido verificable.\n" <>
   "El primer argumento es el identificador (String). Las opciones validas son:\n" <>
-  "  States, Vars, Dynamics, Guards, Invariants,\n" <>
-  "  InitialState, InitialValues (requeridas);\n" <>
-  "  Contract, Handlers, TimeSymbol (opcionales).\n" <>
+  "  Modes, ContinuousVars, VectorFields, Transitions, ModeInvariants,\n" <>
+  "  InitialMode, InitialValuation (requeridas);\n" <>
+  "  Contract, RewriteRules, TimeSymbol (opcionales).\n" <>
   "HybridAgent[a_HybridAgent] es idempotente: devuelve a sin modificacion.\n" <>
   "Errores se devuelven como Failure[\"HVAValidationError\", ...] o\n" <>
-  "Failure[\"HVAArgumentError\", ...].";
+  "Failure[\"HVAArgumentError\", ...].\n" <>
+  "Implementa la tupla 𝒜 = ⟨id, Q, X, U, Y, ℱ, 𝒢, ℐ, ℳ, ℋ, 𝒞, q₀, ν₀⟩ de FORM Def. 2.1.";
 
 HybridAgentQ::usage =
-  "HybridAgentQ[expr] devuelve True si expr es un HybridAgent canonico.";
+  "HybridAgentQ[expr] devuelve True si expr es un HybridAgent canonico.\n" <>
+  "Predicado de tipo canónico (P5 · inmutabilidad por defecto).";  (* sin contraparte formal directa *)
 
 AgentStructuralHash::usage =
   "AgentStructuralHash[a] computa un hash MD5 sobre los campos estructurales\n" <>
   "del agente (excluye mailbox, trace, currentState, valuation).\n" <>
   "Estable a traves de toda la vida runtime; util para cache de verificacion\n" <>
-  "y certificados.";
+  "y certificados.\n" <>
+  "Implementa el identificador de instancia usado en Cert de FORM Def. 4.3.";
 
 (* Simbolos de opcion (10) *)
-States::usage         = "Opcion States -> {_String..} para HybridAgent.";
-Vars::usage           = "Opcion Vars -> {_Symbol..} para HybridAgent (puede ser {}).";
-Dynamics::usage       = "Opcion Dynamics -> <|state -> {EDOs}|> para HybridAgent.";
-Guards::usage         = "Opcion Guards -> {<|from, to, condition, action|>..} para HybridAgent.";
-Invariants::usage     = "Opcion Invariants -> {predicados} para HybridAgent.";
-InitialState::usage   = "Opcion InitialState -> _String para HybridAgent.";
-InitialValues::usage  = "Opcion InitialValues -> <|var -> valor|> para HybridAgent.";
+Modes::usage         = "Opcion Modes -> {_String..} para HybridAgent. Corresponde al conjunto de modos Q de FORM Def. 2.1.";
+ContinuousVars::usage           = "Opcion ContinuousVars -> {_Symbol..} para HybridAgent (puede ser {}). Corresponde a las variables del espacio continuo X ⊆ ℝⁿ de FORM Def. 2.1.";
+VectorFields::usage       = "Opcion VectorFields -> <|state -> {EDOs}|> para HybridAgent. Corresponde a la familia de campos vectoriales ℱ : Q -> Vect(X×U) de FORM Def. 2.1.";
+Transitions::usage         = "Opcion Transitions -> {<|from, to, condition, action|>..} para HybridAgent. Corresponde a la relacion de transicion discreta 𝒢 ⊆ Q × Φ × A × Q de FORM Def. 2.1.";
+ModeInvariants::usage     = "Opcion ModeInvariants -> {predicados} para HybridAgent. Corresponde a la familia de invariantes ℐ : Q -> Pred(X) de FORM Def. 2.1.";
+InitialMode::usage   = "Opcion InitialMode -> _String para HybridAgent. Corresponde al modo inicial q₀ ∈ Q de FORM Def. 2.1.";
+InitialValuation::usage  = "Opcion InitialValuation -> <|var -> valor|> para HybridAgent. Corresponde a la valuacion inicial ν₀ : X -> ℝ de FORM Def. 2.1.";
 (* Contract symbol is shared from HVA`Core`Contract` via BeginPackage dependency. *)
-Handlers::usage       = "Opcion Handlers -> {pattern :> action..} para HybridAgent.";
+RewriteRules::usage       = "Opcion RewriteRules -> {pattern :> action..} para HybridAgent. Corresponde a las reglas de reescritura ℋ ⊆ Pat(ℳ) × Pred × Act de FORM Def. 2.1.";
 TimeSymbol::usage     = "Opcion TimeSymbol -> _Symbol para HybridAgent (default t).";
 
 (* Accessors (13) *)
-AgentId::usage           = "AgentId[a] devuelve el identificador del agente.";
-AgentStates::usage       = "AgentStates[a] devuelve la lista de estados discretos.";
-AgentVars::usage         = "AgentVars[a] devuelve la lista de variables continuas.";
-AgentDynamics::usage     = "AgentDynamics[a] devuelve la Association de EDOs por estado.";
-AgentGuards::usage       = "AgentGuards[a] devuelve la lista de guardas.";
-AgentInvariants::usage   = "AgentInvariants[a] devuelve la lista de invariantes.";
-AgentContract::usage     = "AgentContract[a] devuelve el contrato assume/guarantee.";
-AgentHandlers::usage     = "AgentHandlers[a] devuelve los handlers de mensajes.";
-AgentMailbox::usage      = "AgentMailbox[a] devuelve la cola de mensajes pendientes.";
-AgentCurrentState::usage = "AgentCurrentState[a] devuelve el estado discreto actual.";
-AgentValuation::usage    = "AgentValuation[a] devuelve los valores actuales de variables.";
-AgentTrace::usage        = "AgentTrace[a] devuelve el historial de eventos.";
-AgentTime::usage         = "AgentTime[a] devuelve el simbolo temporal usado en EDOs.";
+AgentId::usage           = "AgentId[a] devuelve el identificador del agente.\nImplementa el componente id ∈ 𝕀 de FORM Def. 2.1.";
+AgentModes::usage       = "AgentModes[a] devuelve la lista de modos discretos del agente.\nImplementa el accessor del conjunto de modos Q de FORM Def. 2.1.";
+AgentContinuousVars::usage         = "AgentContinuousVars[a] devuelve la lista de variables continuas del agente.\nImplementa el accessor del espacio continuo X ⊆ ℝⁿ de FORM Def. 2.1.";
+AgentVectorFields::usage     = "AgentVectorFields[a] devuelve la familia de campos vectoriales por modo del agente.\nImplementa el accessor de ℱ : Q -> Vect(X×U) de FORM Def. 2.1.";
+AgentTransitions::usage       = "AgentTransitions[a] devuelve la relacion de transicion discreta del agente.\nImplementa el accessor de 𝒢 ⊆ Q × Φ × A × Q de FORM Def. 2.1.";
+AgentModeInvariants::usage   = "AgentModeInvariants[a] devuelve la familia de invariantes por modo del agente.\nImplementa el accessor de ℐ : Q -> Pred(X) de FORM Def. 2.1.";
+AgentContract::usage     = "AgentContract[a] devuelve el contrato assume/guarantee del agente.\nImplementa el accessor del contrato 𝒞 = ⟨A, G⟩ de FORM Def. 2.1.";
+AgentRewriteRules::usage     = "AgentRewriteRules[a] devuelve las reglas de reescritura del agente.\nImplementa el accessor de ℋ ⊆ Pat(ℳ) × Pred × Act de FORM Def. 2.1.";
+AgentMailbox::usage      = "AgentMailbox[a] devuelve el mailbox (cola de mensajes pendientes) del agente.\nImplementa el accessor de μ(t) ∈ ℳ* de FORM Def. 2.2.";
+AgentCurrentMode::usage = "AgentCurrentMode[a] devuelve el modo discreto vigente del agente.\nImplementa el accessor de q(t) ∈ Q de FORM Def. 2.2.";
+AgentValuation::usage    = "AgentValuation[a] devuelve la valuacion continua vigente del agente.\nImplementa el accessor de ν(t) : X -> ℝ de FORM Def. 2.2.";
+AgentTrace::usage        = "AgentTrace[a] devuelve la traza de ejecucion del agente.\nImplementa el accessor de τ(t) ∈ (Σ-eventos)* de FORM Def. 2.2.";
+AgentTime::usage         = "AgentTime[a] devuelve el simbolo temporal usado en las EDOs del agente.\nConvencion interna de implementacion; sin contraparte directa en FORM.";  (* infraestructura *)
 
 (* Funciones de actualizacion inmutable (4) *)
-WithMailbox::usage      = "WithMailbox[a, newMailbox] devuelve nuevo HybridAgent con mailbox reemplazado.";
-WithCurrentState::usage = "WithCurrentState[a, newState] devuelve nuevo HybridAgent con currentState reemplazado.";
-WithValuation::usage    = "WithValuation[a, newValuation] devuelve nuevo HybridAgent con valuation reemplazado.";
-AppendTrace::usage      = "AppendTrace[a, event] devuelve nuevo HybridAgent con evento agregado al trace.";
+WithMailbox::usage      = "WithMailbox[a, newMailbox] devuelve nuevo HybridAgent con mailbox reemplazado (P5 inmutabilidad).\nActualiza la componente μ(t) del estado s(t) = ⟨q, ν, μ, τ⟩ de FORM Def. 2.2.";
+WithCurrentMode::usage = "WithCurrentMode[a, newState] devuelve nuevo HybridAgent con modo discreto reemplazado (P5 inmutabilidad).\nActualiza la componente q(t) del estado s(t) = ⟨q, ν, μ, τ⟩ de FORM Def. 2.2.";
+WithValuation::usage    = "WithValuation[a, newValuation] devuelve nuevo HybridAgent con valuacion reemplazada (P5 inmutabilidad).\nActualiza la componente ν(t) del estado s(t) = ⟨q, ν, μ, τ⟩ de FORM Def. 2.2.";
+AppendTrace::usage      = "AppendTrace[a, event] devuelve nuevo HybridAgent con evento agregado a la traza (P5 inmutabilidad).\nImplementa la extension de τ(t) con un TraceEvent de FORM Def. 2.2.";
 
 (* Funcion de transicion discreta (1) *)
 FireGuard::usage =
   "FireGuard[a, guard] dispara la transicion descrita por la guarda (Association)\n" <>
   "sobre el agente a. Pasos:\n" <>
-  "  1. Verifica que guard[\"from\"] == AgentCurrentState[a].\n" <>
+  "  1. Verifica que guard[\"from\"] == AgentCurrentMode[a].\n" <>
   "  2. Evalua guard[\"condition\"] bajo la valuacion actual.\n" <>
   "  3. Aplica guard[\"action\"] (reset map <|var -> expr|>) a la valuacion,\n" <>
   "     evaluando cada expresion en el contexto de la valuacion actual.\n" <>
@@ -125,15 +132,15 @@ Needs["HVA`Utilities`Validation`"]
 
 (* Mapa simbolo de opcion -> key canonica de string (D14) *)
 $optionToKey = <|
-  HVA`Core`HybridAgent`States        -> "states",
-  HVA`Core`HybridAgent`Vars          -> "vars",
-  HVA`Core`HybridAgent`Dynamics      -> "dynamics",
-  HVA`Core`HybridAgent`Guards        -> "guards",
-  HVA`Core`HybridAgent`Invariants    -> "invariants",
-  HVA`Core`HybridAgent`InitialState  -> "initialState",
-  HVA`Core`HybridAgent`InitialValues -> "initialValues",
+  HVA`Core`HybridAgent`Modes        -> "states",
+  HVA`Core`HybridAgent`ContinuousVars          -> "vars",
+  HVA`Core`HybridAgent`VectorFields      -> "dynamics",
+  HVA`Core`HybridAgent`Transitions        -> "guards",
+  HVA`Core`HybridAgent`ModeInvariants    -> "invariants",
+  HVA`Core`HybridAgent`InitialMode  -> "initialState",
+  HVA`Core`HybridAgent`InitialValuation -> "initialValues",
   HVA`Core`Contract`Contract         -> "contract",
-  HVA`Core`HybridAgent`Handlers      -> "handlers",
+  HVA`Core`HybridAgent`RewriteRules      -> "handlers",
   HVA`Core`HybridAgent`TimeSymbol    -> "time"
 |>;
 
@@ -237,11 +244,11 @@ constraintDynamicsCoversAllStates[expr_Association] := Module[
     missing =!= {},
     <|"Code" -> "ConstraintViolation",
       "Path" -> "dynamics",
-      "Message" -> "Dynamics missing entries for states: " <> ToString[missing]|>,
+      "Message" -> "VectorFields missing entries for states: " <> ToString[missing]|>,
     extra =!= {},
     <|"Code" -> "ConstraintViolation",
       "Path" -> "dynamics",
-      "Message" -> "Dynamics has entries for undeclared states: " <> ToString[extra]|>,
+      "Message" -> "VectorFields has entries for undeclared states: " <> ToString[extra]|>,
     True, True
   ]
 ];
@@ -280,7 +287,7 @@ constraintGuardsReferenceValidStates[expr_Association] := Module[
     True,
     <|"Code" -> "ConstraintViolation",
       "Path" -> "guards",
-      "Message" -> "Guards reference undeclared states: " <>
+      "Message" -> "Transitions reference undeclared states: " <>
                    ToString[DeleteDuplicates[invalidRefs]]|>
   ]
 ];
@@ -294,7 +301,7 @@ constraintInitialStateIsValid[expr_Association] := Module[
     True,
     <|"Code" -> "ConstraintViolation",
       "Path" -> "initialState",
-      "Message" -> "InitialState '" <> initialState <>
+      "Message" -> "InitialMode '" <> initialState <>
                    "' is not in declared states: " <> ToString[states]|>
   ]
 ];
@@ -310,11 +317,11 @@ constraintInitialValuesCoverAllVars[expr_Association] := Module[
     missing =!= {},
     <|"Code" -> "ConstraintViolation",
       "Path" -> "initialValues",
-      "Message" -> "InitialValues missing entries for vars: " <> ToString[missing]|>,
+      "Message" -> "InitialValuation missing entries for vars: " <> ToString[missing]|>,
     extra =!= {},
     <|"Code" -> "ConstraintViolation",
       "Path" -> "initialValues",
-      "Message" -> "InitialValues has entries for undeclared vars: " <> ToString[extra]|>,
+      "Message" -> "InitialValuation has entries for undeclared vars: " <> ToString[extra]|>,
     True, True
   ]
 ];
@@ -458,15 +465,15 @@ defineAccessor[name_Symbol, key_String] := (
 );
 
 defineAccessor[AgentId,           "id"];
-defineAccessor[AgentStates,       "states"];
-defineAccessor[AgentVars,         "vars"];
-defineAccessor[AgentDynamics,     "dynamics"];
-defineAccessor[AgentGuards,       "guards"];
-defineAccessor[AgentInvariants,   "invariants"];
+defineAccessor[AgentModes,       "states"];
+defineAccessor[AgentContinuousVars,         "vars"];
+defineAccessor[AgentVectorFields,     "dynamics"];
+defineAccessor[AgentTransitions,       "guards"];
+defineAccessor[AgentModeInvariants,   "invariants"];
 defineAccessor[AgentContract,     "contract"];
-defineAccessor[AgentHandlers,     "handlers"];
+defineAccessor[AgentRewriteRules,     "handlers"];
 defineAccessor[AgentMailbox,      "mailbox"];
-defineAccessor[AgentCurrentState, "currentState"];
+defineAccessor[AgentCurrentMode, "currentState"];
 defineAccessor[AgentValuation,    "valuation"];
 defineAccessor[AgentTrace,        "trace"];
 defineAccessor[AgentTime,         "time"];
@@ -485,12 +492,12 @@ WithMailbox[expr_, _] /; !HybridAgentQ[expr] :=
     "Got" -> ToString[Head[expr]]
   |>];
 
-WithCurrentState[HybridAgent[a_Association], newState_String] :=
+WithCurrentMode[HybridAgent[a_Association], newState_String] :=
   HybridAgent[<|a, "currentState" -> newState|>];
 
-WithCurrentState[expr_, _] /; !HybridAgentQ[expr] :=
+WithCurrentMode[expr_, _] /; !HybridAgentQ[expr] :=
   Failure["HVAArgumentError", <|
-    "Function" -> "WithCurrentState",
+    "Function" -> "WithCurrentMode",
     "Expected" -> "HybridAgent",
     "Got" -> ToString[Head[expr]]
   |>];
@@ -551,7 +558,7 @@ FireGuard[HybridAgent[a_Association], guard_Association] := Module[
   (* Paso 4: devolver nuevo agente (inmutable) con estado, valuacion y traza *)
   AppendTrace[
     WithValuation[
-      WithCurrentState[HybridAgent[a], to],
+      WithCurrentMode[HybridAgent[a], to],
       newValuation
     ],
     <|"type"           -> "transition",
@@ -605,12 +612,12 @@ AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
 
 Protect[
   HybridAgent, HybridAgentQ, AgentStructuralHash,
-  States, Vars, Dynamics, Guards, Invariants,
-  InitialState, InitialValues, Contract, Handlers, TimeSymbol,
-  AgentId, AgentStates, AgentVars, AgentDynamics, AgentGuards,
-  AgentInvariants, AgentContract, AgentHandlers, AgentMailbox,
-  AgentCurrentState, AgentValuation, AgentTrace, AgentTime,
-  WithMailbox, WithCurrentState, WithValuation, AppendTrace,
+  Modes, ContinuousVars, VectorFields, Transitions, ModeInvariants,
+  InitialMode, InitialValuation, Contract, RewriteRules, TimeSymbol,
+  AgentId, AgentModes, AgentContinuousVars, AgentVectorFields, AgentTransitions,
+  AgentModeInvariants, AgentContract, AgentRewriteRules, AgentMailbox,
+  AgentCurrentMode, AgentValuation, AgentTrace, AgentTime,
+  WithMailbox, WithCurrentMode, WithValuation, AppendTrace,
   FireGuard
 ];
 
