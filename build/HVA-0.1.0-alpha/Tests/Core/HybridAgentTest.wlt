@@ -98,7 +98,7 @@ VerificationTest[
     InitialValuation -> <||>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-06-bienformacion-dynamics-missing-B2"
 ]
@@ -115,7 +115,7 @@ VerificationTest[
     InitialValuation -> <||>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-07-bienformacion-dynamics-extra-B2"
 ]
@@ -136,7 +136,7 @@ VerificationTest[
     InitialValuation -> <|x -> 0|>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "dynamics", ___|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-08-bienformacion-undeclared-var-B3"
 ]
@@ -157,7 +157,7 @@ VerificationTest[
     InitialValuation -> <||>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "guards", ___|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "transitions", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-09-bienformacion-guard-target-B2"
 ]
@@ -178,7 +178,7 @@ VerificationTest[
     InitialValuation -> <||>
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialState", ___|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialMode", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-10-bienformacion-initial-state-B1"
 ]
@@ -199,7 +199,7 @@ VerificationTest[
     InitialValuation -> <|x -> 0|>  (* y falta! *)
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValues", ___|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValuation", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-11-bienformacion-missing-init-value-B1"
 ]
@@ -216,7 +216,7 @@ VerificationTest[
     InitialValuation -> <|x -> 0, y -> 1|>  (* y extra! *)
   ];
   FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValues", ___|>] =!= {},
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValuation", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-12-bienformacion-extra-init-value-B1"
 ]

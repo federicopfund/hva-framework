@@ -38,11 +38,11 @@
 
    FORMA CANONICA:
      HybridAgent[<|
-       "id", "states", "vars", "time",
-       "dynamics", "guards", "invariants",
-       "contract", "handlers",
-       "initialState", "initialValues",
-       "currentState", "valuation",
+       "id", "modes", "continuousVars", "time",
+       "vectorFields", "transitions", "modeInvariants",
+       "contract", "rewriteRules",
+       "initialMode", "initialValuation",
+       "currentMode", "valuation",
        "mailbox", "trace"
      |>]
 *)
@@ -71,7 +71,7 @@ HybridAgentQ::usage =
 
 AgentStructuralHash::usage =
   "AgentStructuralHash[a] computa un hash MD5 sobre los campos estructurales\n" <>
-  "del agente (excluye mailbox, trace, currentState, valuation).\n" <>
+  "del agente (excluye mailbox, trace, currentMode, valuation).\n" <>
   "Estable a traves de toda la vida runtime; util para cache de verificacion\n" <>
   "y certificados.\n" <>
   "Implementa el identificador de instancia usado en Cert de FORM Def. 4.3.";
@@ -117,9 +117,9 @@ FireGuard::usage =
   "  2. Evalua guard[\"condition\"] bajo la valuacion actual.\n" <>
   "  3. Aplica guard[\"action\"] (reset map <|var -> expr|>) a la valuacion,\n" <>
   "     evaluando cada expresion en el contexto de la valuacion actual.\n" <>
-  "  4. Devuelve nuevo HybridAgent con currentState = guard[\"to\"],\n" <>
+  "  4. Devuelve nuevo HybridAgent con currentMode = guard[\"to\"],\n" <>
   "     valuation actualizada y evento de transicion en trace.\n" <>
-  "Retorna Failure[\"GuardNotApplicable\", ...] si from != currentState.\n" <>
+  "Retorna Failure[\"GuardNotApplicable\", ...] si from != currentMode.\n" <>
   "Retorna Failure[\"GuardConditionFalse\", ...] si la condicion no se cumple.";
 
 Begin["`Private`"]
@@ -132,34 +132,34 @@ Needs["HVA`Utilities`Validation`"]
 
 (* Mapa simbolo de opcion -> key canonica de string (D14) *)
 $optionToKey = <|
-  HVA`Core`HybridAgent`Modes        -> "states",
-  HVA`Core`HybridAgent`ContinuousVars          -> "vars",
-  HVA`Core`HybridAgent`VectorFields      -> "dynamics",
-  HVA`Core`HybridAgent`Transitions        -> "guards",
-  HVA`Core`HybridAgent`ModeInvariants    -> "invariants",
-  HVA`Core`HybridAgent`InitialMode  -> "initialState",
-  HVA`Core`HybridAgent`InitialValuation -> "initialValues",
+  HVA`Core`HybridAgent`Modes        -> "modes",
+  HVA`Core`HybridAgent`ContinuousVars          -> "continuousVars",
+  HVA`Core`HybridAgent`VectorFields      -> "vectorFields",
+  HVA`Core`HybridAgent`Transitions        -> "transitions",
+  HVA`Core`HybridAgent`ModeInvariants    -> "modeInvariants",
+  HVA`Core`HybridAgent`InitialMode  -> "initialMode",
+  HVA`Core`HybridAgent`InitialValuation -> "initialValuation",
   HVA`Core`Contract`Contract         -> "contract",
-  HVA`Core`HybridAgent`RewriteRules      -> "handlers",
+  HVA`Core`HybridAgent`RewriteRules      -> "rewriteRules",
   HVA`Core`HybridAgent`TimeSymbol    -> "time"
 |>;
 
 (* Orden canonico de campos en la forma normalizada *)
 $canonicalFieldOrder = {
   "id",
-  "states", "vars", "time",
-  "dynamics", "guards", "invariants",
-  "contract", "handlers",
-  "initialState", "initialValues",
-  "currentState", "valuation",
+  "modes", "continuousVars", "time",
+  "vectorFields", "transitions", "modeInvariants",
+  "contract", "rewriteRules",
+  "initialMode", "initialValuation",
+  "currentMode", "valuation",
   "mailbox", "trace"
 };
 
 (* Campos estructurales para AgentStructuralHash (excluye runtime) *)
 $structuralFields = {
-  "id", "states", "vars", "dynamics", "guards",
-  "invariants", "initialState", "initialValues",
-  "contract", "handlers", "time"
+  "id", "modes", "continuousVars", "vectorFields", "transitions",
+  "modeInvariants", "initialMode", "initialValuation",
+  "contract", "rewriteRules", "time"
 };
 
 (* Placeholder de Contract trivial usado como default neutro (D4).
@@ -171,7 +171,7 @@ $trivialContract :=
 (* Defaults para campos opcionales *)
 $defaultValues := <|
   "contract" -> $trivialContract,
-  "handlers" -> {},
+  "rewriteRules" -> {},
   "time"     -> Global`t,
   "mailbox"  -> {},
   "trace"    -> {}
@@ -184,27 +184,27 @@ $defaultValues := <|
 $HybridAgentSchema := <|
   "Type" -> _Association,
   "Required" -> {
-    "id", "states", "vars", "dynamics", "guards",
-    "invariants", "initialState", "initialValues",
-    "currentState", "valuation", "mailbox", "trace",
-    "time", "contract", "handlers"
+    "id", "modes", "continuousVars", "vectorFields", "transitions",
+    "modeInvariants", "initialMode", "initialValuation",
+    "currentMode", "valuation", "mailbox", "trace",
+    "time", "contract", "rewriteRules"
   },
   "Fields" -> <|
     "id"            -> <|"Type" -> _String, "NonEmpty" -> True|>,
-    "states"        -> <|"Type" -> {___String}, "Unique" -> True, "NonEmpty" -> True|>,
-    "vars"          -> <|"Type" -> {___Symbol}, "Unique" -> True|>,
-    "dynamics"      -> <|"Type" -> _Association|>,
-    "guards"        -> <|"Type" -> {___Association}|>,
-    "invariants"    -> <|"Type" -> _List|>,
-    "initialState"  -> <|"Type" -> _String|>,
-    "initialValues" -> <|"Type" -> _Association|>,
-    "currentState"  -> <|"Type" -> _String|>,
+    "modes"         -> <|"Type" -> {___String}, "Unique" -> True, "NonEmpty" -> True|>,
+    "continuousVars" -> <|"Type" -> {___Symbol}, "Unique" -> True|>,
+    "vectorFields"   -> <|"Type" -> _Association|>,
+    "transitions"   -> <|"Type" -> {___Association}|>,
+    "modeInvariants" -> <|"Type" -> _List|>,
+    "initialMode"      -> <|"Type" -> _String|>,
+    "initialValuation" -> <|"Type" -> _Association|>,
+    "currentMode"  -> <|"Type" -> _String|>,
     "valuation"     -> <|"Type" -> _Association|>,
     "mailbox"       -> <|"Type" -> _List|>,
     "trace"         -> <|"Type" -> _List|>,
     "time"          -> <|"Type" -> _Symbol|>,
     "contract"      -> <|"Type" -> _|>,  (* Contract entity, validado por CORE-0003 *)
-    "handlers"      -> <|"Type" -> _List|>
+    "rewriteRules"  -> <|"Type" -> _List|>
   |>,
   "Constraints" -> {
     "HybridAgent.DynamicsCoversAllStates",
@@ -233,95 +233,95 @@ extractVarsFromEDO[edo_, timeSym_Symbol] :=
 extractVarsFromEDOList[edos_List, timeSym_Symbol] :=
   DeleteDuplicates @ Flatten @ Map[extractVarsFromEDO[#, timeSym] &, edos];
 
-(* Constraint: dynamics tiene exactamente una entrada por cada estado *)
+(* Constraint: vectorFields tiene exactamente una entrada por cada modo *)
 constraintDynamicsCoversAllStates[expr_Association] := Module[
-  {states, dynamicsKeys, missing, extra},
-  states = expr["states"];
-  dynamicsKeys = Keys[expr["dynamics"]];
-  missing = Complement[states, dynamicsKeys];
-  extra = Complement[dynamicsKeys, states];
+  {modes, vectorFieldKeys, missing, extra},
+  modes = expr["modes"];
+  vectorFieldKeys = Keys[expr["vectorFields"]];
+  missing = Complement[modes, vectorFieldKeys];
+  extra = Complement[vectorFieldKeys, modes];
   Which[
     missing =!= {},
     <|"Code" -> "ConstraintViolation",
-      "Path" -> "dynamics",
-      "Message" -> "VectorFields missing entries for states: " <> ToString[missing]|>,
+      "Path" -> "vectorFields",
+      "Message" -> "VectorFields missing entries for modes: " <> ToString[missing]|>,
     extra =!= {},
     <|"Code" -> "ConstraintViolation",
-      "Path" -> "dynamics",
-      "Message" -> "VectorFields has entries for undeclared states: " <> ToString[extra]|>,
+      "Path" -> "vectorFields",
+      "Message" -> "VectorFields has entries for undeclared modes: " <> ToString[extra]|>,
     True, True
   ]
 ];
 
-(* Constraint: toda variable usada en EDOs esta declarada en vars *)
+(* Constraint: toda variable usada en EDOs esta declarada en continuousVars *)
 constraintDynamicsVarsAreDeclared[expr_Association] := Module[
   {declaredVars, timeSym, allEDOs, usedVars, undeclared},
-  declaredVars = expr["vars"];
+  declaredVars = expr["continuousVars"];
   timeSym = expr["time"];
-  allEDOs = Flatten @ Values[expr["dynamics"]];
+  allEDOs = Flatten @ Values[expr["vectorFields"]];
   usedVars = extractVarsFromEDOList[allEDOs, timeSym];
   undeclared = Complement[usedVars, declaredVars];
   If[undeclared === {},
     True,
     <|"Code" -> "ConstraintViolation",
-      "Path" -> "dynamics",
-      "Message" -> "Variables in dynamics not declared in vars: " <> ToString[undeclared]|>
+      "Path" -> "vectorFields",
+      "Message" -> "Variables in vectorFields not declared in continuousVars: " <> ToString[undeclared]|>
   ]
 ];
 
 (* Constraint: from y to de cada guarda referencian estados validos *)
 constraintGuardsReferenceValidStates[expr_Association] := Module[
-  {states, guards, invalidRefs},
-  states = expr["states"];
-  guards = expr["guards"];
+  {modes, transitions, invalidRefs},
+  modes = expr["modes"];
+  transitions = expr["transitions"];
   invalidRefs = Flatten @ Map[
     Function[g,
       Select[
         {Lookup[g, "from", Missing[]], Lookup[g, "to", Missing[]]},
-        !MissingQ[#] && !MemberQ[states, #] &
+        !MissingQ[#] && !MemberQ[modes, #] &
       ]
     ],
-    guards
+    transitions
   ];
   If[invalidRefs === {},
     True,
     <|"Code" -> "ConstraintViolation",
-      "Path" -> "guards",
-      "Message" -> "Transitions reference undeclared states: " <>
+      "Path" -> "transitions",
+      "Message" -> "Transitions reference undeclared modes: " <>
                    ToString[DeleteDuplicates[invalidRefs]]|>
   ]
 ];
 
-(* Constraint: initialState es un estado declarado *)
+(* Constraint: initialMode es un modo declarado *)
 constraintInitialStateIsValid[expr_Association] := Module[
-  {initialState, states},
-  initialState = expr["initialState"];
-  states = expr["states"];
-  If[MemberQ[states, initialState],
+  {initialMode, modes},
+  initialMode = expr["initialMode"];
+  modes = expr["modes"];
+  If[MemberQ[modes, initialMode],
     True,
     <|"Code" -> "ConstraintViolation",
-      "Path" -> "initialState",
-      "Message" -> "InitialMode '" <> initialState <>
-                   "' is not in declared states: " <> ToString[states]|>
+      "Path" -> "initialMode",
+      "Message" -> "InitialMode '" <> initialMode <>
+                   "' is not in declared modes: " <> ToString[modes]|>
   ]
 ];
 
-(* Constraint: initialValues cubre exactamente las variables declaradas *)
+(* Constraint: initialValuation cubre exactamente las variables declaradas *)
 constraintInitialValuesCoverAllVars[expr_Association] := Module[
   {declaredVars, valuedVars, missing, extra},
-  declaredVars = expr["vars"];
-  valuedVars = Keys[expr["initialValues"]];
+  declaredVars = expr["continuousVars"];
+  valuedVars = Keys[expr["initialValuation"]];
   missing = Complement[declaredVars, valuedVars];
   extra = Complement[valuedVars, declaredVars];
   Which[
     missing =!= {},
     <|"Code" -> "ConstraintViolation",
-      "Path" -> "initialValues",
-      "Message" -> "InitialValuation missing entries for vars: " <> ToString[missing]|>,
+      "Path" -> "initialValuation",
+      "Message" -> "InitialValuation missing entries for continuousVars: " <> ToString[missing]|>,
     extra =!= {},
     <|"Code" -> "ConstraintViolation",
-      "Path" -> "initialValues",
-      "Message" -> "InitialValuation has entries for undeclared vars: " <> ToString[extra]|>,
+      "Path" -> "initialValuation",
+      "Message" -> "InitialValuation has entries for undeclared continuousVars: " <> ToString[extra]|>,
     True, True
   ]
 ];
@@ -420,15 +420,15 @@ buildCanonical[id_String, providedAssoc_Association] := Module[
     withId
   ];
 
-  (* FASE 3: derivar currentState y valuation desde inputs iniciales.
-     Solo deriva si initialState/initialValues estan presentes (si faltan,
+  (* FASE 3: derivar currentMode y valuation desde inputs iniciales.
+     Solo deriva si initialMode/initialValuation estan presentes (si faltan,
      la validacion los reportara como MissingField). *)
   withDerived = withDefaults;
-  If[KeyExistsQ[withDerived, "initialState"] && !KeyExistsQ[withDerived, "currentState"],
-    withDerived = Append[withDerived, "currentState" -> withDerived["initialState"]]
+  If[KeyExistsQ[withDerived, "initialMode"] && !KeyExistsQ[withDerived, "currentMode"],
+    withDerived = Append[withDerived, "currentMode" -> withDerived["initialMode"]]
   ];
-  If[KeyExistsQ[withDerived, "initialValues"] && !KeyExistsQ[withDerived, "valuation"],
-    withDerived = Append[withDerived, "valuation" -> withDerived["initialValues"]]
+  If[KeyExistsQ[withDerived, "initialValuation"] && !KeyExistsQ[withDerived, "valuation"],
+    withDerived = Append[withDerived, "valuation" -> withDerived["initialValuation"]]
   ];
 
   withDerived
@@ -468,15 +468,15 @@ defineAccessor[name_Symbol, key_String] := (
 );
 
 defineAccessor[AgentId,           "id"];
-defineAccessor[AgentModes,       "states"];
-defineAccessor[AgentContinuousVars,         "vars"];
-defineAccessor[AgentVectorFields,     "dynamics"];
-defineAccessor[AgentTransitions,       "guards"];
-defineAccessor[AgentModeInvariants,   "invariants"];
+defineAccessor[AgentModes,       "modes"];
+defineAccessor[AgentContinuousVars,         "continuousVars"];
+defineAccessor[AgentVectorFields,     "vectorFields"];
+defineAccessor[AgentTransitions,       "transitions"];
+defineAccessor[AgentModeInvariants,   "modeInvariants"];
 defineAccessor[AgentContract,     "contract"];
-defineAccessor[AgentRewriteRules,     "handlers"];
+defineAccessor[AgentRewriteRules,     "rewriteRules"];
 defineAccessor[AgentMailbox,      "mailbox"];
-defineAccessor[AgentCurrentMode, "currentState"];
+defineAccessor[AgentCurrentMode, "currentMode"];
 defineAccessor[AgentValuation,    "valuation"];
 defineAccessor[AgentTrace,        "trace"];
 defineAccessor[AgentTime,         "time"];
@@ -496,7 +496,7 @@ WithMailbox[expr_, _] /; !HybridAgentQ[expr] :=
   |>];
 
 WithCurrentMode[HybridAgent[a_Association], newState_String] :=
-  HybridAgent[<|a, "currentState" -> newState|>];
+  HybridAgent[<|a, "currentMode" -> newState|>];
 
 WithCurrentMode[expr_, _] /; !HybridAgentQ[expr] :=
   Failure["HVAArgumentError", <|
@@ -532,7 +532,7 @@ AppendTrace[expr_, _] /; !HybridAgentQ[expr] :=
 
 FireGuard[HybridAgent[a_Association], guard_Association] := Module[
   {curState, valuation, from, to, cond, action, condResult, newValuation},
-  curState  = a["currentState"];
+  curState  = a["currentMode"];
   valuation = a["valuation"];
   from      = Lookup[guard, "from",      Missing[]];
   to        = Lookup[guard, "to",        Missing[]];
@@ -542,7 +542,7 @@ FireGuard[HybridAgent[a_Association], guard_Association] := Module[
   If[from =!= curState,
     Return[Failure["GuardNotApplicable", <|
       "Message" -> "Guard 'from' (" <> ToString[from] <>
-                   ") != currentState (" <> ToString[curState] <> ")."
+                   ") != currentMode (" <> ToString[curState] <> ")."
     |>]]
   ];
   (* Paso 2: evaluar condicion bajo valuacion actual *)
