@@ -378,8 +378,11 @@ HybridAgent[id_String, opts___?OptionQ] := Module[
    HVA`Core`HybridAgent`) comparando por SymbolName como fallback. *)
 normalizeOptionSym[sym_Symbol] :=
   If[KeyExistsQ[$optionToKey, sym],
-    sym,
-    SelectFirst[Keys[$optionToKey], SymbolName[#] === SymbolName[sym] &, sym]
+    sym,                                   (* caso feliz: el simbolo es exactamente el registrado *)
+    SelectFirst[Keys[$optionToKey],        (* fallback: buscar por nombre *)
+    SymbolName[#] === SymbolName[sym] &,
+    sym                                    (* si no encuentra nada, devuelve el original *)
+    ]
   ];
 
 parseOptions[optsList_List] := Module[{providedAssoc, normalizedAssoc, unknownSymbols},

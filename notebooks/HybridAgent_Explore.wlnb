@@ -24,11 +24,10 @@
    "metadata": {},
    "executionSummary": {
     "timing": {
-     "startTime": 1779007959265,
-     "endTime": 1779007959392
+     "startTime": 1779329671239,
+     "endTime": 1779329671239
     },
-    "executionOrder": 26,
-    "success": true
+    "success": false
    }
   },
   {
@@ -41,7 +40,7 @@
   },
   {
    "kind": 2,
-   "value": "(* Agente termostat mínimo *)\nSpec = HybridAgent[\"thermostat\",\n  States       -> {\"off\", \"on\"},\n  Vars         -> {temp},\n  Dynamics     -> <|\n    \"off\" -> {Derivative[1][temp] == 0},\n    \"on\"  -> {Derivative[1][temp] == 5 - temp}\n  |>,\n  Guards       -> {\n    <|\"from\" -> \"off\", \"to\" -> \"on\",  \"condition\" -> temp < 18|>,\n    <|\"from\" -> \"on\",  \"to\" -> \"off\", \"condition\" -> temp > 22|>\n  },\n  Invariants   -> {0 <= temp <= 30},\n  InitialState -> \"off\",\n  InitialValues -> <|temp -> 15|>\n]",
+   "value": "(* Agente termostat mínimo *)\nSpec = HybridAgent[\"thermostat\",\n  Modes            -> {\"off\", \"on\"},\n  ContinuousVars   -> {temp},\n  VectorFields     -> <|\n    \"off\" -> {Derivative[1][temp] == 0},\n    \"on\"  -> {Derivative[1][temp] == 5 - temp}\n  |>,\n  Transitions      -> {\n    <|\"from\" -> \"off\", \"to\" -> \"on\",  \"condition\" -> temp < 18|>,\n    <|\"from\" -> \"on\",  \"to\" -> \"off\", \"condition\" -> temp > 22|>\n  },\n  ModeInvariants   -> {0 <= temp <= 30},\n  InitialMode      -> \"off\",\n  InitialValuation -> <|temp -> 15|>\n]",
    "languageId": "wolfram",
    "outputs": [
     {
@@ -63,14 +62,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007959392,
-     "endTime": 1779007959525
-    },
-    "executionOrder": 28,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
@@ -96,14 +88,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007959525,
-     "endTime": 1779007959650
-    },
-    "executionOrder": 29,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 1,
@@ -137,14 +122,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007959650,
-     "endTime": 1779007959775
-    },
-    "executionOrder": 30,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
@@ -170,14 +148,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007959775,
-     "endTime": 1779007959900
-    },
-    "executionOrder": 31,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
@@ -203,14 +174,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007959900,
-     "endTime": 1779007960026
-    },
-    "executionOrder": 32,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 1,
@@ -222,7 +186,7 @@
   },
   {
    "kind": 2,
-   "value": "AgentStates[Spec]",
+   "value": "AgentModes[Spec]",
    "languageId": "wolfram",
    "outputs": [
     {
@@ -244,18 +208,11 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007960026,
-     "endTime": 1779007960154
-    },
-    "executionOrder": 33,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
-   "value": "AgentVars[Spec]",
+   "value": "AgentContinuousVars[Spec]",
    "languageId": "wolfram",
    "outputs": [
     {
@@ -277,18 +234,11 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007960154,
-     "endTime": 1779007960280
-    },
-    "executionOrder": 34,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
-   "value": "AgentDynamics[Spec]",
+   "value": "AgentVectorFields[Spec]",
    "languageId": "wolfram",
    "outputs": [
     {
@@ -310,18 +260,11 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007960280,
-     "endTime": 1779007960417
-    },
-    "executionOrder": 35,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
-   "value": "AgentGuards[Spec]",
+   "value": "AgentTransitions[Spec]",
    "languageId": "wolfram",
    "outputs": [
     {
@@ -343,18 +286,11 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007960417,
-     "endTime": 1779007960548
-    },
-    "executionOrder": 36,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
-   "value": "AgentCurrentState[Spec]",
+   "value": "AgentCurrentMode[Spec]",
    "languageId": "wolfram",
    "outputs": [
     {
@@ -376,14 +312,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007960549,
-     "endTime": 1779007960675
-    },
-    "executionOrder": 37,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
@@ -409,14 +338,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007960675,
-     "endTime": 1779007960800
-    },
-    "executionOrder": 38,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
@@ -442,14 +364,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007960800,
-     "endTime": 1779007960925
-    },
-    "executionOrder": 39,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 1,
@@ -461,7 +376,7 @@
   },
   {
    "kind": 2,
-   "value": "agent2 = WithCurrentState[Spec, \"on\"];\n{AgentCurrentState[Spec], AgentCurrentState[agent2]}",
+   "value": "agent2 = WithCurrentMode[Spec, \"on\"];\n{AgentCurrentMode[Spec], AgentCurrentMode[agent2]}",
    "languageId": "wolfram",
    "outputs": [
     {
@@ -483,14 +398,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007960925,
-     "endTime": 1779007961111
-    },
-    "executionOrder": 40,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
@@ -516,14 +424,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007961111,
-     "endTime": 1779007961296
-    },
-    "executionOrder": 42,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
@@ -549,14 +450,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007961297,
-     "endTime": 1779007961480
-    },
-    "executionOrder": 44,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 1,
@@ -590,18 +484,11 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007961480,
-     "endTime": 1779007961723
-    },
-    "executionOrder": 46,
-    "success": true
-   }
+   "executionSummary": {}
   },
   {
    "kind": 2,
-   "value": "(* Hash cambia si se modifica la estructura *)\nSpecMod = HybridAgent[\"thermostat\",\n  States       -> {\"off\", \"on\", \"standby\"},\n  Vars         -> {temp},\n  Dynamics     -> <|\n    \"off\"     -> {Derivative[1][temp] == 0},\n    \"on\"      -> {Derivative[1][temp] == 5 - temp},\n    \"standby\" -> {Derivative[1][temp] == -0.1 * temp}\n  |>,\n  Guards       -> {},\n  Invariants   -> {},\n  InitialState -> \"off\",\n  InitialValues -> <|temp -> 15|>\n];\nAgentStructuralHash[Spec3] =!= AgentStructuralHash[SpecMod]",
+   "value": "(* Hash cambia si se modifica la estructura *)\nSpecMod = HybridAgent[\"thermostat\",\n  Modes            -> {\"off\", \"on\", \"standby\"},\n  ContinuousVars   -> {temp},\n  VectorFields     -> <|\n    \"off\"     -> {Derivative[1][temp] == 0},\n    \"on\"      -> {Derivative[1][temp] == 5 - temp},\n    \"standby\" -> {Derivative[1][temp] == -0.1 * temp}\n  |>,\n  Transitions      -> {},\n  ModeInvariants   -> {},\n  InitialMode      -> \"off\",\n  InitialValuation -> <|temp -> 15|>\n];\nAgentStructuralHash[Spec3] =!= AgentStructuralHash[SpecMod]",
    "languageId": "wolfram",
    "outputs": [
     {
@@ -623,14 +510,7 @@
     }
    ],
    "metadata": {},
-   "executionSummary": {
-    "timing": {
-     "startTime": 1779007961723,
-     "endTime": 1779007961908
-    },
-    "executionOrder": 49,
-    "success": true
-   }
+   "executionSummary": {}
   }
  ]
 }

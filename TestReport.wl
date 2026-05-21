@@ -16,6 +16,18 @@ $filterLayer = If[MemberQ[$args, "--layer"],
   None
 ];
 $showSlow    = MemberQ[$args, "--slow"];
+$showVerbose = MemberQ[$args, "--verbose"];
+
+(* ── Descripciones de capa ──────────────────────────────────── *)
+$layerDesc = <|
+  "Core"        -> "Estructuras formales del agente: HybridAgent, Contract, CausalModel, Message, Trace",
+  "Runtime"     -> "Motor de ejecucion: Dispatcher, Mailbox, Scheduler, Transport",
+  "Services"    -> "Servicios de alto nivel: Executor, Simulator, Supervisor, Verifier",
+  "Adapters"    -> "Puentes de I/O: MockAdapter, SensorAdapter, ActuatorAdapter, Registry",
+  "DSL"         -> "Lenguaje de dominio: DefineAgent, DefineContract, RunSystem, ExportCertificate",
+  "Integration" -> "Tests de integracion extremo a extremo (e.g. ThermostatEndToEnd)",
+  "Utilities"   -> "Utilitarios transversales: Validation, ErrorHandling, Serialization, Logging"
+|>;
 
 (* ── Suites agrupadas por capa ───────────────────────────────── *)
 $suites = {
@@ -78,7 +90,38 @@ allSlow      = {};   (* idem para tests lentos *)
 Print[""];
 Print["================================================================"];
 Print[" HVA Framework  |  Test Report  |  ", DateString["ISODateTime"]];
+If[$filterLayer =!= None,
+  Print[" Layer : ", $filterLayer];
+  Print[" Desc  : ", Lookup[$layerDesc, $filterLayer, "(sin descripcion)"]]
+];
 Print["================================================================"];
+
+(* ── Helper verbose: imprime cada TestResult individual ──────────── *)
+printVerboseTest[tr_] := Module[
+  {tag, tms, inputStr, expStr, actStr},
+  tag = outcomeTag[tr["Outcome"]];
+  tms = Ceiling[toSec[tr["AbsoluteTimeUsed"]] * 1000];
+  Print[
+    "         · ", tag, "  ",
+    rpad[ToString[tr["TestID"]], 38],
+    "  ", tms, " ms",
+    If[tms > $slowMs, "  [SLOW]", ""]
+  ];
+  (* Detalle inline solo para no-exitosos *)
+  If[tr["Outcome"] =!= "Success",
+    inputStr = ToString[tr["Input"], InputForm];
+    expStr   = ToString[tr["ExpectedOutput"], InputForm];
+    actStr   = ToString[tr["ActualOutput"],   InputForm];
+    If[StringLength[inputStr] > 0 && inputStr =!= "Null",
+      Print["                  Input:    ",
+        StringTake[inputStr, Min[StringLength[inputStr], 200]]]
+    ];
+    Print["                  Expected: ",
+      StringTake[expStr, Min[StringLength[expStr], 200]]];
+    Print["                  Actual:   ",
+      StringTake[actStr, Min[StringLength[actStr], 200]]]
+  ]
+];
 
 layerRows = Map[Function[suiteEntry,
   {layer, files} = suiteEntry;
@@ -86,7 +129,7 @@ layerRows = Map[Function[suiteEntry,
   lTime   = 0.0;
 
   Print[""];
-  Print[" ", layer];
+  Print[" ", layer, "  —  ", Lookup[$layerDesc, layer, ""]];
   Print[" ", hr[63]];
 
   Map[Function[relPath,
@@ -123,6 +166,10 @@ layerRows = Map[Function[suiteEntry,
       rpad[fname, 34], "  ",
       p, "/", p + f,
       "  (", msStr[t], ")"
+    ];
+    (* Detalle individual de cada test en modo verbose *)
+    If[$showVerbose,
+      Map[printVerboseTest, Values[rep["TestResults"]]]
     ]
 
   ], files];
