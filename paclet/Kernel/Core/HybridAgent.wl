@@ -317,11 +317,11 @@ constraintInitialValuesCoverAllVars[expr_Association] := Module[
     missing =!= {},
     <|"Code" -> "ConstraintViolation",
       "Path" -> "initialValuation",
-      "Message" -> "InitialValuation missing entries for vars: " <> ToString[missing]|>,
+      "Message" -> "InitialValuation missing entries for continuousVars: " <> ToString[missing]|>,
     extra =!= {},
     <|"Code" -> "ConstraintViolation",
       "Path" -> "initialValuation",
-      "Message" -> "InitialValuation has entries for undeclared vars: " <> ToString[extra]|>,
+      "Message" -> "InitialValuation has entries for undeclared continuousVars: " <> ToString[extra]|>,
     True, True
   ]
 ];
