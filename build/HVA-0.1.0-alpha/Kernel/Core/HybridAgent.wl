@@ -8,7 +8,7 @@
 (* :Spec: 5.1, 5.2, 5.3, 5.4, 4.5 ADR-002, 4.5 ADR-005 *)
 (* :Methodology: METHODOLOGY.md §5 *)
 (* :Assumes: ℱ(q) es Lipschitz-continua en un entorno de cada ν ⊨ ℐ(q) (FORM Def. 2.7 B3, Lema C.2) — verificacion diferida a VER-0001 *)
-(* :Issues: CORE-0002 *)
+(* :Issues: CORE-0002, CORE-0003 *)
 (* :License: MIT *)
 
 (* :Discussion:
@@ -127,6 +127,14 @@ Begin["`Private`"]
 Needs["HVA`Utilities`Validation`"]
 
 (* ============================================================== *)
+(* MENSAJES (DEF-5, CORE-0003)                                    *)
+(* ============================================================== *)
+
+HybridAgent::defaultTimeSymbol =
+  "TimeSymbol not provided; defaulting to `1`. " <>
+  "Declare TimeSymbol -> sym explicitly for reproducible behavior.";
+
+(* ============================================================== *)
 (* ESTRUCTURA INTERNA PRIVADA                                     *)
 (* ============================================================== *)
 
@@ -209,7 +217,9 @@ $HybridAgentSchema := <|
   "Constraints" -> {
     "HybridAgent.DynamicsCoversAllStates",
     "HybridAgent.DynamicsVarsAreDeclared",
+    "HybridAgent.VectorFieldsHaveTemporalArg",
     "HybridAgent.GuardsReferenceValidStates",
+    "HybridAgent.TransitionsHaveConditionKey",
     "HybridAgent.InitialStateIsValid",
     "HybridAgent.InitialValuesCoverAllVars"
   }
@@ -338,6 +348,45 @@ RegisterConstraint["HybridAgent.InitialStateIsValid",
 RegisterConstraint["HybridAgent.InitialValuesCoverAllVars",
   constraintInitialValuesCoverAllVars];
 
+(* DEF-1, CORE-0003: cada transicion debe tener la clave canonica "condition" *)
+constraintTransitionsHaveConditionKey[expr_Association] := Module[
+  {transitions, badCount},
+  transitions = expr["transitions"];
+  badCount = Length[Select[transitions, !KeyExistsQ[#, "condition"] &]];
+  If[badCount === 0,
+    True,
+    <|"Code" -> "ConstraintViolation",
+      "Path" -> "transitions",
+      "Message" -> "Transitions missing required \"condition\" key (" <>
+                   ToString[badCount] <> " transition(s)). " <>
+                   "Use condition -> expr; \"guard\" is not a valid key."|>
+  ]
+];
+
+(* DEF-2, CORE-0003: las EDOs deben aplicar el simbolo temporal explicito.
+   Detecta Derivative[n][var] sin argumento: aparece como subexpresion directa
+   (sin Heads->True) solo cuando no esta aplicado a [timeSym]. *)
+constraintVectorFieldsHaveTemporalArg[expr_Association] := Module[
+  {timeSym, allEDOs, badEDOs},
+  timeSym = expr["time"];
+  allEDOs = Flatten @ Values[expr["vectorFields"]];
+  badEDOs = Select[allEDOs,
+    Function[edo, Cases[edo, Derivative[_][_Symbol], Infinity] =!= {}]];
+  If[badEDOs === {},
+    True,
+    <|"Code" -> "ConstraintViolation",
+      "Path" -> "vectorFields",
+      "Message" -> "VectorFields contain EDOs missing temporal argument [" <>
+                   ToString[timeSym] <> "]. Use var'[" <>
+                   ToString[timeSym] <> "] == expr instead of Derivative[1][var] == expr."|>
+  ]
+];
+
+RegisterConstraint["HybridAgent.TransitionsHaveConditionKey",
+  constraintTransitionsHaveConditionKey];
+RegisterConstraint["HybridAgent.VectorFieldsHaveTemporalArg",
+  constraintVectorFieldsHaveTemporalArg];
+
 (* ============================================================== *)
 (* CONSTRUCTOR                                                    *)
 (* ============================================================== *)
@@ -404,6 +453,24 @@ parseOptions[optsList_List] := Module[{providedAssoc, normalizedAssoc, unknownSy
   ]
 ];
 
+(* ============================================================== *)
+(* NORMALIZADORES POR VALOR (DEF-3, DEF-4, CORE-0003)             *)
+(* ============================================================== *)
+
+(* DEF-3: agrega "action" -> Null a transiciones que no tienen la clave *)
+normalizeTransition[t_Association] :=
+  If[KeyExistsQ[t, "action"], t, Append[t, "action" -> Null]];
+
+(* DEF-4: expande inecuaciones encadenadas a predicados binarios.
+   LessEqual[a, x, b] -> {a <= x, x <= b}  (idem Less, GreaterEqual, Greater) *)
+normalizeInvariant[inv_] := Module[{h, args},
+  If[MatchQ[inv, (LessEqual | Less | GreaterEqual | Greater)[_, _, __]],
+    h = Head[inv]; args = List @@ inv;
+    Apply[h, #] & /@ Partition[args, 2, 1],
+    {inv}  (* passthrough: predicado ya es binario o no es inecuacion *)
+  ]
+];
+
 (* FASES 2 y 3: traducir simbolos a strings y aplicar defaults *)
 buildCanonical[id_String, providedAssoc_Association] := Module[
   {translated, withId, withDefaults, withDerived},
@@ -414,10 +481,27 @@ buildCanonical[id_String, providedAssoc_Association] := Module[
   (* Insertar id *)
   withId = Prepend[translated, "id" -> id];
 
+  (* DEF-5: avisar cuando TimeSymbol no fue declarado explicitamente *)
+  If[!KeyExistsQ[withId, "time"],
+    Message[HybridAgent::defaultTimeSymbol, $defaultValues["time"]]
+  ];
+
   (* Aplicar defaults para campos opcionales ausentes *)
   withDefaults = Join[
     KeySelect[$defaultValues, !KeyExistsQ[withId, #] &],
     withId
+  ];
+
+  (* DEF-3: normalizar transiciones — agregar "action" -> Null si falta *)
+  If[KeyExistsQ[withDefaults, "transitions"],
+    withDefaults = <|withDefaults,
+      "transitions" -> Map[normalizeTransition, withDefaults["transitions"]]|>
+  ];
+
+  (* DEF-4: normalizar invariantes — expandir inecuaciones encadenadas *)
+  If[KeyExistsQ[withDefaults, "modeInvariants"],
+    withDefaults = <|withDefaults,
+      "modeInvariants" -> Flatten[Map[normalizeInvariant, withDefaults["modeInvariants"]], 1]|>
   ];
 
   (* FASE 3: derivar currentMode y valuation desde inputs iniciales.

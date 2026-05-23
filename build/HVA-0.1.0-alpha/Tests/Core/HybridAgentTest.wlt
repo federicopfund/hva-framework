@@ -15,12 +15,13 @@ VerificationTest[
   agent = HybridAgent["thermostat",
     Modes -> {"off", "on"},
     ContinuousVars -> {temp},
-    VectorFields -> <|"off" -> {Derivative[1][temp] == 0},
-                  "on" -> {Derivative[1][temp] == 5 - temp}|>,
+    VectorFields -> <|"off" -> {temp'[t] == 0},
+                  "on"  -> {temp'[t] == 5 - temp[t]}|>,
     Transitions -> {},
     ModeInvariants -> {},
     InitialMode -> "off",
-    InitialValuation -> <|temp -> 15|>
+    InitialValuation -> <|temp -> 15|>,
+    TimeSymbol -> t
   ];
   HybridAgentQ[agent],
   True,
@@ -66,6 +67,7 @@ VerificationTest[
     ModeInvariants -> {},
     InitialMode -> "s1",
     InitialValuation -> <||>,
+    TimeSymbol -> t,
     Contract -> HVA`Core`Contract`Contract[<|"assumes" -> {}, "guarantees" -> {}|>],
     RewriteRules -> {x_ :> y}
   ];
@@ -95,7 +97,8 @@ VerificationTest[
     Transitions -> {},
     ModeInvariants -> {},
     InitialMode -> "s1",
-    InitialValuation -> <||>
+    InitialValuation -> <||>,
+    TimeSymbol -> t
   ];
   FailureQ[result] &&
   Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
@@ -112,7 +115,8 @@ VerificationTest[
     Transitions -> {},
     ModeInvariants -> {},
     InitialMode -> "s1",
-    InitialValuation -> <||>
+    InitialValuation -> <||>,
+    TimeSymbol -> t
   ];
   FailureQ[result] &&
   Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
@@ -133,7 +137,8 @@ VerificationTest[
     Transitions -> {},
     ModeInvariants -> {},
     InitialMode -> "s1",
-    InitialValuation -> <|x -> 0|>
+    InitialValuation -> <|x -> 0|>,
+    TimeSymbol -> t
   ];
   FailureQ[result] &&
   Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
@@ -154,7 +159,8 @@ VerificationTest[
     Transitions -> {<|"from" -> "s1", "to" -> "s3", "condition" -> True|>},  (* s3 no existe! *)
     ModeInvariants -> {},
     InitialMode -> "s1",
-    InitialValuation -> <||>
+    InitialValuation -> <||>,
+    TimeSymbol -> t
   ];
   FailureQ[result] &&
   Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "transitions", ___|>] =!= {},
@@ -175,7 +181,8 @@ VerificationTest[
     Transitions -> {},
     ModeInvariants -> {},
     InitialMode -> "s3",  (* No existe! *)
-    InitialValuation -> <||>
+    InitialValuation -> <||>,
+    TimeSymbol -> t
   ];
   FailureQ[result] &&
   Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialMode", ___|>] =!= {},
@@ -196,6 +203,7 @@ VerificationTest[
     Transitions -> {},
     ModeInvariants -> {},
     InitialMode -> "s1",
+    TimeSymbol -> t,
     InitialValuation -> <|x -> 0|>  (* y falta! *)
   ];
   FailureQ[result] &&
@@ -213,6 +221,7 @@ VerificationTest[
     Transitions -> {},
     ModeInvariants -> {},
     InitialMode -> "s1",
+    TimeSymbol -> t,
     InitialValuation -> <|x -> 0, y -> 1|>  (* y extra! *)
   ];
   FailureQ[result] &&
@@ -314,13 +323,14 @@ VerificationTest[
   agentModified = HybridAgent["thermostat",
     Modes -> {"off", "on", "standby"},  (* Estado adicional *)
     ContinuousVars -> {temp},
-    VectorFields -> <|"off" -> {Derivative[1][temp] == 0},
-                  "on" -> {Derivative[1][temp] == 5 - temp},
-                  "standby" -> {Derivative[1][temp] == -0.1 * temp}|>,
+    VectorFields -> <|"off" -> {temp'[t] == 0},
+                  "on"      -> {temp'[t] == 5 - temp[t]},
+                  "standby" -> {temp'[t] == -0.1 * temp[t]}|>,
     Transitions -> {},
     ModeInvariants -> {},
     InitialMode -> "off",
-    InitialValuation -> <|temp -> 15|>
+    InitialValuation -> <|temp -> 15|>,
+    TimeSymbol -> t
   ];
   hashOriginal = AgentStructuralHash[agent];
   hashModified = AgentStructuralHash[agentModified];
@@ -350,17 +360,18 @@ VerificationTest[
     Modes -> {"idle", "working", "done"},
     ContinuousVars -> {x, y},
     VectorFields -> <|
-      "idle" -> {Derivative[1][x] == 0, Derivative[1][y] == 0},
-      "working" -> {Derivative[1][x] == 1, Derivative[1][y] == -x},
-      "done" -> {Derivative[1][x] == 0, Derivative[1][y] == 0}
+      "idle"    -> {x'[t] == 0, y'[t] == 0},
+      "working" -> {x'[t] == 1, y'[t] == -x[t]},
+      "done"    -> {x'[t] == 0, y'[t] == 0}
     |>,
     Transitions -> {
-      <|"from" -> "idle", "to" -> "working", "condition" -> x > 0|>,
-      <|"from" -> "working", "to" -> "done", "condition" -> x > 10|>
+      <|"from" -> "idle",    "to" -> "working", "condition" -> x > 0|>,
+      <|"from" -> "working", "to" -> "done",    "condition" -> x > 10|>
     },
     ModeInvariants -> {x >= 0},
     InitialMode -> "idle",
-    InitialValuation -> <|x -> 0, y -> 0|>
+    InitialValuation -> <|x -> 0, y -> 0|>,
+    TimeSymbol -> t
   ];
   (* Validar *)
   HybridAgentQ[a];
@@ -393,4 +404,82 @@ VerificationTest[
   FailureQ[result] && result["Expected"] === "HybridAgent",
   True,
   TestID -> "Core-HybridAgent-26-structural-hash-type-error"
+]
+
+(* ============================================================== *)
+(* CORE-0003-BUG REGRESSION TESTS                                 *)
+(* ============================================================== *)
+
+(* Test 27: DEF-1 - transicion con "guard" en vez de "condition" debe fallar *)
+VerificationTest[
+  Module[{result = HybridAgent["bad",
+    Modes -> {"a", "b"},
+    ContinuousVars -> {x},
+    VectorFields -> <|"a" -> {x'[t] == 0}, "b" -> {x'[t] == 0}|>,
+    Transitions -> {<|"from" -> "a", "to" -> "b", "guard" -> x > 0|>},
+    ModeInvariants -> {},
+    InitialMode -> "a",
+    InitialValuation -> <|x -> 1|>,
+    TimeSymbol -> t
+  ]},
+    FailureQ[result] &&
+    Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "transitions", ___|>] =!= {}
+  ],
+  True,
+  TestID -> "Core-HybridAgent-27-transition-missing-condition-key-CORE-0003-DEF-1"
+]
+
+(* Test 28: DEF-2 - EDO sin argumento temporal debe fallar *)
+VerificationTest[
+  Module[{result = HybridAgent["bad",
+    Modes -> {"a"},
+    ContinuousVars -> {x},
+    VectorFields -> <|"a" -> {Derivative[1][x] == 0}|>,
+    Transitions -> {},
+    ModeInvariants -> {},
+    InitialMode -> "a",
+    InitialValuation -> <|x -> 0|>,
+    TimeSymbol -> t
+  ]},
+    FailureQ[result] &&
+    Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {}
+  ],
+  True,
+  TestID -> "Core-HybridAgent-28-vector-field-missing-temporal-arg-CORE-0003-DEF-2"
+]
+
+(* Test 29: DEF-3 - transicion sin "action" se normaliza a Null automaticamente *)
+VerificationTest[
+  Module[{a = HybridAgent["norm_test",
+    Modes -> {"a", "b"},
+    ContinuousVars -> {x},
+    VectorFields -> <|"a" -> {x'[t] == 0}, "b" -> {x'[t] == 0}|>,
+    Transitions -> {<|"from" -> "a", "to" -> "b", "condition" -> x > 0|>},
+    ModeInvariants -> {},
+    InitialMode -> "a",
+    InitialValuation -> <|x -> 1|>,
+    TimeSymbol -> t
+  ]},
+    HybridAgentQ[a] && KeyExistsQ[AgentTransitions[a][[1]], "action"]
+  ],
+  True,
+  TestID -> "Core-HybridAgent-29-transition-action-normalized-CORE-0003-DEF-3"
+]
+
+(* Test 30: DEF-4 - invariante encadenada 0 <= x <= 30 se expande a dos predicados *)
+VerificationTest[
+  Module[{a = HybridAgent["inv_test",
+    Modes -> {"a"},
+    ContinuousVars -> {x},
+    VectorFields -> <|"a" -> {x'[t] == 0}|>,
+    Transitions -> {},
+    ModeInvariants -> {0 <= x <= 30},
+    InitialMode -> "a",
+    InitialValuation -> <|x -> 15|>,
+    TimeSymbol -> t
+  ]},
+    HybridAgentQ[a] && Length[AgentModeInvariants[a]] >= 2
+  ],
+  True,
+  TestID -> "Core-HybridAgent-30-chained-invariant-normalized-CORE-0003-DEF-4"
 ]

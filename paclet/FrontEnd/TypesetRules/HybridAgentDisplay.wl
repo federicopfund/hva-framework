@@ -44,13 +44,13 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
   (* ── Nivel 1: valores primitivos del agente ─────────────────── *)
   With[{
     id         = a["id"],
-    curState   = a["currentState"],
-    states     = Row[a["states"], " | "],
-    statusColor = HVAStatusColor[a["currentState"]],
-    vars       = a["vars"],
-    dynamics   = a["dynamics"],
-    guards     = Lookup[a, "guards",     {}],
-    invs       = Lookup[a, "invariants", {}],
+    curState   = a["currentMode"],
+    states     = Row[a["modes"], " | "],
+    statusColor = HVAStatusColor[a["currentMode"]],
+    vars       = a["continuousVars"],
+    dynamics   = a["vectorFields"],
+    guards     = Lookup[a, "transitions",    {}],
+    invs       = Lookup[a, "modeInvariants", {}],
     mailboxLen = Length[a["mailbox"]],
     traceLen   = Length[a["trace"]]
   },
@@ -162,7 +162,7 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
 
 (* OutputForm: texto plano para WolframScript y terminales *)
 Format[HybridAgent[a_Association], OutputForm] :=
-  SequenceForm["HybridAgent[\"", a["id"], "\" @ ", a["currentState"], "]"];
+  SequenceForm["HybridAgent[\"", a["id"], "\" @ ", a["currentMode"], "]"];
 
 Protect[HybridAgent];
 
