@@ -162,7 +162,7 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
 
 (* OutputForm: texto plano para WolframScript y terminales *)
 Format[HybridAgent[a_Association], OutputForm] :=
-  SequenceForm["HybridAgent[\"", a["id"], "\" @ ", a["currentState"], "]"];
+  SequenceForm["HybridAgent[\"", a["id"], "\" @ ", a["currentMode"], "]"];
 
 Protect[HybridAgent];
 
