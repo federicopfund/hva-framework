@@ -140,16 +140,16 @@ HybridAgent::defaultTimeSymbol =
 
 (* Mapa simbolo de opcion -> key canonica de string (D14) *)
 $optionToKey = <|
-  HVA`Core`HybridAgent`Modes        -> "modes",
+  HVA`Core`HybridAgent`Modes                   -> "modes",
   HVA`Core`HybridAgent`ContinuousVars          -> "continuousVars",
-  HVA`Core`HybridAgent`VectorFields      -> "vectorFields",
-  HVA`Core`HybridAgent`Transitions        -> "transitions",
-  HVA`Core`HybridAgent`ModeInvariants    -> "modeInvariants",
-  HVA`Core`HybridAgent`InitialMode  -> "initialMode",
-  HVA`Core`HybridAgent`InitialValuation -> "initialValuation",
-  HVA`Core`Contract`Contract         -> "contract",
-  HVA`Core`HybridAgent`RewriteRules      -> "rewriteRules",
-  HVA`Core`HybridAgent`TimeSymbol    -> "time"
+  HVA`Core`HybridAgent`VectorFields            -> "vectorFields",
+  HVA`Core`HybridAgent`Transitions             -> "transitions",
+  HVA`Core`HybridAgent`ModeInvariants          -> "modeInvariants",
+  HVA`Core`HybridAgent`InitialMode             -> "initialMode",
+  HVA`Core`HybridAgent`InitialValuation        -> "initialValuation",
+  HVA`Core`Contract`Contract                   -> "contract",
+  HVA`Core`HybridAgent`RewriteRules            -> "rewriteRules",
+  HVA`Core`HybridAgent`TimeSymbol              -> "time"
 |>;
 
 (* Orden canonico de campos en la forma normalizada *)
@@ -551,14 +551,13 @@ defineAccessor[name_Symbol, key_String] := (
     |>];
 );
 
-defineAccessor[AgentId,           "id"];
-defineAccessor[AgentModes,       "modes"];
+defineAccessor[AgentModes,              "modes"];
 defineAccessor[AgentContinuousVars,         "continuousVars"];
 defineAccessor[AgentVectorFields,     "vectorFields"];
 defineAccessor[AgentTransitions,       "transitions"];
 defineAccessor[AgentModeInvariants,   "modeInvariants"];
 defineAccessor[AgentContract,     "contract"];
-defineAccessor[AgentRewriteRules,     "rewriteRules"];
+defineAccessor[AgentRewriteRules,     "rewriteRules];
 defineAccessor[AgentMailbox,      "mailbox"];
 defineAccessor[AgentCurrentMode, "currentMode"];
 defineAccessor[AgentValuation,    "valuation"];

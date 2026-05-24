@@ -1,3 +1,15 @@
+(* :Title: ValidationTest *)
+(* :Context: HVA`Utilities`Validation`Tests *)
+(* :Author: HVA Contributors *)
+(* :Summary: Tests espejo de Kernel/Utilities/Validation.wl *)
+(* :Mirrors: Kernel/Utilities/Validation.wl *)
+(* :Capa: Utilities (cross-cutting) *)
+(* :Formalismo: N/A (infraestructura) *)
+(* :Spec: 4.5 ADR-002, 5.1, 6.2 *)
+(* :Methodology: METHODOLOGY.md §3.4, §7 *)
+(* :Issues: CORE-0002 *)
+(* :License: MIT *)
+
 (* Validation.wl Unit Tests *)
 
 VerificationTest[
