@@ -7,6 +7,9 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
+(* Evitar shadowing si Contract ya fue creado en Global` antes de cargar el paclet *)
+If[NameQ["Global`Contract"], Quiet[Remove["Global`Contract"], {Remove::rmnsm}]];
+
 BeginPackage["HVA`Core`Contract`"]
 
 Contract::usage = "Contract[spec] representa un contrato verificable.";
