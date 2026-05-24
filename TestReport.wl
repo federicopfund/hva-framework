@@ -35,7 +35,7 @@ $suites = {
     "Core/HybridAgentTest.wlt",
     "Core/ContractTest.wlt",
     "Core/CausalModelTest.wlt",
-    "Core/MessageTest.wlt",
+    "Core/MessageAlphabetTest.wlt",
     "Core/TraceTest.wlt"
   }},
   {"Runtime", {

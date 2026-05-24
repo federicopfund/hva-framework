@@ -551,13 +551,14 @@ defineAccessor[name_Symbol, key_String] := (
     |>];
 );
 
+defineAccessor[AgentId,              "id"];
 defineAccessor[AgentModes,              "modes"];
 defineAccessor[AgentContinuousVars,         "continuousVars"];
 defineAccessor[AgentVectorFields,     "vectorFields"];
 defineAccessor[AgentTransitions,       "transitions"];
 defineAccessor[AgentModeInvariants,   "modeInvariants"];
 defineAccessor[AgentContract,     "contract"];
-defineAccessor[AgentRewriteRules,     "rewriteRules];
+defineAccessor[AgentRewriteRules,     "rewriteRules"];
 defineAccessor[AgentMailbox,      "mailbox"];
 defineAccessor[AgentCurrentMode, "currentMode"];
 defineAccessor[AgentValuation,    "valuation"];
