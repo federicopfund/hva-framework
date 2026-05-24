@@ -1,22 +1,6 @@
 (* :Title: MessageAlphabet *)
 (* :Context: HVA`Core`MessageAlphabet` *)
 (* :Author: HVA Contributors *)
-(* :Summary: Mensajes del sistema como expresiones simbolicas. *)
-(* :Capa: Core (2) *)
-(* :Depends: None *)
-(* :Issues: ARCH-0001 (scaffolding) *)
-(* :License: MIT *)
-
-BeginPackage["HVA`Core`MessageAlphabet`"]
-
-Message::usage = "Message[type, payload] representa un mensaje del runtime.";
-
-
-Begin["`Private`"]
-
-(* :Title: MessageAlphabet *)
-(* :Context: HVA`Core`MessageAlphabet` *)
-(* :Author: HVA Contributors *)
 (* :Summary: Alfabeto de mensajes simbolicos del agente: construccion, membership y pattern-matching. *)
 (* :Capa: Core (2) *)
 (* :Formalismo: FORM Def. 2.1 (componente ℳ), Def. 2.5 (unificacion de mensajes), Anexo B.3 (Def. B.9) *)
@@ -46,8 +30,8 @@ MessageTermQ::usage =
     algun patron del MessageAlphabet alphabet, False en caso contrario. \
     Implementa la relacion de pertenencia m ∈ ℳ de FORM Def. 2.1.";
 
-MessageMatchQ::usage =
-  "MessageMatchQ[m, pattern] devuelve True si el mensaje m unifica con \
+MessagePatternQ::usage =
+  "MessagePatternQ[m, pattern] devuelve True si el mensaje m unifica con \
     el patron pattern (con guarda opcional via Condition). \
     Implementa la unificacion de FORM Def. 2.5 y FORM Def. B.9: \
     existe sustitucion σ tal que σ(pattern) = m.";
@@ -68,21 +52,20 @@ Begin["`Private`"]
 (* ============================================================== *)
 
 (* Envoltorio inerte: la estructura es la lista de patrones dentro
-   del head MessageAlphabet. Usamos HoldFirst para que los patrones
-   no se evaluen durante la construccion; el usuario puede pasar
-   expresiones con Blank, BlankSequence, PatternTest, Condition, etc. *)
+   del head MessageAlphabet. Los patrones son expresiones WL validas
+   (Blank, BlankSequence, PatternTest, Condition, etc.). *)
 
-SetAttributes[MessageAlphabet, HoldFirst]
+(* Sentinel privado: solo accesible dentro de este contexto.
+   Representacion interna: MessageAlphabet[pats, $valid]
+   evita la recursion que provocaria SetValid al re-evaluar
+   MessageAlphabet[pats]. *)
 
 MessageAlphabet[patterns_List] /; Length[patterns] > 0 :=
-  System`Private`SetValid[
-    MessageAlphabet[patterns],
-    True
-  ]
+  MessageAlphabet[patterns, $valid]
 
 (* Caso de lista vacia: error explicito *)
 MessageAlphabet[{}] :=
-  (System`Private`HoldMsg[MessageAlphabet::emptyAlphabet]; $Failed)
+  (Message[MessageAlphabet::emptyAlphabet]; $Failed)
 
 (* Caso de argumento que no es lista *)
 MessageAlphabet[other_] :=
@@ -92,9 +75,8 @@ MessageAlphabet[other_] :=
 (* PREDICADO DE TIPO                                              *)
 (* ============================================================== *)
 
-MessageAlphabetQ[expr_] :=
-  MatchQ[expr, _MessageAlphabet] &&
-  System`Private`ValidQ[expr]
+MessageAlphabetQ[MessageAlphabet[_List, $valid]] := True
+MessageAlphabetQ[_] := False
 
 (* ============================================================== *)
 (* MEMBERSHIP: m ∈ ℳ (FORM Def. 2.1)                            *)
@@ -116,14 +98,14 @@ MessageTermQ[_, _] := False
 (* UNIFICACION INDIVIDUAL: FORM Def. 2.5, Def. B.9               *)
 (* ============================================================== *)
 
-(* MessageMatchQ encapsula MatchQ para dejar explícita la semantica
+(* MessagePatternQ encapsula MatchQ para dejar explícita la semantica
    formal. El patron puede incluir Condition (/;) para la guarda phi.
    La sustitucion sigma es unica por la estructura libre de expresiones
    (FORM Def. B.9, ultima oracion). *)
 
-SetAttributes[MessageMatchQ, HoldRest]
+SetAttributes[MessagePatternQ, HoldRest]
 
-MessageMatchQ[m_, pattern_] := MatchQ[m, pattern]
+MessagePatternQ[m_, pattern_] := MatchQ[m, pattern]
 
 (* ============================================================== *)
 (* ACCESSOR                                                       *)
