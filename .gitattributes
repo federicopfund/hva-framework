@@ -1,0 +1,5 @@
+
+# .claude/** is tracked only in develop.
+# merge=ours tells git to always keep main's version (empty stubs) on merge.
+# Requires: git config merge.ours.driver true
+.claude/**  merge=ours
