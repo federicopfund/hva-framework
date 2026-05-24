@@ -10,4 +10,4 @@ build/*
 /pyrightconfig.json
 /docs/documenta/HVA_Formalismo_Matematico.docx
 /docs/documenta/HVA_Spec_Tecnica_final.docx
-/.claude/skills
+# .claude/ is tracked only in develop; see .gitattributes on main for merge exclusion
