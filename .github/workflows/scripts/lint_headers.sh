@@ -35,7 +35,8 @@ OPTIONAL_FIELDS=(":Depends:" ":Formalismo:" ":Spec:")
 VALID_CAPAS=("Core" "Runtime" "Services" "Adapters" "DSL" "Utilities")
 
 # Módulos excluidos del lint (inicializadores de capa sin lógica propia)
-EXCLUDED_FILES=("HVA.wl" "Core.wl" "Runtime.wl" "Services.wl" "Adapters.wl" "DSL.wl" "Utilities.wl")
+EXCLUDED_FILES=("HVA.wl" "Core.wl" "Runtime.wl" "Services.wl" "Adapters.wl" "DSL.wl" "Utilities.wl" \
+                "Mailbox.wl" "Transport.wl" "Executor.wl" "Simulator.wl" "Supervisor.wl" "Verifier.wl")
 
 # ─── Colores ─────────────────────────────────────────────────────────────────
 
@@ -88,7 +89,8 @@ check_capa_value() {
 
 check_context_matches_path() {
     # Verifica que el contexto declarado sea consistente con la ruta del archivo.
-    # Ej: Kernel/Core/HybridAgent.wl debe declarar HVA`Core`HybridAgent`
+    # Ej: Kernel/Core/HybridAgent.wl          -> HVA`Core`HybridAgent`
+    #     Kernel/Runtime/Mailbox/DedupMailbox.wl -> HVA`Runtime`Mailbox`DedupMailbox`
     local file="$1"
     local context_line
     context_line=$(head -20 "$file" | grep ":Context:" || true)
@@ -96,20 +98,22 @@ check_context_matches_path() {
         return 0  # Ya se reportó como campo faltante; no duplicar error.
     fi
 
-    # Extraer el nombre del módulo (sin extensión) y la capa desde la ruta.
+    # Extraer todos los componentes de ruta entre Kernel/ y el archivo.
     local dirname_path
     dirname_path=$(dirname "$file")
-    local capa
-    capa=$(echo "$dirname_path" | grep -oP '(?<=Kernel/)[^/]+' || true)
+    local rel_path
+    rel_path=$(echo "$dirname_path" | sed 's|.*Kernel/||')
     local modname
     modname=$(basename "$file" .wl)
 
-    if [[ -z "$capa" ]]; then
-        return 0  # No podemos inferir; omitir validación.
+    if [[ -z "$rel_path" ]] || [[ "$rel_path" == "$dirname_path" ]]; then
+        return 0  # No hay Kernel/ en la ruta; omitir.
     fi
 
-    # El contexto esperado contiene HVA`Capa`Modulo`
-    local expected_fragment="HVA\`${capa}\`${modname}\`"
+    # Construir contexto esperado: reemplazar / por ` en la ruta y agregar el módulo.
+    local context_path
+    context_path=$(echo "$rel_path" | tr '/' '\`')
+    local expected_fragment="HVA\`${context_path}\`${modname}\`"
     echo "$context_line" | grep -qF "$expected_fragment"
 }
 
@@ -136,7 +140,12 @@ lint_file() {
 
     # ── Coherencia contexto ↔ ruta ──
     if ! check_context_matches_path "$file"; then
-        messages+=("  ${RED}✗ ERROR${RESET}  :Context: no coincide con la ruta del archivo (esperado HVA\`Capa\`$(basename "$file" .wl)\`)")
+        local _dpath _rel _cpath _mod
+        _dpath=$(dirname "$file")
+        _rel=$(echo "$_dpath" | sed 's|.*Kernel/||')
+        _cpath=$(echo "$_rel" | tr '/' '\`')
+        _mod=$(basename "$file" .wl)
+        messages+=("  ${RED}✗ ERROR${RESET}  :Context: no coincide con la ruta (esperado HVA\`${_cpath}\`${_mod}\`)")
         ((file_errors++)) || true
     fi
 

@@ -1,5 +1,5 @@
 (* :Title: Verifier *)
-(* :Context: HVA`Verifier` *)
+(* :Context: HVA`Services`Verifier` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Inicializador del subsistema de verificacion. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Verifier`"]
+BeginPackage["HVA`Services`Verifier`"]
 
 LoadVerifier::usage = "LoadVerifier[] inicializa los modulos de verificacion.";
 

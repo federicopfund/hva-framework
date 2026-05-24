@@ -1,5 +1,5 @@
 (* :Title: VectorFieldAnalysis *)
-(* :Context: HVA`Verifier`VectorFieldAnalysis` *)
+(* :Context: HVA`Services`Verifier`VectorFieldAnalysis` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Analisis cualitativo de campos vectoriales hibridos. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Verifier`VectorFieldAnalysis`"]
+BeginPackage["HVA`Services`Verifier`VectorFieldAnalysis`"]
 
 AnalyzeVectorField::usage = "AnalyzeVectorField[system] ejecuta analisis de campo vectorial.";
 

@@ -1,5 +1,5 @@
 (* :Title: DiscriminantTests *)
-(* :Context: HVA`Supervisor`DiscriminantTests` *)
+(* :Context: HVA`Services`Supervisor`DiscriminantTests` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Tests discriminantes para separar causas candidatas. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Supervisor`DiscriminantTests`"]
+BeginPackage["HVA`Services`Supervisor`DiscriminantTests`"]
 
 RunDiscriminantTests::usage = "RunDiscriminantTests[hypotheses] ejecuta pruebas discriminantes.";
 

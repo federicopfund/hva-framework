@@ -1,5 +1,5 @@
 (* :Title: Executor *)
-(* :Context: HVA`Executor` *)
+(* :Context: HVA`Services`Executor` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Inicializador del subsistema de ejecucion. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Executor`"]
+BeginPackage["HVA`Services`Executor`"]
 
 LoadExecutor::usage = "LoadExecutor[] inicializa el subsistema de ejecucion.";
 

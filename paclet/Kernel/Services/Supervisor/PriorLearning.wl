@@ -1,5 +1,5 @@
 (* :Title: PriorLearning *)
-(* :Context: HVA`Supervisor`PriorLearning` *)
+(* :Context: HVA`Services`Supervisor`PriorLearning` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Actualizacion de priors con suavizado de Laplace. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Supervisor`PriorLearning`"]
+BeginPackage["HVA`Services`Supervisor`PriorLearning`"]
 
 UpdatePriors::usage = "UpdatePriors[history] actualiza priors del modelo.";
 
