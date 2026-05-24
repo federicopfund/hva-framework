@@ -5,8 +5,10 @@ build/*
 .wolfram-paclets/
 .vscode/
 /bin/wl_kernel.py
-/notebooks/functional
-/notebooks/math
+# notebooks: ignorar todos los archivos Jupyter y Wolfram notebook
+*.ipynb
+*.wlnb
+/notebooks/
 /pyrightconfig.json
 /docs/documenta/HVA_Formalismo_Matematico.docx
 /docs/documenta/HVA_Spec_Tecnica_final.docx
