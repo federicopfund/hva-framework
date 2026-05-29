@@ -49,7 +49,7 @@ Block[{$ContextPath = {"System`", "Global`"}},
           "DefineAgent", "DefineContract", "RunSystem", "ExportCertificate",
           (* Runtime *)
           "Dispatcher", "Mailbox", "Scheduler", "Transport"
-        }, StringDelete[#, "Global`"] &] &
+        }, StringDelete[#, "Global`"]] &
       ],
     {Remove::rmnsm}
   ]
