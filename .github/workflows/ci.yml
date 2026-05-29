@@ -247,6 +247,7 @@ jobs:
     needs: [test]
     if: |
       github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/develop' ||
       startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
