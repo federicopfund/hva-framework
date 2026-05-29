@@ -1,5 +1,5 @@
 (* :Title: Supervisor *)
-(* :Context: HVA`Supervisor` *)
+(* :Context: HVA`Services`Supervisor` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Inicializador del subsistema supervisor. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Supervisor`"]
+BeginPackage["HVA`Services`Supervisor`"]
 
 LoadSupervisor::usage = "LoadSupervisor[] inicializa el subsistema supervisor.";
 

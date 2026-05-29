@@ -1,5 +1,5 @@
 (* :Title: ReachabilityChecker *)
-(* :Context: HVA`Verifier`ReachabilityChecker` *)
+(* :Context: HVA`Services`Verifier`ReachabilityChecker` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Analisis de alcanzabilidad simbolica. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Verifier`ReachabilityChecker`"]
+BeginPackage["HVA`Services`Verifier`ReachabilityChecker`"]
 
 CheckReachability::usage = "CheckReachability[model, target] analiza alcanzabilidad.";
 

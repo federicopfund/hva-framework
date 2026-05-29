@@ -1,5 +1,5 @@
 (* :Title: Simulator *)
-(* :Context: HVA`Simulator` *)
+(* :Context: HVA`Services`Simulator` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Inicializador del subsistema de simulacion. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Simulator`"]
+BeginPackage["HVA`Services`Simulator`"]
 
 LoadSimulator::usage = "LoadSimulator[] inicializa los modulos de simulacion.";
 

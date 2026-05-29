@@ -1,5 +1,5 @@
 (* :Title: ExportCertificate *)
-(* :Context: HVA` *)
+(* :Context: HVA`DSL`ExportCertificate` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Exportacion de certificados a formatos externos. *)
 (* :Capa: DSL (5) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`", {"HVA`Verifier`Certificate`"}]
+BeginPackage["HVA`DSL`ExportCertificate`", {"HVA`Verifier`Certificate`"}]
 
 ExportCertificate::usage = "ExportCertificate[cert, format] exporta certificados del verificador.";
 

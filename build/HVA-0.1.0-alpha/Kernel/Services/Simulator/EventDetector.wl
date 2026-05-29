@@ -1,5 +1,5 @@
 (* :Title: EventDetector *)
-(* :Context: HVA`Simulator`EventDetector` *)
+(* :Context: HVA`Services`Simulator`EventDetector` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Deteccion robusta de guardas y eventos. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Simulator`EventDetector`"]
+BeginPackage["HVA`Services`Simulator`EventDetector`"]
 
 DetectEvents::usage = "DetectEvents[trajectory] detecta eventos en una simulacion.";
 

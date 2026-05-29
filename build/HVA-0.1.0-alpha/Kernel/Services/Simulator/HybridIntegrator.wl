@@ -1,5 +1,5 @@
 (* :Title: HybridIntegrator *)
-(* :Context: HVA`Simulator`HybridIntegrator` *)
+(* :Context: HVA`Services`Simulator`HybridIntegrator` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Envoltura para integracion hibrida continua/discreta. *)
 (* :Capa: Services (4) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Simulator`HybridIntegrator`"]
+BeginPackage["HVA`Services`Simulator`HybridIntegrator`"]
 
 IntegrateHybridSystem::usage = "IntegrateHybridSystem[spec] integra dinamica hibrida.";
 

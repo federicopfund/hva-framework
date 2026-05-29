@@ -1,5 +1,5 @@
 (* :Title: DefineCausalModel *)
-(* :Context: HVA` *)
+(* :Context: HVA`DSL`DefineCausalModel` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Constructor DSL para CausalModel. *)
 (* :Capa: DSL (5) *)
@@ -7,7 +7,7 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`", {"HVA`Core`CausalModel`"}]
+BeginPackage["HVA`DSL`DefineCausalModel`", {"HVA`Core`CausalModel`"}]
 
 DefineCausalModel::usage = "DefineCausalModel[spec] define un modelo causal en DSL.";
 
