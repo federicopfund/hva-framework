@@ -1,10 +1,13 @@
 (* :Title: Validation *)
 (* :Context: HVA`Utilities`Validation` *)
 (* :Author: HVA Contributors *)
-(* :Summary: Motor de validacion declarativa sobre estructuras Wolfram. *)
+(* :Summary: Motor de validacion schema-driven en cuatro fases con registro extensible de constraints. *)
 (* :Capa: Utilities (cross-cutting) *)
 (* :Depends: None *)
-(* :Issues: CORE-0002 *)
+(* :Formalismo: N/A (infraestructura) *)
+(* :Spec: 4.4.7, 5.1 *)
+(* :Methodology: METHODOLOGY.md §5 *)
+(* :Issues: UTIL-0001 *)
 (* :License: MIT *)
 
 (* :Discussion:
@@ -31,10 +34,16 @@
 BeginPackage["HVA`Utilities`Validation`"]
 
 ValidateStructure::usage =
-  "ValidateStructure[expr, schema] valida que expr satisface el schema declarativo.\n" <>
-  "Devuelve True si expr es valida, o una Association\n" <>
-  "  <|\"Status\" -> \"Invalid\", \"Errors\" -> {...}|>\n" <>
-  "donde cada error es <|\"Code\" -> _, \"Path\" -> _, \"Message\" -> _|>.";
+  "ValidateStructure[expr, schema] verifica que expr cumple el esquema declarativo schema " <>
+  "en cuatro fases (tipo, requeridos, campos, constraints). " <>
+  "Devuelve True si expr es valida, o una Association " <>
+  "<|\"Status\" -> \"Invalid\", \"Errors\" -> {<|\"Code\" -> _, \"Path\" -> _, \"Message\" -> _|>...}|> " <>
+  "describiendo la primera fase que falla (fail-fast).";
+
+ValidateStructure::badtype    = "Tipo inesperado en `1`: se esperaba `2`, se recibio `3`.";
+ValidateStructure::missing    = "Campo requerido ausente en `1`: `2`.";
+ValidateStructure::badfield   = "El campo `1` no satisface su predicado en `2`: `3`.";
+ValidateStructure::constraint = "Constraint cross-field violado en `1`: `2`.";
 
 RegisterConstraint::usage =
   "RegisterConstraint[name, fn] registra una constraint cross-field nombrada.\n" <>
@@ -231,17 +240,25 @@ runConstraint[name_String, expr_Association] := Module[{fn, result},
 (* Punto de entrada publico                                       *)
 (* ============================================================== *)
 
-ValidateStructure[expr_, schema_Association] := Module[{errors},
-  errors = Join[
-    validateTopType[expr, schema],
-    validateRequired[expr, schema],
-    validateFields[expr, schema],
-    validateConstraints[expr, schema]
-  ];
-  If[errors === {},
-    $ok,
-    mkFailure[errors]
-  ]
+(* Fail-fast: la primera fase que devuelve errores detiene la validacion *)
+ValidateStructure[expr_, schema_Association] := Module[{phaseErrors},
+  (* Fase 1: tipo top-level *)
+  phaseErrors = validateTopType[expr, schema];
+  If[phaseErrors =!= {}, Return[mkFailure[phaseErrors]]];
+
+  (* Fase 2: campos requeridos *)
+  phaseErrors = validateRequired[expr, schema];
+  If[phaseErrors =!= {}, Return[mkFailure[phaseErrors]]];
+
+  (* Fase 3: validacion de campos individuales *)
+  phaseErrors = validateFields[expr, schema];
+  If[phaseErrors =!= {}, Return[mkFailure[phaseErrors]]];
+
+  (* Fase 4: constraints cross-field *)
+  phaseErrors = validateConstraints[expr, schema];
+  If[phaseErrors =!= {}, Return[mkFailure[phaseErrors]]];
+
+  $ok
 ];
 
 End[]

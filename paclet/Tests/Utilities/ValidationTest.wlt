@@ -232,6 +232,70 @@ VerificationTest[
 ]
 
 (* ============================================================== *)
+(* FAIL-FAST: ORDEN DE FASES                                      *)
+(* Una entrada que viola tipo Y tiene campos requeridos ausentes  *)
+(* debe reportar solo InvalidType (fase 1 detiene la validacion). *)
+(* ============================================================== *)
+
+VerificationTest[
+  result = ValidateStructure[
+    123,
+    <|"Type" -> _Association, "Required" -> {"id"}|>
+  ];
+  (* Solo un error: InvalidType. No debe aparecer MissingField. *)
+  AssociationQ[result] && result["Status"] === "Invalid" &&
+  Length[result["Errors"]] === 1 &&
+  First[result["Errors"]]["Code"] === "InvalidType",
+  True,
+  TestID -> "Utilities-Validation-PhaseOrder-TypeBeforeRequired"
+]
+
+(* Una Association con campo requerido ausente Y campo invalido   *)
+(* reporta solo MissingField (fase 2 detiene antes de fase 3).   *)
+VerificationTest[
+  result = ValidateStructure[
+    <|"id" -> "ok"|>,
+    <|
+      "Type"     -> _Association,
+      "Required" -> {"id", "name"},
+      "Fields"   -> <|"id" -> <|"Type" -> _String|>|>
+    |>
+  ];
+  AssociationQ[result] && result["Status"] === "Invalid" &&
+  Length[result["Errors"]] === 1 &&
+  First[result["Errors"]]["Code"] === "MissingField",
+  True,
+  TestID -> "Utilities-Validation-PhaseOrder-RequiredBeforeField"
+]
+
+(* ============================================================== *)
+(* FAIL-FAST: PRIMERA FALLA SOLO (errors list de longitud 1)      *)
+(* Cuando dos campos fallan en fase 3, la lista puede tener > 1   *)
+(* error (acumulacion dentro de la fase), pero la siguiente fase  *)
+(* no se ejecuta.                                                 *)
+(* ============================================================== *)
+
+VerificationTest[
+  RegisterConstraint["Test.PhaseCheck",
+    Function[assoc, <|"Code" -> "ConstraintViolation", "Path" -> "x",
+                      "Message" -> "should not reach phase 4"|>]
+  ];
+  result = ValidateStructure[
+    <|"val" -> 99|>,
+    <|
+      "Type"        -> _Association,
+      "Fields"      -> <|"val" -> <|"Type" -> _String|>|>,
+      "Constraints" -> {"Test.PhaseCheck"}
+    |>
+  ];
+  (* Fase 3 falla (tipo de val). Fase 4 NO debe ejecutarse.       *)
+  AssociationQ[result] && result["Status"] === "Invalid" &&
+  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", ___|>] === {},
+  True,
+  TestID -> "Utilities-Validation-PhaseOrder-FieldBeforeConstraint"
+]
+
+(* ============================================================== *)
 (* LIMPIEZA (cleanup para no afectar otros tests)                 *)
 (* ============================================================== *)
 
@@ -240,6 +304,7 @@ VerificationTest[
   UnregisterConstraint["Test.Constraint1"];
   UnregisterConstraint["Test.Constraint2"];
   UnregisterConstraint["Test.Sum"];
+  UnregisterConstraint["Test.PhaseCheck"];
   True,
   True,
   TestID -> "Utilities-Validation-Cleanup"
