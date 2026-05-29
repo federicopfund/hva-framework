@@ -7,6 +7,54 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
+(* ── Limpieza preventiva de sombras Global` ───────────────────
+   Si el usuario evaluo simbolos HVA antes de llamar Needs["HVA`"],
+   esos simbolos quedaron en Global`. BeginPackage los detecta como
+   sombras y emite General::shdw. Removemos los simbolos conflictivos
+   de Global` antes de cargar para suprimir estos mensajes.
+   Referencia: WL guide/Packages, seccion "Avoiding Symbol Conflicts".
+──────────────────────────────────────────────────────────────── *)
+Block[{$ContextPath = {"System`", "Global`"}},
+  Quiet[
+    Remove @@
+      Select[
+        Names["Global`*"],
+        MemberQ[{
+          (* Core / HybridAgent *)
+          "HybridAgent", "HybridAgentQ", "AgentStructuralHash",
+          "Modes", "ContinuousVars", "VectorFields", "Transitions",
+          "ModeInvariants", "InitialMode", "InitialValuation",
+          "RewriteRules", "TimeSymbol",
+          "AgentModes", "AgentVars", "AgentDynamics", "AgentGuards",
+          "AgentInvariants", "AgentInitialMode", "AgentInitialValues",
+          "AgentCurrentMode", "AgentValuation", "AgentTime",
+          "AgentMailbox", "AgentTrace", "AgentContract", "AgentHandlers",
+          "AgentID", "AgentStructuralHash",
+          "WithCurrentMode", "WithValuation", "WithMailbox", "WithTrace",
+          (* Core / Contract *)
+          "Contract", "ContractQ",
+          "Assumes", "Guarantees", "ContractAssumes", "ContractGuarantees",
+          (* Core / CausalModel *)
+          "CausalModel", "CausalModelQ",
+          "CausalPriors", "CausalLikelihoods", "CausalStrategies",
+          (* Core / MessageAlphabet *)
+          "MessageAlphabet", "MessageAlphabetQ", "MessagePatternQ",
+          (* Core / Trace *)
+          "Trace", "TraceQ", "TraceStep",
+          (* Utilities *)
+          "ValidateStructure", "RegisterConstraint",
+          "UnregisterConstraint", "RegisteredConstraintQ", "ListRegisteredConstraints",
+          "LogEvent", "QueryLog", "ClearLog", "LogSize",
+          (* DSL *)
+          "DefineAgent", "DefineContract", "RunSystem", "ExportCertificate",
+          (* Runtime *)
+          "Dispatcher", "Mailbox", "Scheduler", "Transport"
+        }, StringDelete[#, "Global`"] &] &
+      ],
+    {Remove::rmnsm}
+  ]
+];
+
 BeginPackage["HVA`"]
 
 LoadHVA::usage = "LoadHVA[] carga los inicializadores de todas las capas del framework.";
