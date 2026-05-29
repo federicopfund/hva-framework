@@ -20,35 +20,58 @@ Block[{$ContextPath = {"System`", "Global`"}},
       Select[
         Names["Global`*"],
         MemberQ[{
-          (* Core / HybridAgent *)
+          (* Core / HybridAgent — opciones de constructor *)
           "HybridAgent", "HybridAgentQ", "AgentStructuralHash",
           "Modes", "ContinuousVars", "VectorFields", "Transitions",
           "ModeInvariants", "InitialMode", "InitialValuation",
           "RewriteRules", "TimeSymbol",
-          "AgentModes", "AgentVars", "AgentDynamics", "AgentGuards",
-          "AgentInvariants", "AgentInitialMode", "AgentInitialValues",
+          (* Core / HybridAgent — accessors *)
+          "AgentId", "AgentModes", "AgentContinuousVars", "AgentVectorFields",
+          "AgentTransitions", "AgentModeInvariants", "AgentRewriteRules",
           "AgentCurrentMode", "AgentValuation", "AgentTime",
-          "AgentMailbox", "AgentTrace", "AgentContract", "AgentHandlers",
-          "AgentID", "AgentStructuralHash",
-          "WithCurrentMode", "WithValuation", "WithMailbox", "WithTrace",
+          "AgentMailbox", "AgentTrace", "AgentContract",
+          (* Core / HybridAgent — mutators / helpers *)
+          "WithCurrentMode", "WithValuation", "WithMailbox", "AppendTrace",
+          "FireGuard", "AdvanceAgentLifecycle", "AnalyzeVectorField",
+          "IntegrateHybridSystem",
           (* Core / Contract *)
-          "Contract", "ContractQ",
+          "Contract", "ContractQ", "DefineContract",
           "Assumes", "Guarantees", "ContractAssumes", "ContractGuarantees",
+          "CheckContractCompatibility",
           (* Core / CausalModel *)
-          "CausalModel", "CausalModelQ",
+          "CausalModel", "CausalModelQ", "DefineCausalModel",
           "CausalPriors", "CausalLikelihoods", "CausalStrategies",
+          "CollectEvidence", "EvaluateConfidence",
+          "InferCauseProbabilities", "UpdatePriors",
           (* Core / MessageAlphabet *)
           "MessageAlphabet", "MessageAlphabetQ", "MessagePatternQ",
           (* Core / Trace *)
-          "Trace", "TraceQ", "TraceStep",
-          (* Utilities *)
+          "Trace", "TraceQ", "TraceStep", "ReplayTrace", "RestoreAgentState",
+          (* Utilities / Validation *)
           "ValidateStructure", "RegisterConstraint",
           "UnregisterConstraint", "RegisteredConstraintQ", "ListRegisteredConstraints",
+          (* Utilities / Logging *)
           "LogEvent", "QueryLog", "ClearLog", "LogSize",
           (* DSL *)
-          "DefineAgent", "DefineContract", "RunSystem", "ExportCertificate",
-          (* Runtime *)
-          "Dispatcher", "Mailbox", "Scheduler", "Transport"
+          "DefineAgent", "RunSystem", "ExportCertificate", "GenerateCertificate",
+          (* Runtime / Dispatcher *)
+          "DispatchMessage",
+          (* Runtime / Mailbox *)
+          "CreateMailbox", "CreateFIFOMailbox", "CreatePriorityMailbox",
+          "CreateDedupMailbox", "CreateDropMailbox",
+          (* Runtime / Scheduler *)
+          "ScheduleAgentTask", "ScheduleMultiAgentSimulation",
+          (* Runtime / Transport *)
+          "CreateDirectTransport", "CreateChannelTransport",
+          "CreateSocketTransport", "SendTransportMessage",
+          (* Runtime / Reactivity *)
+          "BuildReactiveView", "DetectEvents",
+          (* Services *)
+          "VerifyAgent", "SimulateAgent", "SerializeHVA",
+          "CheckInvariant", "CheckReachability", "RunDiscriminantTests",
+          "RaiseHVAError",
+          (* Adapters *)
+          "CreateMockAdapter", "ReadSensor", "WriteActuator", "RegisterAdapter"
         }, StringDelete[#, "Global`"]] &
       ],
     {Remove::rmnsm}
