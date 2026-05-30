@@ -240,47 +240,65 @@ paclet/
 │   │   ├── Core.wl                     ← inicializador de capa
 │   │   ├── HybridAgent.wl
 │   │   ├── Contract.wl
-│   │   ├── Message.wl
+│   │   ├── MessageAlphabet.wl
 │   │   ├── CausalModel.wl
 │   │   └── Trace.wl
 │   ├── Runtime/
 │   │   ├── Runtime.wl
 │   │   ├── Dispatcher.wl
 │   │   ├── Scheduler.wl
-│   │   ├── Transport.wl
 │   │   ├── Reactivity.wl
-│   │   └── Mailbox/
-│   │       ├── Mailbox.wl
-│   │       ├── FIFOMailbox.wl
-│   │       ├── PriorityMailbox.wl
-│   │       ├── DedupMailbox.wl
-│   │       └── DropMailbox.wl
+│   │   ├── Mailbox/
+│   │   │   ├── Mailbox.wl
+│   │   │   ├── FIFOMailbox.wl
+│   │   │   ├── PriorityMailbox.wl
+│   │   │   ├── DedupMailbox.wl
+│   │   │   └── DropMailbox.wl
+│   │   └── Transport/
+│   │       ├── Transport.wl            ← inicializador + interfaz abstracta
+│   │       ├── DirectTransport.wl
+│   │       ├── ChannelTransport.wl
+│   │       └── SocketTransport.wl
 │   ├── Services/
 │   │   ├── Services.wl
 │   │   ├── Verifier/
+│   │   │   ├── Verifier.wl             ← inicializador de sub-servicio
 │   │   │   ├── VectorFieldAnalysis.wl
 │   │   │   ├── InvariantChecker.wl
+│   │   │   ├── ReachabilityChecker.wl
 │   │   │   ├── ContractChecker.wl
 │   │   │   └── Certificate.wl
 │   │   ├── Simulator/
+│   │   │   ├── Simulator.wl            ← inicializador de sub-servicio
 │   │   │   ├── HybridIntegrator.wl
-│   │   │   └── EventDetector.wl
+│   │   │   ├── EventDetector.wl
+│   │   │   ├── MultiAgentScheduler.wl
+│   │   │   └── Replay.wl
 │   │   ├── Executor/
-│   │   │   └── AgentLifecycle.wl
+│   │   │   ├── Executor.wl             ← inicializador de sub-servicio
+│   │   │   ├── AgentLifecycle.wl
+│   │   │   └── StateRestore.wl
 │   │   └── Supervisor/
+│   │       ├── Supervisor.wl           ← inicializador de sub-servicio
 │   │       ├── BayesianInference.wl
 │   │       ├── ConfidenceEvaluator.wl
-│   │       └── DiscriminantTests.wl
+│   │       ├── DiscriminantTests.wl
+│   │       ├── EvidenceCollector.wl
+│   │       └── PriorLearning.wl
 │   ├── Adapters/
 │   │   ├── Adapters.wl
 │   │   ├── MockAdapter.wl
 │   │   ├── SensorAdapter.wl
-│   │   └── ActuatorAdapter.wl
+│   │   ├── ActuatorAdapter.wl
+│   │   ├── Registry.wl
+│   │   └── WSAAdapter.wl
 │   ├── DSL/
 │   │   ├── DSL.wl
 │   │   ├── DefineAgent.wl
 │   │   ├── DefineContract.wl
+│   │   ├── DefineCausalModel.wl
 │   │   ├── RunSystem.wl
+│   │   ├── SystemCommands.wl
 │   │   └── ExportCertificate.wl
 │   └── Utilities/
 │       ├── Utilities.wl
@@ -291,12 +309,31 @@ paclet/
 └── Tests/                               ← espejo de Kernel/
     ├── TestRunner.wl
     ├── Core/
+    │   ├── HybridAgentTest.wlt
+    │   ├── ContractTest.wlt
+    │   ├── MessageAlphabetTest.wlt
+    │   ├── CausalModelTest.wlt
+    │   └── TraceTest.wlt
     ├── Runtime/
+    │   ├── DispatcherTest.wlt
+    │   ├── MailboxTest.wlt
+    │   ├── SchedulerTest.wlt
+    │   └── TransportTest.wlt
     ├── Services/
+    │   ├── VerifierTest.wlt
+    │   ├── SimulatorTest.wlt
+    │   ├── ExecutorTest.wlt
+    │   └── SupervisorTest.wlt
     ├── Adapters/
+    │   ├── AdaptersTest.wlt
+    │   └── WSAMAdapterTest.wlt
     ├── DSL/
+    │   └── DSLTest.wlt
     ├── Utilities/
+    │   ├── ValidationTest.wlt
+    │   └── LoggingTest.wlt
     └── Integration/
+        └── ThermostatEndToEndTest.wlt
 ```
 
 ### 4.4 Orden de carga e inicialización
@@ -336,7 +373,7 @@ Get["Kernel/DSL/DSL.wl"]              (* 6. Siempre último *)
 | UTIL-0002 | `Logging.wl` + `ErrorHandling.wl` | UTIL-0001 | `LogEvent` y `RaiseHVAError` con niveles y tags |
 | CORE-0001 | `HybridAgent.wl` | UTIL-0001 | Constructor, accesores y updaters con tests de propiedad |
 | CORE-0002 | `Contract.wl` | CORE-0001 | Constructor y composición de contratos |
-| CORE-0003 | `Message.wl` + `Trace.wl` + `CausalModel.wl` | CORE-0001 | Las tres estructuras restantes con accesores |
+| CORE-0003 | `MessageAlphabet.wl` + `Trace.wl` + `CausalModel.wl` | CORE-0001 | Las tres estructuras restantes con accesores |
 | SIM-0001 | `HybridIntegrator.wl` + `EventDetector.wl` | CORE-0003 | `SimulateAgent` funcionando sobre el termostato |
 | VER-0001 | `VectorFieldAnalysis.wl` + `InvariantChecker.wl` | CORE-0003 | `VerifyAgent` produce certificado sobre el termostato |
 | RT-0001 | `Mailbox.wl` + `FIFOMailbox.wl` + `Dispatcher.wl` | CORE-0003 | Pattern matching y dispatch operativos |

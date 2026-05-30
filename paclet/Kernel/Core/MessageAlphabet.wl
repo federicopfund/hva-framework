@@ -79,7 +79,7 @@ MessageAlphabetQ[MessageAlphabet[_List, $valid]] := True
 MessageAlphabetQ[_] := False
 
 (* ============================================================== *)
-(* MEMBERSHIP: m ∈ ℳ (FORM Def. 2.1)                            *)
+(* MEMBERSHIP: m ∈ ℳ (FORM Def. 2.1)                             *)
 (* ============================================================== *)
 
 (* MessageTermQ delega en MatchQ de Wolfram, que implementa la
