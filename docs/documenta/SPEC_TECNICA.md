@@ -390,27 +390,30 @@ Get["Kernel/DSL/DSL.wl"]              (* 6. Siempre último *)
 
 ```wolfram
 HybridAgent[<|
-  "id"           -> "agent-identifier",
-  "states"       -> {"mode1", "mode2", ...},
-  "vars"         -> {x, y, z},
-  "dynamics"     -> <|
+  "id"               -> "agent-identifier",
+  "modes"            -> {"mode1", "mode2", ...},
+  "continuousVars"   -> {x, y, z},
+  "time"             -> t,
+  "vectorFields"     -> <|
       "mode1" -> {x'[t] == f1[x,y,z], y'[t] == g1[x,y,z]},
       "mode2" -> {x'[t] == f2[x,y,z], y'[t] == g2[x,y,z]}
   |>,
-  "guards"       -> {
+  "transitions"      -> {
       <|"from"->"mode1", "to"->"mode2",
-        "condition"->predicate, "action"->action|>
+        "condition"->predicate, "action"-><|x -> expr|>|>
   },
-  "invariants"   -> {prop1, prop2, ...},
-  "contract"     -> <|
+  "modeInvariants"   -> {prop1, prop2, ...},
+  "contract"         -> Contract[<|
       "assumes"    -> {assumption1, assumption2},
       "guarantees" -> {guarantee1, guarantee2}
-  |>,
-  "handlers"     -> {pattern1 :> action1, ...},
-  "mailbox"      -> {},
-  "currentState" -> "mode1",
-  "valuation"    -> <|x -> x0, y -> y0|>,
-  "trace"        -> {}
+  |>],
+  "rewriteRules"     -> {pattern1 :> action1, ...},
+  "initialMode"      -> "mode1",
+  "initialValuation" -> <|x -> x0, y -> y0|>,
+  "currentMode"      -> "mode1",
+  "valuation"        -> <|x -> x0, y -> y0|>,
+  "mailbox"          -> {},
+  "trace"            -> {}
 |>]
 ```
 
@@ -419,17 +422,20 @@ HybridAgent[<|
 | Campo | Tipo | Semántica |
 |-------|------|-----------|
 | `id` | `String` | Identificador único del agente en el sistema |
-| `states` | `List[String]` | Conjunto de modos discretos del autómata |
-| `vars` | `List[Symbol]` | Variables continuas controladas por el agente |
-| `dynamics` | `Association` | EDOs activas en cada modo discreto |
-| `guards` | `List[Assoc]` | Transiciones con condición y acción simbólica |
-| `invariants` | `List[Pred]` | Propiedades que deben mantenerse siempre |
-| `contract` | `Association` | Asunciones sobre entorno y garantías al entorno |
-| `handlers` | `List[Rule]` | Reglas de reescritura para mensajes entrantes |
-| `mailbox` | `List` | Cola FIFO de mensajes pendientes |
-| `currentState` | `String` | Modo discreto actual (solo en runtime) |
-| `valuation` | `Association` | Valores actuales de las variables continuas |
-| `trace` | `List` | Historial de eventos para replay y auditoría |
+| `modes` | `List[String]` | Conjunto de modos discretos del autómata · `Q` de FORM Def. 2.1 |
+| `continuousVars` | `List[Symbol]` | Variables continuas del espacio `X ⊆ ℝⁿ` · FORM Def. 2.1 |
+| `time` | `Symbol` | Símbolo temporal usado en las EDOs (default `t`) |
+| `vectorFields` | `Association` | EDOs activas en cada modo · `ℱ : Q → Vect(X×U)` de FORM Def. 2.1 |
+| `transitions` | `List[Assoc]` | Transiciones con `from`, `to`, `condition`, `action` · `𝒢` de FORM Def. 2.1 |
+| `modeInvariants` | `List[Pred]` | Predicados que deben mantenerse en cada modo · `ℐ` de FORM Def. 2.1 |
+| `contract` | `Contract[<\|..\|>]` | Contrato `𝒞 = ⟨A, G⟩` con `assumes` y `guarantees` · FORM Def. 2.1 |
+| `rewriteRules` | `List[Rule]` | Reglas de reescritura para mensajes entrantes · `ℋ` de FORM Def. 2.1 |
+| `initialMode` | `String` | Modo inicial `q₀ ∈ Q` · FORM Def. 2.1 |
+| `initialValuation` | `Association` | Valuación inicial `ν₀ : X → ℝ` · FORM Def. 2.1 |
+| `currentMode` | `String` | Modo discreto vigente en runtime · `q(t)` de FORM Def. 2.2 |
+| `valuation` | `Association` | Valores continuos vigentes en runtime · `ν(t)` de FORM Def. 2.2 |
+| `mailbox` | `List` | Cola de mensajes pendientes · `μ(t) ∈ ℳ*` de FORM Def. 2.2 |
+| `trace` | `List` | Historial de eventos para replay y auditoría · `τ(t)` de FORM Def. 2.2 |
 
 ### 5.3 Mensaje simbólico (ADR-004)
 
