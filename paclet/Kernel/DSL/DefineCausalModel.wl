@@ -4,6 +4,9 @@
 (* :Summary: Constructor DSL para CausalModel. *)
 (* :Capa: DSL (5) *)
 (* :Depends: HVA`Core`CausalModel` *)
+(* :Formalismo: TBD — ver SPEC_TECNICA.md §9 *)
+(* :Spec: TBD *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

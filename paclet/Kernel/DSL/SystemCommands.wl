@@ -4,6 +4,9 @@
 (* :Summary: Comandos publicos VerifyAgent, SimulateAgent, etc. *)
 (* :Capa: DSL (5) *)
 (* :Depends: HVA`Services` *)
+(* :Formalismo: TBD — ver SPEC_TECNICA.md §9 *)
+(* :Spec: TBD *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

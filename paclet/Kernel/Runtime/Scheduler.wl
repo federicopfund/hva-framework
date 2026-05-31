@@ -4,6 +4,9 @@
 (* :Summary: Planificacion de tareas del runtime. *)
 (* :Capa: Runtime (3) *)
 (* :Depends: None *)
+(* :Formalismo: TBD — ver SPEC_TECNICA.md §6 *)
+(* :Spec: TBD *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

@@ -4,6 +4,9 @@
 (* :Summary: Interfaz minima para WSAM System Modeler injects Initial Conditions. *)
 (* :Capa: Adapters (1) *)
 (* :Depends: None *)
+(* :Formalismo: TBD — ver SPEC_TECNICA.md §8 *)
+(* :Spec: TBD *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: Fase 3 xxx (scaffolding) *)
 (* :License: MIT *)
 

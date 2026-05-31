@@ -4,6 +4,9 @@
 (* :Summary: Exportacion de certificados a formatos externos. *)
 (* :Capa: DSL (5) *)
 (* :Depends: HVA`Services`Verifier`Certificate` *)
+(* :Formalismo: TBD — ver SPEC_TECNICA.md §9 *)
+(* :Spec: TBD *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

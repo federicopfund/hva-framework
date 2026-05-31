@@ -4,6 +4,9 @@
 (* :Summary: Verificacion de invariantes sobre modelos simbolicos. *)
 (* :Capa: Services (4) *)
 (* :Depends: None *)
+(* :Formalismo: TBD — ver SPEC_TECNICA.md §7 *)
+(* :Spec: TBD *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

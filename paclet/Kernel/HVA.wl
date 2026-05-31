@@ -4,6 +4,9 @@
 (* :Summary: Punto de entrada del paclet HVA y carga ordenada de capas. *)
 (* :Capa: Entry *)
 (* :Depends: HVA`Utilities`, HVA`Core`, HVA`Runtime`, HVA`Services`, HVA`Adapters`, HVA`DSL`, HVA`FrontEnd` *)
+(* :Formalismo: N/A (punto de entrada) *)
+(* :Spec: N/A *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

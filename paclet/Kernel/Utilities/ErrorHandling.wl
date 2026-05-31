@@ -4,6 +4,9 @@
 (* :Summary: Mensajes y excepciones del framework. *)
 (* :Capa: Utilities *)
 (* :Depends: None *)
+(* :Formalismo: N/A (infraestructura) *)
+(* :Spec: N/A *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
