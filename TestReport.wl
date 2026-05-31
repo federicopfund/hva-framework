@@ -5,7 +5,11 @@
    ================================================================ *)
 
 (* ── Configuracion ───────────────────────────────────────────── *)
-$pacletRoot  = "/workspaces/hva-framework/paclet";
+(* HVA_PACLET_PATH permite sobrescribir el root desde el entorno,
+   lo que habilita ejecutar este script dentro de un contenedor Docker
+   (donde el paclet vive en /app/paclet y no en /workspaces/...). *)
+$pacletRoot  = With[{env = Environment["HVA_PACLET_PATH"]},
+  If[StringQ[env] && env =!= "", env, "/workspaces/hva-framework/paclet"]];
 $testBase    = $pacletRoot <> "/Tests/";
 $slowMs      = 500;   (* umbral para marcar un test como SLOW *)
 

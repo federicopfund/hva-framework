@@ -11,36 +11,28 @@ LABEL version="0.1.0-alpha"
 # Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar el paclet HVA y archivos raíz
-COPY paclet/ /app/paclet/
-COPY README.md /app/
+# Copiar el paclet HVA y el runner canónico desde la raíz del repositorio
+COPY paclet/      /app/paclet/
+COPY TestReport.wl /app/TestReport.wl
 
-# Crear directorios auxiliares
+# Crear directorio de salida
 RUN mkdir -p /app/output
 
 # Configurar variables de entorno
+# HVA_PACLET_PATH es leído por TestReport.wl para resolver $pacletRoot en el contenedor
 ENV WOLFRAM_APP_PATH=/app
 ENV HVA_PACLET_PATH=/app/paclet
 
-# Script de inicialización: carga el paclet y verifica que no haya mensajes
-RUN echo '(* HVA init *)' > /app/init.wl && \
-    echo 'PacletDirectoryLoad["/app/paclet"];' >> /app/init.wl && \
-    echo 'Quiet[Needs["HVA`"]];' >> /app/init.wl && \
-    echo 'Print["HVA paclet loaded."];' >> /app/init.wl
+# ── init.wl: carga el paclet con funciones nativas ───────────────────────────
+RUN echo 'PacletDirectoryLoad[Environment["HVA_PACLET_PATH"]];' > /app/init.wl && \
+    echo 'Quiet[Needs["HVA`"], {General::shdw}];'               >> /app/init.wl && \
+    echo 'Print["HVA paclet loaded OK."];'                       >> /app/init.wl
 
-# Script de test: ejecuta el TestRunner y sale con código distinto de 0 si hay fallos
-RUN echo '(* HVA TestRunner *)' > /app/run_tests.wl && \
-    echo 'PacletDirectoryLoad["/app/paclet"];' >> /app/run_tests.wl && \
-    echo 'Quiet[Needs["HVA`"]];' >> /app/run_tests.wl && \
-    echo 'testFiles = SortBy[FileNames["*.wlt", "/app/paclet/Tests", Infinity], ToLowerCase];' >> /app/run_tests.wl && \
-    echo 'report = TestReport[testFiles];' >> /app/run_tests.wl && \
-    echo 'Print["=== HVA TestRunner ==="];' >> /app/run_tests.wl && \
-    echo 'Print["Succeeded: ", report["TestsSucceededCount"]];' >> /app/run_tests.wl && \
-    echo 'Print["Failed:    ", report["TestsFailedCount"]];' >> /app/run_tests.wl && \
-    echo 'If[report["TestsFailedCount"] > 0, Exit[1], Exit[0]];' >> /app/run_tests.wl
+# ── run_tests.wl: delega en TestReport.wl usando HVA_PACLET_PATH del entorno ─
+RUN echo 'Get["/app/TestReport.wl"];' > /app/run_tests.wl
 
 # Exponer puerto para futuros servicios web
 EXPOSE 8080
 
-# Comando por defecto: ejecutar los tests del paclet
+# Comando por defecto: ejecutar la suite completa de tests
 CMD ["wolframscript", "-file", "/app/run_tests.wl"]
