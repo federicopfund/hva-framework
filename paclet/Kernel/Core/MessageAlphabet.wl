@@ -47,18 +47,14 @@ MessageAlphabetQ::usage =
 
 Begin["`Private`"]
 
-(* ============================================================== *)
-(* CONSTRUCTOR                                                     *)
-(* ============================================================== *)
+(* ==============================================================  *)
+(* CONSTRUCTOR: FORM Def. 2.1, Def. B.9                            *)
+(* ==============================================================  *)
 
-(* Envoltorio inerte: la estructura es la lista de patrones dentro
-   del head MessageAlphabet. Los patrones son expresiones WL validas
-   (Blank, BlankSequence, PatternTest, Condition, etc.). *)
-
-(* Sentinel privado: solo accesible dentro de este contexto.
-   Representacion interna: MessageAlphabet[pats, $valid]
-   evita la recursion que provocaria SetValid al re-evaluar
-   MessageAlphabet[pats]. *)
+(* El alfabeto de mensajes se representa como MessageAlphabet[patterns, $valid],
+   donde patterns es la lista de patrones dada por el usuario (con HoldFirst
+   para evitar evaluacion prematura) y $valid es un marcador simbolico que
+   indica que el constructor ya verifico la validez de los patrones. *)
 
 MessageAlphabet[patterns_List] /; Length[patterns] > 0 :=
   MessageAlphabet[patterns, $valid]
