@@ -21,7 +21,7 @@ LoadAdapters[] := Module[{},
   Get[FileNameJoin[{DirectoryName[$InputFileName], "ActuatorAdapter.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "MockAdapter.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "Registry.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "WSAAdapter.wl"}]];
+  Get[FileNameJoin[{DirectoryName[$InputFileName], "WSAMAdapter.wl"}]];
 ];
 
 (* TODO: implementar en ISSUE-XXXX *)

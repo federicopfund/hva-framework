@@ -1,6 +1,6 @@
 (* :Title: WSAMAdapterTest *)
 (* :Context: HVA`Adapters`WSAMAdapter`Tests *)
-(* :Mirrors: Kernel/Adapters/WSAAdapter.wl *)
+(* :Mirrors: Kernel/Adapters/WSAMAdapter.wl *)
 (* :Capa: Adapters (1) *)
 (* :Issues: FaseARCH-0001 (scaffolding) *)
 
@@ -9,13 +9,13 @@
 VerificationTest[
   Quiet[Needs["HVA`Adapters`WSAMAdapter`"]; True],
   True,
-  TestID -> "Adapters-WSAAdapter-01-smoke-load"
+  TestID -> "Adapters-WSAMAdapter-01-smoke-load"
 ]
 
 VerificationTest[
   NameQ["HVA`Adapters`WSAMAdapter`ConectWSAM"],
   True,
-  TestID -> "Adapters-WSAAdapter-02-smoke-symbol-context"
+  TestID -> "Adapters-WSAMAdapter-02-smoke-symbol-context"
 ]
 
 (* ── Functional (placeholder — expand when ISSUE-XXXX is implemented) ──── *)
