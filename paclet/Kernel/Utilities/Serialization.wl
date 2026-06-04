@@ -42,7 +42,7 @@ BeginPackage["HVA`Utilities`Serialization`", {"HVA`Utilities`Validation`"}]
 
 SerializeHVA::usage =
   "SerializeHVA[obj] serializa una entidad HVA (HybridAgent, Contract, " <>
-  "CausalModel, Trace o VerificationCertificate) a un ByteArray en formato WXF. " <>
+  "CausalModel, AgentTrace o VerificationCertificate) a un ByteArray en formato WXF. " <>
   "Retorna Failure[\"HVASerializationError\", ...] si el objeto contiene " <>
   "subexpresiones no serializables (InterpolatingFunction, CompiledFunction) " <>
   "o si el objeto no es una entidad HVA reconocida. " <>
@@ -58,7 +58,7 @@ DeserializeHVA::usage =
 HVASerializableQ::usage =
   "HVASerializableQ[obj] retorna True si obj es una entidad HVA reconocida " <>
   "por el modulo de serializacion: HybridAgent, Contract, CausalModel, " <>
-  "Trace o VerificationCertificate. " <>
+  "AgentTrace o VerificationCertificate. " <>
   "No verifica la serializabilidad WXF de subexpresiones internas.";
 
 SerializeHVAToFile::usage =
@@ -111,7 +111,7 @@ $hvaHeadNames = {
   "HybridAgent",
   "Contract",
   "CausalModel",
-  "Trace",
+  "AgentTrace",
   "VerificationCertificate"
 };
 
