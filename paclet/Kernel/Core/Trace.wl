@@ -26,4 +26,6 @@ Begin["`Private`"]
 (* TODO: implementar en ISSUE-XXXX *)
 
 End[]
-Quiet[EndPackage[], {Trace::shdw}]
+(* WL emite General::shdw (no Trace::shdw) al restituir HVA`Core`Trace` al
+   $ContextPath en EndPackage[], detectando colision con System`Trace.        *)
+Quiet[EndPackage[], {General::shdw}]

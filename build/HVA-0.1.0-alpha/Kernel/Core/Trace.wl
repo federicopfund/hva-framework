@@ -10,12 +10,14 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
+(* Trace::shdw se suprime en EndPackage porque es ahi donde WL restituye
+   HVA`Core`Trace` a $ContextPath y detecta que HVA`Core`Trace`Trace colisiona
+   con System`Trace (HoldAll, Protected). El conflicto es intencionado: nuestro
+   simbolo debe preceder a System` en $ContextPath para que Trace[data] resuelva
+   al head HVA. Se usa nombre completamente calificado en ::usage para forzar la
+   creacion del simbolo en el contexto correcto sin invocar System`Trace.       *)
 BeginPackage["HVA`Core`Trace`"]
 
-(* Nombre completamente calificado para forzar la creacion del simbolo en este
-   contexto y no usar System`Trace (que tiene HoldAll y es Protected).
-   Sin esto, Trace::usage resolveria a System`Trace y el simbolo propio
-   HVA`Core`Trace`Trace nunca se crearia, rompiendo HVASerializableQ.     *)
 HVA`Core`Trace`Trace::usage = "Trace[data] representa una traza de ejecucion.";
 
 
@@ -24,4 +26,6 @@ Begin["`Private`"]
 (* TODO: implementar en ISSUE-XXXX *)
 
 End[]
-EndPackage[]
+(* WL emite General::shdw (no Trace::shdw) al restituir HVA`Core`Trace` al
+   $ContextPath en EndPackage[], detectando colision con System`Trace.        *)
+Quiet[EndPackage[], {General::shdw}]
