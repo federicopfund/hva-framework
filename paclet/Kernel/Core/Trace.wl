@@ -10,12 +10,13 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Core`Trace`"]
+(* General::shdw se suprime aqui porque HVA`Core`Trace`Trace colisiona con
+   System`Trace (HoldAll, Protected). El conflicto es intencionado: nuestro
+   simbolo debe vivir en HVA`Core`Trace` y preceder a System` en $ContextPath.
+   Usamos nombre completamente calificado para forzar la creacion del simbolo
+   en el contexto correcto, y Quiet para silenciar la advertencia espuria.   *)
+Quiet[BeginPackage["HVA`Core`Trace`"], {General::shdw}]
 
-(* Nombre completamente calificado para forzar la creacion del simbolo en este
-   contexto y no usar System`Trace (que tiene HoldAll y es Protected).
-   Sin esto, Trace::usage resolveria a System`Trace y el simbolo propio
-   HVA`Core`Trace`Trace nunca se crearia, rompiendo HVASerializableQ.     *)
 HVA`Core`Trace`Trace::usage = "Trace[data] representa una traza de ejecucion.";
 
 
