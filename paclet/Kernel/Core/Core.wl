@@ -18,9 +18,6 @@ Begin["`Private`"]
 
 LoadCore[] := Module[{},
   Get[FileNameJoin[{DirectoryName[$InputFileName], "Contract.wl"}]];
-  (* AgentTrace.wl antes que HybridAgent.wl: declara el simbolo propietario
-     HVA`Core`AgentTrace`AgentTrace para que HybridAgent lo importe y anada
-     su downvalue de accessor sin crear un segundo simbolo. ADR-008. *)
   Get[FileNameJoin[{DirectoryName[$InputFileName], "AgentTrace.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "HybridAgent.wl"}]];
   Get[FileNameJoin[{DirectoryName[$InputFileName], "MessageAlphabet.wl"}]];
