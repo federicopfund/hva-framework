@@ -4,6 +4,9 @@
 (* :Summary: Inicializador de la DSL publica del framework HVA. *)
 (* :Capa: DSL (5) *)
 (* :Depends: HVA`DefineAgent`, HVA`DefineContract`, HVA`DefineCausalModel`, HVA`RunSystem`, HVA`SystemCommands`, HVA`ExportCertificate` *)
+(* :Formalismo: N/A (inicializador de capa) *)
+(* :Spec: N/A *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

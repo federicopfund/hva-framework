@@ -4,6 +4,9 @@
 (* :Summary: Inicializador del subsistema de ejecucion. *)
 (* :Capa: Services (4) *)
 (* :Depends: HVA`Executor`AgentLifecycle`, HVA`Executor`StateRestore` *)
+(* :Formalismo: N/A (inicializador de subsistema) *)
+(* :Spec: N/A *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

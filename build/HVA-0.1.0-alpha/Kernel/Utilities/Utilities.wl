@@ -4,6 +4,9 @@
 (* :Summary: Inicializador de utilidades transversales del framework. *)
 (* :Capa: Utilities (cross-cutting) *)
 (* :Depends: HVA`Utilities`Validation`, HVA`Utilities`Logging`, HVA`Utilities`Serialization`, HVA`Utilities`ErrorHandling` *)
+(* :Formalismo: N/A (inicializador de capa) *)
+(* :Spec: N/A *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

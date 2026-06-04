@@ -4,6 +4,9 @@
 (* :Summary: Interfaz minima para sensores. *)
 (* :Capa: Adapters (1) *)
 (* :Depends: None *)
+(* :Formalismo: TBD — ver SPEC_TECNICA.md §8 *)
+(* :Spec: TBD *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

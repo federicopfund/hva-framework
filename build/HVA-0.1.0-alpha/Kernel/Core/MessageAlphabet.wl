@@ -7,6 +7,7 @@
 (* :Spec: 5.3 *)
 (* :Depends: HVA`Utilities`Validation` *)
 (* :Assumes: Los heads de mensajes son expresiones Wolfram validas. La clausura de Σ no se verifica (indecidible en general sobre WL). *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: CORE-0003 *)
 (* :License: MIT *)
 
