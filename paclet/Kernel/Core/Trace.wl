@@ -10,12 +10,13 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-(* General::shdw se suprime aqui porque HVA`Core`Trace`Trace colisiona con
-   System`Trace (HoldAll, Protected). El conflicto es intencionado: nuestro
-   simbolo debe vivir en HVA`Core`Trace` y preceder a System` en $ContextPath.
-   Usamos nombre completamente calificado para forzar la creacion del simbolo
-   en el contexto correcto, y Quiet para silenciar la advertencia espuria.   *)
-Quiet[BeginPackage["HVA`Core`Trace`"], {General::shdw}]
+(* Trace::shdw se suprime en EndPackage porque es ahi donde WL restituye
+   HVA`Core`Trace` a $ContextPath y detecta que HVA`Core`Trace`Trace colisiona
+   con System`Trace (HoldAll, Protected). El conflicto es intencionado: nuestro
+   simbolo debe preceder a System` en $ContextPath para que Trace[data] resuelva
+   al head HVA. Se usa nombre completamente calificado en ::usage para forzar la
+   creacion del simbolo en el contexto correcto sin invocar System`Trace.       *)
+BeginPackage["HVA`Core`Trace`"]
 
 HVA`Core`Trace`Trace::usage = "Trace[data] representa una traza de ejecucion.";
 
@@ -25,4 +26,4 @@ Begin["`Private`"]
 (* TODO: implementar en ISSUE-XXXX *)
 
 End[]
-EndPackage[]
+Quiet[EndPackage[], {Trace::shdw}]
