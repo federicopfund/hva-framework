@@ -12,7 +12,11 @@
 
 BeginPackage["HVA`Core`Trace`"]
 
-Trace::usage = "Trace[data] representa una traza de ejecucion.";
+(* Nombre completamente calificado para forzar la creacion del simbolo en este
+   contexto y no usar System`Trace (que tiene HoldAll y es Protected).
+   Sin esto, Trace::usage resolveria a System`Trace y el simbolo propio
+   HVA`Core`Trace`Trace nunca se crearia, rompiendo HVASerializableQ.     *)
+HVA`Core`Trace`Trace::usage = "Trace[data] representa una traza de ejecucion.";
 
 
 Begin["`Private`"]

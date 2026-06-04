@@ -1,236 +1,261 @@
 (* :Title: Serialization *)
 (* :Context: HVA`Utilities`Serialization` *)
 (* :Author: HVA Contributors *)
-(* :Summary: Serializacion WXF y JSON de entidades HVA con round-trip fidedigno. *)
+(* :Summary: Serializacion y deserializacion WXF de entidades HVA. *)
 (* :Capa: Utilities *)
-(* :Depends: None *)
-(* :Formalismo: N/A (infraestructura) *)
-(* :Spec: N/A *)
-(* :Methodology: METHODOLOGY.md §5, §3.4 *)
+(* :Depends: HVA`Utilities`Validation` *)
+(* :Formalismo: Def. 2.1 (tupla 𝒜 serializable), Def. 4.3 (hash en certificados) *)
+(* :Spec: 4.4.7, 4.8 UTIL-0004, 12.2 (reproducibilidad), 12.4 (sin fallas silenciosas) *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: UTIL-0004 *)
 (* :License: MIT *)
 
 (* :Discussion:
-   Modulo de serializacion transversal del framework. Proporciona serializacion
-   WXF (Wolfram eXchange Format) con round-trip exacto para cualquier expresion
-   Wolfram, y serializacion JSON con codificacion de tipos no-nativos.
+   Modulo de serializacion transversal del framework HVA.
 
-   Formatos soportados:
-     - "WXF": BinarySerialize/BinaryDeserialize. Round-trip exacto. Devuelve ByteArray.
-     - "JSON": Conversion recursiva a tipos JSON-nativos. Tipos Wolfram no-nativos
-       (simbolos, patrones, expresiones compuestas) se codifican como:
-         {"$sym": "Contexto`NombreSimbolo"}   para simbolos
-         {"$wl":  "ExprEnInputForm"}          para expresiones arbitrarias
-         {"$head":"Contexto`Head", "$data":{}} para entidades HVA (Head[<|...|>])
+   Formato canonico: WXF (Wolfram Exchange Format), el unico que preserva el
+   arbol de expresion simbolica completo sin perdida: heads con contexto,
+   Association, patrones, simbolos sin evaluar.
 
-   Invariantes:
-     - WXF: SerializeHVA[e,"WXF"] |> DeserializeHVA[#,"WXF"] === e (round-trip exacto).
-     - JSON: round-trip exacto para entidades compuestas de
-       Association, List, Number, String y Symbol con contexto completo.
-     - Determinismo: misma entrada => misma salida.
-     - Pureza: sin side effects.
+   Politica de errores (SPEC §12.4): todo error se declara con Failure,
+   nunca con $Failed ni Print. El llamador puede usar FailureQ para
+   discriminar resultado exitoso de fallo.
 
-   Advertencia de seguridad:
-     DeserializeHVA[str, "JSON"] invoca ToExpression para reconstruir tokens
-     "$wl" y "$sym". No invocar con entrada no confiable sin sandbox previo.
+   Deteccion de tipo: HVASerializableQ verifica SymbolName[Head[obj]] contra
+   los cinco tipos soportados. No usa HybridAgentQ de Core para evitar
+   dependencia circular (Utilities se carga antes que Core — D-UTIL-0004-01).
+
+   Subexpresiones no portables: InterpolatingFunction y CompiledFunction no
+   son portables entre versiones de Wolfram ni entre plataformas; se detectan
+   defensivamente antes de llamar a BinarySerialize (D-UTIL-0004-03).
+
+   PerformanceGoal -> "Size": adecuado para persistencia y transporte.
+   Si BENCH-0001 muestra que la serializacion esta en el camino critico,
+   revisar a "Speed" — requiere numero de benchmark (D-UTIL-0004-02).
 *)
 
-BeginPackage["HVA`Utilities`Serialization`"]
+BeginPackage["HVA`Utilities`Serialization`", {"HVA`Utilities`Validation`"}]
 
 (* ============================================================== *)
 (* SIMBOLOS EXPORTADOS                                            *)
 (* ============================================================== *)
 
 SerializeHVA::usage =
-  "SerializeHVA[entity, format] serializa una entidad HVA al formato indicado.\n" <>
-  "  \"WXF\"  -> ByteArray (BinarySerialize, PerformanceGoal->\"Size\").\n" <>
-  "  \"JSON\" -> String (conversion recursiva con codificacion de tipos WL no-nativos).\n" <>
-  "Devuelve $Failed con mensaje si el formato no es soportado o la serializacion falla.\n" <>
-  "Infraestructura: sin contraparte formal directa.";
-
-SerializeHVA::badformat = "Formato no soportado: `1`. Use \"WXF\" o \"JSON\".";
-SerializeHVA::serfail    = "Fallo al serializar entidad en formato `1`: `2`.";
+  "SerializeHVA[obj] serializa una entidad HVA (HybridAgent, Contract, " <>
+  "CausalModel, Trace o VerificationCertificate) a un ByteArray en formato WXF. " <>
+  "Retorna Failure[\"HVASerializationError\", ...] si el objeto contiene " <>
+  "subexpresiones no serializables (InterpolatingFunction, CompiledFunction) " <>
+  "o si el objeto no es una entidad HVA reconocida. " <>
+  "Implementa la portabilidad de la tupla \:1d49c definida en FORM Def. 2.1.";
 
 DeserializeHVA::usage =
-  "DeserializeHVA[data, format] reconstruye una entidad HVA desde data.\n" <>
-  "  \"WXF\"  -> data debe ser ByteArray producido por SerializeHVA[_, \"WXF\"].\n" <>
-  "  \"JSON\" -> data debe ser String JSON (o ByteArray UTF-8).\n" <>
-  "Devuelve $Failed con mensaje si el formato no es soportado o la deserializacion falla.\n" <>
-  "Advertencia: deserializacion JSON evalua tokens \"$wl\" via ToExpression;\n" <>
-  "  no invocar con entrada no confiable.\n" <>
-  "Infraestructura: sin contraparte formal directa.";
-
-DeserializeHVA::badformat = "Formato no soportado: `1`. Use \"WXF\" o \"JSON\".";
-DeserializeHVA::dsfail    = "Fallo al deserializar datos en formato `1`: `2`.";
+  "DeserializeHVA[bytes] reconstruye una entidad HVA desde un ByteArray WXF " <>
+  "producido por SerializeHVA. " <>
+  "Retorna Failure[\"HVADeserializationError\", ...] si los bytes son invalidos " <>
+  "o la expresion reconstruida no es una entidad HVA reconocida. " <>
+  "Implementa el inverso de SerializeHVA; idempotente bajo round-trip.";
 
 HVASerializableQ::usage =
-  "HVASerializableQ[entity] devuelve True si entity es una entidad HVA serializable:\n" <>
-  "  Association, expresion Head[Association] (p.ej. HybridAgent, Contract),\n" <>
-  "  o lista homogenea de entidades serializables.\n" <>
-  "Infraestructura: predicado de guardia para SerializeHVA.";
+  "HVASerializableQ[obj] retorna True si obj es una entidad HVA reconocida " <>
+  "por el modulo de serializacion: HybridAgent, Contract, CausalModel, " <>
+  "Trace o VerificationCertificate. " <>
+  "No verifica la serializabilidad WXF de subexpresiones internas.";
+
+SerializeHVAToFile::usage =
+  "SerializeHVAToFile[agent, path] serializa una entidad HVA a disco en " <>
+  "formato WXF. path es un String con la ruta completa del archivo de destino. " <>
+  "Retorna path en caso de exito; Failure[\"HVASerializationError\", ...] si falla. " <>
+  "Implementa la persistencia de la tupla \:1d49c de FORM Def. 2.1.";
+
+DeserializeHVAFromFile::usage =
+  "DeserializeHVAFromFile[path] reconstruye una entidad HVA desde un archivo " <>
+  "WXF en disco producido por SerializeHVAToFile. " <>
+  "Retorna Failure[\"HVADeserializationError\", ...] si el archivo no existe " <>
+  "o los bytes son invalidos.";
+
+(* ============================================================== *)
+(* MENSAJES DE ERROR                                              *)
+(* ============================================================== *)
+
+SerializeHVA::unknownType =
+  "El objeto no es una entidad HVA reconocida: `1`.";
+SerializeHVA::nonSerializable =
+  "El objeto contiene subexpresiones no serializables en WXF: `1`.";
+SerializeHVA::binaryFail =
+  "BinarySerialize fallo con el mensaje: `1`.";
+
+DeserializeHVA::invalidBytes =
+  "Los bytes no constituyen WXF valido: `1`.";
+DeserializeHVA::unknownExpr =
+  "La expresion reconstruida no es una entidad HVA reconocida: head `1`.";
+DeserializeHVA::notByteArray =
+  "La entrada debe ser un ByteArray; se recibio: `1`.";
+
+SerializeHVAToFile::writeError =
+  "No se pudo escribir el archivo: `1`.";
+
+DeserializeHVAFromFile::fileNotFound =
+  "Archivo no encontrado: `1`.";
+DeserializeHVAFromFile::readError =
+  "No se pudo leer el archivo: `1`.";
 
 Begin["`Private`"]
+
+(* ============================================================== *)
+(* TIPOS SOPORTADOS                                               *)
+(* ============================================================== *)
+
+(* Deteccion por SymbolName para evitar dependencia circular      *)
+(* Utilities se carga antes que Core — D-UTIL-0004-01             *)
+$hvaHeadNames = {
+  "HybridAgent",
+  "Contract",
+  "CausalModel",
+  "Trace",
+  "VerificationCertificate"
+};
+
+$nonPortablePatterns = Alternatives[_InterpolatingFunction, _CompiledFunction];
 
 (* ============================================================== *)
 (* HVASerializableQ                                               *)
 (* ============================================================== *)
 
-HVASerializableQ[_Association]     := True;
-HVASerializableQ[l_List]           := VectorQ[l, HVASerializableQ];
-HVASerializableQ[_[_Association]]  := True;   (* HybridAgent, Contract, CausalModel, etc. *)
-HVASerializableQ[_]                := False;
+HVASerializableQ[obj_] :=
+  MemberQ[$hvaHeadNames, SymbolName[Head[obj]]];
+
+(* ============================================================== *)
+(* HELPER PRIVADO: deteccion de subexpresiones no portables       *)
+(* ============================================================== *)
+
+$findNonPortable[obj_] :=
+  Cases[obj, $nonPortablePatterns, Infinity];
 
 (* ============================================================== *)
 (* SerializeHVA                                                   *)
 (* ============================================================== *)
 
-(* WXF: BinarySerialize con optimizacion de tamano *)
-SerializeHVA[entity_, "WXF"] :=
-  Module[{result},
-    result = Quiet[Check[
-      BinarySerialize[entity, PerformanceGoal -> "Size"],
+SerializeHVA[obj_] :=
+  Module[{nonPortable, bytes},
+    (* Paso 1: verificar tipo *)
+    If[!HVASerializableQ[obj],
+      Message[SerializeHVA::unknownType, Head[obj]];
+      Return[Failure["HVASerializationError", <|
+        "MessageTemplate"  -> SerializeHVA::unknownType,
+        "MessageParameters" -> {Head[obj]},
+        "Tag"              -> "UnknownType"
+      |>]]
+    ];
+    (* Paso 2: detectar subexpresiones no portables *)
+    nonPortable = $findNonPortable[obj];
+    If[nonPortable =!= {},
+      Message[SerializeHVA::nonSerializable, nonPortable];
+      Return[Failure["HVASerializationError", <|
+        "MessageTemplate"  -> SerializeHVA::nonSerializable,
+        "MessageParameters" -> {nonPortable},
+        "Tag"              -> "NonSerializable"
+      |>]]
+    ];
+    (* Paso 3: serializar — D-UTIL-0004-02 *)
+    bytes = Quiet[Check[
+      BinarySerialize[obj, PerformanceGoal -> "Size"],
       $Failed
     ]];
-    If[result === $Failed,
-      Message[SerializeHVA::serfail, "WXF", ToString[Head[entity], InputForm]];
-      $Failed,
-      result
+    If[bytes === $Failed,
+      Message[SerializeHVA::binaryFail, "BinarySerialize fallo"];
+      Failure["HVASerializationError", <|
+        "MessageTemplate"  -> SerializeHVA::binaryFail,
+        "MessageParameters" -> {"BinarySerialize fallo"},
+        "Tag"              -> "BinaryFail"
+      |>],
+      bytes
     ]
   ];
-
-(* JSON: conversion recursiva a tipos JSON-nativos *)
-SerializeHVA[entity_, "JSON"] :=
-  Module[{jsonCompatible, result},
-    jsonCompatible = $toJSONCompatible[entity];
-    result = Quiet[Check[
-      ExportString[jsonCompatible, "JSON", "Compact" -> False],
-      $Failed
-    ]];
-    If[result === $Failed,
-      Message[SerializeHVA::serfail, "JSON", ToString[Head[entity], InputForm]];
-      $Failed,
-      result
-    ]
-  ];
-
-(* Formato no soportado *)
-SerializeHVA[_, fmt_] :=
-  (Message[SerializeHVA::badformat, ToString[fmt, InputForm]]; $Failed);
 
 (* ============================================================== *)
 (* DeserializeHVA                                                 *)
 (* ============================================================== *)
 
-(* WXF desde ByteArray *)
-DeserializeHVA[data_ByteArray, "WXF"] :=
-  Module[{result},
-    result = Quiet[Check[BinaryDeserialize[data], $Failed]];
-    If[result === $Failed,
-      Message[DeserializeHVA::dsfail, "WXF", "ByteArray invalido"];
-      $Failed,
-      result
-    ]
-  ];
-
-(* JSON desde String *)
-DeserializeHVA[str_String, "JSON"] :=
-  Module[{parsed, result},
-    parsed = Quiet[Check[ImportString[str, "JSON"], $Failed]];
-    If[parsed === $Failed,
-      Message[DeserializeHVA::dsfail, "JSON", "String JSON invalido"];
-      Return[$Failed]
+DeserializeHVA[bytes_] :=
+  Module[{expr},
+    (* Paso 1: verificar que la entrada es ByteArray *)
+    If[!ByteArrayQ[bytes],
+      Message[DeserializeHVA::notByteArray, Head[bytes]];
+      Return[Failure["HVADeserializationError", <|
+        "MessageTemplate"  -> DeserializeHVA::notByteArray,
+        "MessageParameters" -> {Head[bytes]},
+        "Tag"              -> "NotByteArray"
+      |>]]
     ];
-    $fromJSONCompatible[parsed]
+    (* Paso 2: deserializar *)
+    expr = Quiet[Check[BinaryDeserialize[bytes], $Failed]];
+    If[expr === $Failed,
+      Message[DeserializeHVA::invalidBytes, "BinaryDeserialize fallo"];
+      Return[Failure["HVADeserializationError", <|
+        "MessageTemplate"  -> DeserializeHVA::invalidBytes,
+        "MessageParameters" -> {"BinaryDeserialize fallo"},
+        "Tag"              -> "InvalidWXF"
+      |>]]
+    ];
+    (* Paso 3: verificar que la expresion reconstruida es una entidad HVA *)
+    If[!HVASerializableQ[expr],
+      Message[DeserializeHVA::unknownExpr, Head[expr]];
+      Return[Failure["HVADeserializationError", <|
+        "MessageTemplate"  -> DeserializeHVA::unknownExpr,
+        "MessageParameters" -> {Head[expr]},
+        "Tag"              -> "UnknownExpr"
+      |>]]
+    ];
+    expr
   ];
 
-(* JSON desde ByteArray UTF-8 *)
-DeserializeHVA[data_ByteArray, "JSON"] :=
-  Module[{str},
-    str = Quiet[Check[ByteArrayToString[data, "UTF-8"], $Failed]];
-    If[str === $Failed,
-      Message[DeserializeHVA::dsfail, "JSON", "ByteArray UTF-8 invalido"];
-      $Failed,
-      DeserializeHVA[str, "JSON"]
-    ]
+(* ============================================================== *)
+(* SerializeHVAToFile                                             *)
+(* ============================================================== *)
+
+SerializeHVAToFile[agent_, path_String] :=
+  Module[{bytes, stream},
+    bytes = SerializeHVA[agent];
+    If[FailureQ[bytes], Return[bytes]];
+    stream = OpenWrite[path, BinaryFormat -> True];
+    If[Head[stream] =!= OutputStream,
+      Message[SerializeHVAToFile::writeError, path];
+      Return[Failure["HVASerializationError", <|
+        "MessageTemplate"  -> SerializeHVAToFile::writeError,
+        "MessageParameters" -> {path},
+        "Tag"              -> "WriteError"
+      |>]]
+    ];
+    BinaryWrite[stream, Normal[bytes]];
+    Close[stream];
+    path
   ];
 
-(* Formato no soportado *)
-DeserializeHVA[_, fmt_] :=
-  (Message[DeserializeHVA::badformat, ToString[fmt, InputForm]]; $Failed);
-
 (* ============================================================== *)
-(* Conversion WL -> JSON-compatible (privada, recursiva)          *)
+(* DeserializeHVAFromFile                                         *)
 (* ============================================================== *)
 
-(* Association: mapear valores recursivamente, preservar keys string *)
-$toJSONCompatible[a_Association] :=
-  KeyValueMap[Function[{k, v}, k -> $toJSONCompatible[v]], a] // Association;
-
-(* Lista: mapear recursivamente *)
-$toJSONCompatible[l_List] := Map[$toJSONCompatible, l];
-
-(* Tipos primitivos JSON-nativos: pasar sin cambios *)
-$toJSONCompatible[s_String]  := s;
-$toJSONCompatible[n_Integer] := n;
-$toJSONCompatible[r_Real]    := r;
-$toJSONCompatible[True]      := True;
-$toJSONCompatible[False]     := False;
-$toJSONCompatible[Null]      := Null;
-
-(* Entidad HVA: Head[Association] -> {"$head": "Ctx`Head", "$data": {...}} *)
-$toJSONCompatible[(head_Symbol)[assoc_Association]] :=
-  <|
-    "$head" -> Context[head] <> SymbolName[head],
-    "$data" -> $toJSONCompatible[assoc]
-  |>;
-
-(* Simbolo: codificar como {"$sym": "Contexto`NombreSimbolo"} *)
-$toJSONCompatible[s_Symbol] :=
-  <|"$sym" -> Context[s] <> SymbolName[s]|>;
-
-(* Cualquier otra expresion WL: codificar como {"$wl": "InputFormString"} *)
-$toJSONCompatible[expr_] :=
-  <|"$wl" -> ToString[expr, InputForm]|>;
-
-(* ============================================================== *)
-(* Conversion JSON-compatible -> WL (privada, recursiva)          *)
-(* ============================================================== *)
-
-(* Association con "$sym": reconstruir simbolo WL *)
-$fromJSONCompatible[a_Association] /; KeyExistsQ[a, "$sym"] :=
-  Quiet[ToExpression[a["$sym"], InputForm]];
-
-(* Association con "$wl": reconstruir expresion WL arbitraria *)
-$fromJSONCompatible[a_Association] /; KeyExistsQ[a, "$wl"] :=
-  Quiet[ToExpression[a["$wl"], InputForm]];
-
-(* Association con "$head" y "$data": reconstruir entidad HVA Head[<|...|>] *)
-$fromJSONCompatible[a_Association] /;
-    (KeyExistsQ[a, "$head"] && KeyExistsQ[a, "$data"]) :=
-    Module[{head, data},
-      head = Quiet[ToExpression[a["$head"], InputForm]];
-      data = $fromJSONCompatible[a["$data"]];
-      If[Head[head] === Symbol && AssociationQ[data],
-        head[data],
-        (* fallback: devolver como Association si la reconstruccion falla *)
-        <|"$head" -> a["$head"], "$data" -> data|>
-      ]
+DeserializeHVAFromFile[path_String] :=
+  Module[{bytes},
+    If[!FileExistsQ[path],
+      Message[DeserializeHVAFromFile::fileNotFound, path];
+      Return[Failure["HVADeserializationError", <|
+        "MessageTemplate"  -> DeserializeHVAFromFile::fileNotFound,
+        "MessageParameters" -> {path},
+        "Tag"              -> "FileNotFound"
+      |>]]
+    ];
+    bytes = Quiet[Check[ByteArray[BinaryReadList[path]], $Failed]];
+    If[bytes === $Failed,
+      Message[DeserializeHVAFromFile::readError, path];
+      Return[Failure["HVADeserializationError", <|
+        "MessageTemplate"  -> DeserializeHVAFromFile::readError,
+        "MessageParameters" -> {path},
+        "Tag"              -> "ReadError"
+      |>]]
+    ];
+    DeserializeHVA[bytes]
   ];
-
-(* Association ordinaria: mapear valores recursivamente *)
-$fromJSONCompatible[a_Association] :=
-  Map[$fromJSONCompatible, a];
-
-(* WL 14.3: ImportString[str,"JSON"] devuelve List de String->_ Rules, no Association.
-   Detectar ese patron y convertir a Association para que las ramas anteriores apliquen. *)
-$fromJSONCompatible[l_List] /; l =!= {} && AllTrue[l, MatchQ[#, _String -> _]&] :=
-  $fromJSONCompatible[Association[l]];
-
-(* Lista ordinaria: mapear recursivamente *)
-$fromJSONCompatible[l_List] := Map[$fromJSONCompatible, l];
-
-(* Primitivos y numeros: pasar sin cambios *)
-$fromJSONCompatible[x_] := x;
 
 End[]
 EndPackage[]
