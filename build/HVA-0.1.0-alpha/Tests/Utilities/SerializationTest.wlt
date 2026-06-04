@@ -64,7 +64,7 @@ $contract = Contract[<|
 |>];
 
 (* Traza con eventos PowerRequest — fixture para test 14 *)
-$trace = Trace[<|
+$trace = AgentTrace[<|
   "agentId" -> "battery-01",
   "events"  -> {
     <|"type" -> PowerRequest, "value" -> 3.0, "time" -> 0.0|>,
@@ -120,7 +120,7 @@ VerificationTest[
       HybridAgent[<||>],
       Contract[<||>],
       CausalModel[<||>],
-      Trace[<||>],
+      AgentTrace[<||>],
       VerificationCertificate[<||>]
     },
     HVASerializableQ
