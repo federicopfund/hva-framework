@@ -15,9 +15,9 @@ paclet/
 │   │   ├── Core.wl
 │   │   ├── HybridAgent.wl
 │   │   ├── Contract.wl
-│   │   ├── Message.wl
+│   │   ├── MessageAlphabet.wl
 │   │   ├── CausalModel.wl
-│   │   └── Trace.wl
+│   │   └── AgentTrace.wl
 │   ├── Services/
 │   │   ├── Services.wl
 │   │   ├── Verifier/
@@ -85,9 +85,9 @@ paclet/
 	├── Core/
 	│   ├── HybridAgentTest.wlt
 	│   ├── ContractTest.wlt
-	│   ├── MessageTest.wlt
+	│   ├── MessageAlphabetTest.wlt
 	│   ├── CausalModelTest.wlt
-	│   └── TraceTest.wlt
+	│   └── AgentTraceTest.wlt
 	├── Services/
 	│   ├── VerifierTest.wlt
 	│   ├── SimulatorTest.wlt
@@ -111,11 +111,11 @@ paclet/
 - `PacletInfo.wl`: declares paclet metadata and kernel extension entrypoint.
 - `Kernel/HVA.wl`: ordered paclet bootstrap loader for all layers.
 - `Kernel/Core/Core.wl`: core layer initializer.
-- `Kernel/Core/HybridAgent.wl`: Smart Constructor + Schema-Driven Validation (CORE-0002 complete). 30 exported symbols: 1 constructor/predicate pair, 10 option symbols, 13 accessors, 4 immutable updaters, 1 structural hash function. 5 cross-field constraints guarantee invariants over dynamics, guards, state initialization.
-- `Kernel/Core/Contract.wl`: assume/guarantee contract API placeholder.
-- `Kernel/Core/Message.wl`: message symbolic representation API placeholder.
-- `Kernel/Core/CausalModel.wl`: Bayesian causal model API placeholder.
-- `Kernel/Core/Trace.wl`: execution trace API placeholder.
+- `Kernel/Core/HybridAgent.wl`: Smart Constructor + Schema-Driven Validation (CORE-0002 complete). 43 exported symbols: 1 constructor/predicate pair, 13 option symbols, 18 accessors (incl. AgentInitialMode, AgentInitialValuation, AgentControlInputs, AgentObservables, AgentMessageAlphabet), 2 accessors por modo (ModeVectorField, ModeInvariantOf), 4 immutable updaters, 1 structural hash function, 1 FireGuard. 7 cross-field constraints.
+- `Kernel/Core/Contract.wl`: assume/guarantee contract API; expone ContractAssumption y ContractGuarantee (ADR-002).
+- `Kernel/Core/MessageAlphabet.wl`: alfabeto de mensajes simbolicos ℳ ⊆ 𝒯(Σ, V) (renombrado desde Message.wl, ADR-008).
+- `Kernel/Core/CausalModel.wl`: modelo causal bayesiano ℳ_C = ⟨U, V, F, P(u)⟩ API placeholder.
+- `Kernel/Core/AgentTrace.wl`: head-struct AgentTrace[data] para τ(t) (renombrado desde Trace.wl, ADR-008).
 - `Kernel/Services/Services.wl`: services layer initializer.
 - `Kernel/Services/Verifier/Verifier.wl`: verifier subsystem initializer.
 - `Kernel/Services/Verifier/InvariantChecker.wl`: invariant checking API placeholder.
