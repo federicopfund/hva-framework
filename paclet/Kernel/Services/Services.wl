@@ -17,10 +17,10 @@ LoadServices::usage = "LoadServices[] carga los subsistemas de servicios.";
 Begin["`Private`"]
 
 LoadServices[] := Module[{},
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Verifier", "Verifier.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Simulator", "Simulator.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Executor", "Executor.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Supervisor", "Supervisor.wl"}]];
+  Needs["HVA`Services`Verifier`"];
+  Needs["HVA`Services`Simulator`"];
+  Needs["HVA`Services`Executor`"];
+  Needs["HVA`Services`Supervisor`"];
 ];
 
 (* TODO: implementar en ISSUE-XXXX *)

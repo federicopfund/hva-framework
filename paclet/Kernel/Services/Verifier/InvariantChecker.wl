@@ -14,7 +14,7 @@ BeginPackage["HVA`Services`Verifier`InvariantChecker`"]
 
 CheckInvariant::usage =
   "CheckInvariant[agent, inv] verifica que el predicado inv es inductivamente invariante\n" <>
-  "para agent. Implementa la verificacion de \u03a8 (SafetyInvariant) de FORM Def. 4.1.";
+  "para agent. Implementa la verificacion de \[CapitalPsi] (SafetyInvariant) de FORM Def. 4.1.";
 
 
 Begin["`Private`"]

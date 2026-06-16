@@ -121,7 +121,7 @@ VerificationTest[
       Contract[<||>],
       CausalModel[<||>],
       AgentTrace[<||>],
-      VerificationCertificate[<||>]
+      VerificationCertificate[<|HVA`Services`Verifier`Certificate`CertFragment -> "inductive"|>]
     },
     HVASerializableQ
   ],

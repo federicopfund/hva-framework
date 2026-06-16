@@ -17,7 +17,12 @@ LoadExecutor::usage = "LoadExecutor[] inicializa el subsistema de ejecucion.";
 
 Begin["`Private`"]
 
-(* TODO: implementar en ISSUE-XXXX *)
+LoadExecutor[] := Module[{},
+  Needs["HVA`Services`Executor`AgentLifecycle`"];
+  Needs["HVA`Services`Executor`StateRestore`"];
+];
 
 End[]
 EndPackage[]
+
+LoadExecutor[];

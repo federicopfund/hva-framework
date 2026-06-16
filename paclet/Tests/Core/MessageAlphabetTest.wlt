@@ -14,8 +14,8 @@
 
 
 (* ── Carga ───────────────────────────────────────────────────── *)
-Get[FileNameJoin[{DirectoryName[$InputFileName],  "..", "..", "Kernel", "Utilities", "Validation.wl"}]]
-Get[FileNameJoin[{DirectoryName[$InputFileName],  "..", "..", "Kernel", "Core", "MessageAlphabet.wl"}]]
+Needs["HVA`Utilities`Validation`"]
+Needs["HVA`Core`MessageAlphabet`"]
 
 (* ── Smoke test ──────────────────────────────────────────────── *)
 

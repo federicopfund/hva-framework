@@ -17,11 +17,11 @@ LoadAdapters::usage = "LoadAdapters[] carga interfaces y adaptadores concretos."
 Begin["`Private`"]
 
 LoadAdapters[] := Module[{},
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "SensorAdapter.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "ActuatorAdapter.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "MockAdapter.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Registry.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "WSAMAdapter.wl"}]];
+  Needs["HVA`Adapters`SensorAdapter`"];
+  Needs["HVA`Adapters`ActuatorAdapter`"];
+  Needs["HVA`Adapters`MockAdapter`"];
+  Needs["HVA`Adapters`Registry`"];
+  Needs["HVA`Adapters`WSAMAdapter`"];
 ];
 
 (* TODO: implementar en ISSUE-XXXX *)

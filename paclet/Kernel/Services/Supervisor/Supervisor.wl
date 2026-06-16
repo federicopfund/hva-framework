@@ -17,7 +17,15 @@ LoadSupervisor::usage = "LoadSupervisor[] inicializa el subsistema supervisor.";
 
 Begin["`Private`"]
 
-(* TODO: implementar en ISSUE-XXXX *)
+LoadSupervisor[] := Module[{},
+  Needs["HVA`Services`Supervisor`EvidenceCollector`"];
+  Needs["HVA`Services`Supervisor`BayesianInference`"];
+  Needs["HVA`Services`Supervisor`ConfidenceEvaluator`"];
+  Needs["HVA`Services`Supervisor`DiscriminantTests`"];
+  Needs["HVA`Services`Supervisor`PriorLearning`"];
+];
 
 End[]
 EndPackage[]
+
+LoadSupervisor[];
