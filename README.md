@@ -70,67 +70,78 @@ El estado completo en $t$ es $s(t) = \langle q,\, \nu,\, \mu,\, \tau \rangle$ do
 
 ## Arquitectura
 
-### Modelo de capas
-
-```
-┌─────────────────────────────────────────┐
-│  Capa 5 · DSL / API pública             │  Kernel/DSL/
-├─────────────────────────────────────────┤
-│  Capa 4 · Servicios                     │  Kernel/Services/
-│  (Verifier, Simulator, Executor,        │
-│   Supervisor)                           │
-├─────────────────────────────────────────┤
-│  Capa 3 · Runtime                       │  Kernel/Runtime/
-│  (Dispatcher, Mailbox, Scheduler,       │
-│   Transport, Reactivity)                │
-├─────────────────────────────────────────┤
-│  Capa 2 · Núcleo simbólico              │  Kernel/Core/
-│  (HybridAgent, Contract, Message,       │
-│   CausalModel, Trace)                   │
-├─────────────────────────────────────────┤
-│  Capa 1 · Adaptadores físicos           │  Kernel/Adapters/
-│  (sensores, actuadores, protocolos)     │
-├─────────────────────────────────────────┤
-│  Transversal · Utilities                │  Kernel/Utilities/
-└─────────────────────────────────────────┘
-```
-
-### Flujo end-to-end
-
-```
-DefineAgent[...]
-      │
-      ▼
-Verificación simbólica ──[falla]──▶ Contraejemplo — bloquea despliegue
-      │ [OK]
-      ▼
-Simulación híbrida (NDSolve + WhenEvent)
-      │
-      ▼
-Ejecución en Runtime
-  ├── Agentes HVA ◄──► Bus de mensajes
-  ├── Supervisor Causal (inferencia bayesiana)
-  └── Adaptadores: Sensores / Actuadores
-      │
-      ▼
-Aprendizaje continuo (actualiza priors causales)
-      │
-      └──────────────────▶ [ciclo de mejora → re-verificación]
-```
-
 La verificación es **estructural**: no es configurable, no se puede omitir.
 
-### Orden de carga del paclet (ADR-003)
+### DAG de dependencias y orden de carga del paclet
 
-```wolfram
-(* HVA.wl — orden de inicialización *)
-Get["Kernel/Utilities/Utilities.wl"]  (* 1 · primero siempre  *)
-Get["Kernel/Core/Core.wl"]            (* 2 · estructuras base *)
-Get["Kernel/Runtime/Runtime.wl"]      (* 3 · maquinaria reactiva *)
-Get["Kernel/Services/Services.wl"]    (* 4 · capacidades diferenciales *)
-Get["Kernel/Adapters/Adapters.wl"]    (* 5 · frontera física *)
-Get["Kernel/DSL/DSL.wl"]             (* 6 · fachada — último siempre *)
+```mermaid
+flowchart TD
+      classDef layer1 fill:#72c2f5,stroke:#1a6fa0,color:#000
+      classDef layer2 fill:#458bdb,stroke:#1a4a90,color:#fff
+      classDef layer3 fill:#2db88a,stroke:#1a7a5a,color:#fff
+      classDef layer4 fill:#f0a030,stroke:#a06010,color:#000
+      classDef layer5 fill:#9a72d0,stroke:#5a3090,color:#fff
+      classDef layer6 fill:#50c060,stroke:#207030,color:#fff
+      classDef layer7 fill:#cccccc,stroke:#666666,color:#000
+
+      Utilities["Utilities"]:::layer1
+      Core["Core"]:::layer2
+      Runtime["Runtime"]:::layer3
+      ServicesVerifier["Services·Verifier"]:::layer4
+      ServicesSimulator["Services·Simulator"]:::layer4
+      ServicesExecutor["Services·Executor"]:::layer4
+      ServicesSupervisor["Services·Supervisor"]:::layer4
+      Services["Services"]:::layer4
+      Adapters["Adapters"]:::layer5
+      DSL["DSL"]:::layer6
+      FrontEnd["FrontEnd"]:::layer7
+
+      Utilities --> Core
+      Core --> Runtime
+      Core --> ServicesVerifier
+      Core --> ServicesSimulator
+      Runtime --> ServicesSimulator
+      Core --> ServicesExecutor
+      Runtime --> ServicesExecutor
+      Core --> ServicesSupervisor
+      ServicesVerifier --> Services
+      ServicesSimulator --> Services
+      ServicesExecutor --> Services
+      ServicesSupervisor --> Services
+      Core --> Adapters
+      Core --> DSL
+      Runtime --> DSL
+      Services --> DSL
+      Adapters --> DSL
+      DSL --> FrontEnd
 ```
+
+Este diagrama representa el `ModuleGraph` del paclet. Cada flecha `A --> B` significa que `B` depende de `A`, por lo que `A` debe estar cargado antes de que `B` pueda inicializarse. No es un flujo de datos ni de ejecución del agente: es exclusivamente el grafo de dependencias entre contextos cargables.
+
+La carga no está hardcodeada como una secuencia fija de `Get[...]`. El inicializador calcula el cierre transitivo del workflow solicitado y luego obtiene el plan de carga con un ordenamiento topológico usando el algoritmo de Kahn. En términos prácticos:
+
+1. Se calcula el `in-degree` de cada módulo: cuántas dependencias directas le faltan.
+2. Se encolan primero los módulos con `in-degree = 0`, por ejemplo `Utilities`.
+3. Cada vez que un módulo se carga, se reduce el `in-degree` de sus sucesores.
+4. Cuando un sucesor llega a `0`, entra en la cola y ya puede cargarse.
+
+Para el workflow completo, un orden topológico válido es:
+
+```text
+Utilities
+Core
+Runtime
+Services`Verifier
+Services`Supervisor
+Adapters
+Services`Simulator
+Services`Executor
+Services
+DSL
+FrontEnd
+```
+
+La ventaja de este enfoque es que HVA no carga todo el paclet por defecto: carga solo el subgrafo necesario para el contexto pedido. Eso reduce el tiempo de inicio y mantiene la inicialización consistente con las dependencias reales del sistema.
 
 ---
 
