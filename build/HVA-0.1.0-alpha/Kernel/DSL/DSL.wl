@@ -1,5 +1,5 @@
 (* :Title: DSL *)
-(* :Context: HVA` *)
+(* :Context: HVA`DSL` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Inicializador de la DSL publica del framework HVA. *)
 (* :Capa: DSL (5) *)
@@ -10,19 +10,19 @@
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`"]
+BeginPackage["HVA`DSL`"]
 
 LoadDSL::usage = "LoadDSL[] carga comandos publicos de la DSL.";
 
 Begin["`Private`"]
 
 LoadDSL[] := Module[{},
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "DefineAgent.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "DefineContract.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "DefineCausalModel.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "RunSystem.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "SystemCommands.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "ExportCertificate.wl"}]];
+  Needs["HVA`DSL`DefineAgent`"];
+  Needs["HVA`DSL`DefineContract`"];
+  Needs["HVA`DSL`DefineCausalModel`"];
+  Needs["HVA`DSL`RunSystem`"];
+  Needs["HVA`DSL`SystemCommands`"];
+  Needs["HVA`DSL`ExportCertificate`"];
 ];
 
 (* TODO: implementar en ISSUE-XXXX *)

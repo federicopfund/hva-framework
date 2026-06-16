@@ -17,11 +17,11 @@ LoadCore::usage = "LoadCore[] carga los componentes simbolicos del nucleo.";
 Begin["`Private`"]
 
 LoadCore[] := Module[{},
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Contract.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "AgentTrace.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "HybridAgent.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "MessageAlphabet.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "CausalModel.wl"}]];
+  Needs["HVA`Core`Contract`"];
+  Needs["HVA`Core`AgentTrace`"];
+  Needs["HVA`Core`MessageAlphabet`"];
+  Needs["HVA`Core`HybridAgent`"];
+  Needs["HVA`Core`CausalModel`"];
 ];
 
 (* TODO: implementar en ISSUE-XXXX *)

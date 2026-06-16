@@ -17,7 +17,14 @@ LoadSimulator::usage = "LoadSimulator[] inicializa los modulos de simulacion.";
 
 Begin["`Private`"]
 
-(* TODO: implementar en ISSUE-XXXX *)
+LoadSimulator[] := Module[{},
+  Needs["HVA`Services`Simulator`HybridIntegrator`"];
+  Needs["HVA`Services`Simulator`EventDetector`"];
+  Needs["HVA`Services`Simulator`MultiAgentScheduler`"];
+  Needs["HVA`Services`Simulator`Replay`"];
+];
 
 End[]
 EndPackage[]
+
+LoadSimulator[];
