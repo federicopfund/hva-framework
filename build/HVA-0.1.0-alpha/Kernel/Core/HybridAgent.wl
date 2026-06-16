@@ -47,7 +47,7 @@
      |>]
 *)
 
-BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`Contract`", "HVA`Utilities`Validation`"}]
+BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`AgentTrace`", "HVA`Core`Contract`", "HVA`Utilities`Validation`"}]
 
 (* ============================================================== *)
 (* SIMBOLOS EXPORTADOS                                            *)
@@ -100,7 +100,7 @@ AgentRewriteRules::usage     = "AgentRewriteRules[a] devuelve las reglas de rees
 AgentMailbox::usage      = "AgentMailbox[a] devuelve el mailbox (cola de mensajes pendientes) del agente.\nImplementa el accessor de μ(t) ∈ ℳ* de FORM Def. 2.2.";
 AgentCurrentMode::usage = "AgentCurrentMode[a] devuelve el modo discreto vigente del agente.\nImplementa el accessor de q(t) ∈ Q de FORM Def. 2.2.";
 AgentValuation::usage    = "AgentValuation[a] devuelve la valuacion continua vigente del agente.\nImplementa el accessor de ν(t) : X -> ℝ de FORM Def. 2.2.";
-AgentTrace::usage        = "AgentTrace[a] devuelve la traza de ejecucion del agente.\nImplementa el accessor de τ(t) ∈ (Σ-eventos)* de FORM Def. 2.2.";
+AgentTrace::usage        = "AgentTrace[a] devuelve la traza de ejecucion del agente.\nImplementa el accessor de τ(t) ∈ (Σ-eventos)* de FORM Def. 2.2.\n(Head AgentTrace[data] propietario en HVA`Core`AgentTrace` — ADR-008.)";
 AgentTime::usage         = "AgentTime[a] devuelve el simbolo temporal usado en las EDOs del agente.\nConvencion interna de implementacion; sin contraparte directa en FORM.";  (* infraestructura *)
 
 (* Funciones de actualizacion inmutable (4) *)
@@ -140,16 +140,16 @@ HybridAgent::defaultTimeSymbol =
 
 (* Mapa simbolo de opcion -> key canonica de string (D14) *)
 $optionToKey = <|
-  HVA`Core`HybridAgent`Modes        -> "modes",
+  HVA`Core`HybridAgent`Modes                   -> "modes",
   HVA`Core`HybridAgent`ContinuousVars          -> "continuousVars",
-  HVA`Core`HybridAgent`VectorFields      -> "vectorFields",
-  HVA`Core`HybridAgent`Transitions        -> "transitions",
-  HVA`Core`HybridAgent`ModeInvariants    -> "modeInvariants",
-  HVA`Core`HybridAgent`InitialMode  -> "initialMode",
-  HVA`Core`HybridAgent`InitialValuation -> "initialValuation",
-  HVA`Core`Contract`Contract         -> "contract",
-  HVA`Core`HybridAgent`RewriteRules      -> "rewriteRules",
-  HVA`Core`HybridAgent`TimeSymbol    -> "time"
+  HVA`Core`HybridAgent`VectorFields            -> "vectorFields",
+  HVA`Core`HybridAgent`Transitions             -> "transitions",
+  HVA`Core`HybridAgent`ModeInvariants          -> "modeInvariants",
+  HVA`Core`HybridAgent`InitialMode             -> "initialMode",
+  HVA`Core`HybridAgent`InitialValuation        -> "initialValuation",
+  HVA`Core`Contract`Contract                   -> "contract",
+  HVA`Core`HybridAgent`RewriteRules            -> "rewriteRules",
+  HVA`Core`HybridAgent`TimeSymbol              -> "time"
 |>;
 
 (* Orden canonico de campos en la forma normalizada *)
@@ -551,8 +551,8 @@ defineAccessor[name_Symbol, key_String] := (
     |>];
 );
 
-defineAccessor[AgentId,           "id"];
-defineAccessor[AgentModes,       "modes"];
+defineAccessor[AgentId,              "id"];
+defineAccessor[AgentModes,              "modes"];
 defineAccessor[AgentContinuousVars,         "continuousVars"];
 defineAccessor[AgentVectorFields,     "vectorFields"];
 defineAccessor[AgentTransitions,       "transitions"];
@@ -562,7 +562,10 @@ defineAccessor[AgentRewriteRules,     "rewriteRules"];
 defineAccessor[AgentMailbox,      "mailbox"];
 defineAccessor[AgentCurrentMode, "currentMode"];
 defineAccessor[AgentValuation,    "valuation"];
-defineAccessor[AgentTrace,        "trace"];
+(* AgentTrace NO usa defineAccessor: el catch-all name[expr_] capturaría
+   AgentTrace[assoc_Association] que es la forma struct-head valida.
+   Solo se define el downvalue accessor; la forma struct queda sin evaluar. *)
+AgentTrace[HybridAgent[a_Association]] := a["trace"];
 defineAccessor[AgentTime,         "time"];
 
 (* ============================================================== *)

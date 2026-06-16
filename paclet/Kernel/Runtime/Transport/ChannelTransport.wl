@@ -4,6 +4,9 @@
 (* :Summary: Transporte basado en ChannelObject. *)
 (* :Capa: Runtime (3) *)
 (* :Depends: HVA`Runtime`Transport` *)
+(* :Formalismo: FORM Def. 3.1 (Ch — transporte por canales WolframLanguage) *)
+(* :Spec: §9 (runtime y mensajeria) *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

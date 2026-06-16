@@ -5,7 +5,11 @@
    ================================================================ *)
 
 (* ── Configuracion ───────────────────────────────────────────── *)
-$pacletRoot  = "/workspaces/hva-framework/paclet";
+(* $pacletRoot se deriva del path de este archivo: siempre es <directorio_padre>/paclet.
+   Funciona tanto en dev local (/workspaces/hva-framework/paclet)
+   como dentro del contenedor Docker (/app/paclet) sin depender de
+   variables de entorno que el devcontainer puede heredar con valores incorrectos. *)
+$pacletRoot  = FileNameJoin[{DirectoryName[$InputFileName], "paclet"}];
 $testBase    = $pacletRoot <> "/Tests/";
 $slowMs      = 500;   (* umbral para marcar un test como SLOW *)
 
@@ -35,7 +39,7 @@ $suites = {
     "Core/HybridAgentTest.wlt",
     "Core/ContractTest.wlt",
     "Core/CausalModelTest.wlt",
-    "Core/MessageTest.wlt",
+    "Core/MessageAlphabetTest.wlt",
     "Core/TraceTest.wlt"
   }},
   {"Runtime", {
@@ -50,10 +54,13 @@ $suites = {
     "Services/SupervisorTest.wlt",
     "Services/VerifierTest.wlt"
   }},
-  {"Adapters",    {"Adapters/AdaptersTest.wlt"}},
+  {"Adapters",    {
+    "Adapters/AdaptersTest.wlt",
+    "Adapters/WSAMAdapterTest.wlt"
+  }},
   {"DSL",         {"DSL/DSLTest.wlt"}},
   {"Integration", {"Integration/ThermostatEndToEndTest.wlt"}},
-  {"Utilities",   {"Utilities/ValidationTest.wlt"}}
+  {"Utilities",   {"Utilities/ValidationTest.wlt", "Utilities/SerializationTest.wlt", "Utilities/LoggingTest.wlt"}}
 };
 
 (* Filtrar capas si se especifico --layer *)

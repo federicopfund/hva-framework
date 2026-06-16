@@ -1,13 +1,16 @@
 (* :Title: ConfidenceEvaluator *)
-(* :Context: HVA`Supervisor`ConfidenceEvaluator` *)
+(* :Context: HVA`Services`Supervisor`ConfidenceEvaluator` *)
 (* :Author: HVA Contributors *)
 (* :Summary: Evaluacion de confianza en tres regimenes de decision. *)
 (* :Capa: Services (4) *)
 (* :Depends: None *)
+(* :Formalismo: TBD — ver SPEC_TECNICA.md §7 *)
+(* :Spec: TBD *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
-BeginPackage["HVA`Supervisor`ConfidenceEvaluator`"]
+BeginPackage["HVA`Services`Supervisor`ConfidenceEvaluator`"]
 
 EvaluateConfidence::usage = "EvaluateConfidence[posterior] estima confianza de decision.";
 

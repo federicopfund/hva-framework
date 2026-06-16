@@ -62,7 +62,7 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
 
     (* Dynamics: header vacío + un ► OpenerView por modo (árbol) *)
     dynTree   = Flatten[{
-                  BoxForm`SummaryItem[{"Dynamics:", ""}],
+                  BoxForm`SummaryItem[{"vectorFields:", ""}],
                   KeyValueMap[
                     BoxForm`SummaryItem[{"",
                       OpenerView[{
@@ -77,7 +77,7 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
     (* Guards: árbol si hay, contador si vacío *)
     guardTree = If[Length[guards] > 0,
                   Flatten[{
-                    BoxForm`SummaryItem[{"Guards:", ""}],
+                    BoxForm`SummaryItem[{"transitions:", ""}],
                     Map[
                       Function[g, BoxForm`SummaryItem[{"",
                         OpenerView[{
@@ -116,13 +116,13 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                       guards
                     ]
                   }, 1],
-                  {BoxForm`SummaryItem[{"Guards:", Style["none", Italic, GrayLevel[0.65]]}]}
+                  {BoxForm`SummaryItem[{"transitions:", Style["none", Italic, GrayLevel[0.65]]}]}
                 ],
 
     (* Invariants: árbol si hay, contador si vacío *)
     invTree   = If[Length[invs] > 0,
                   Flatten[{
-                    BoxForm`SummaryItem[{"Invariants:", ""}],
+                    BoxForm`SummaryItem[{"modeInvariants:", ""}],
                     MapIndexed[
                       Function[{inv, idx}, BoxForm`SummaryItem[{"",
                         OpenerView[{
@@ -133,7 +133,7 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
                       invs
                     ]
                   }, 1],
-                  {BoxForm`SummaryItem[{"Invariants:", Style["none", Italic, GrayLevel[0.65]]}]}
+                  {BoxForm`SummaryItem[{"modeInvariants:", Style["none", Italic, GrayLevel[0.65]]}]}
                 ]
   },
     BoxForm`ArrangeSummaryBox[
@@ -141,19 +141,19 @@ HybridAgent /: MakeBoxes[obj : HybridAgent[a_Association],
       HybridAgentIcon[statusColor],
       (* ── siempre visibles ──────────────────────────────── *)
       {
-        BoxForm`SummaryItem[{"ID: ",     id}],
-        BoxForm`SummaryItem[{"State: ",  HVAStatusDot[statusColor, curState]}],
-        BoxForm`SummaryItem[{"States: ", states}]
+        BoxForm`SummaryItem[{"id: ",          id}],
+        BoxForm`SummaryItem[{"currentMode: ",  HVAStatusDot[statusColor, curState]}],
+        BoxForm`SummaryItem[{"modes: ",         states}]
       },
       (* ── expandibles en árbol ──────────────────────────── *)
       Join[
-        {BoxForm`SummaryItem[{"Vars: ", varsRow}]},
+        {BoxForm`SummaryItem[{"continuousVars: ", varsRow}]},
         dynTree,
         guardTree,
         invTree,
         {
-          BoxForm`SummaryItem[{"Mailbox: ", mailboxLen}],
-          BoxForm`SummaryItem[{"Trace: ",   traceLen}]
+          BoxForm`SummaryItem[{"mailbox: ", mailboxLen}],
+          BoxForm`SummaryItem[{"trace: ",   traceLen}]
         }
       ],
       form

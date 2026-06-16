@@ -4,6 +4,9 @@
 (* :Summary: Inicializador de utilidades transversales del framework. *)
 (* :Capa: Utilities (cross-cutting) *)
 (* :Depends: HVA`Utilities`Validation`, HVA`Utilities`Logging`, HVA`Utilities`Serialization`, HVA`Utilities`ErrorHandling` *)
+(* :Formalismo: N/A (inicializador de capa) *)
+(* :Spec: N/A *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
@@ -14,10 +17,10 @@ LoadUtilities::usage = "LoadUtilities[] carga utilidades de validacion, logging 
 Begin["`Private`"]
 
 LoadUtilities[] := Module[{},
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Validation.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Logging.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Serialization.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "ErrorHandling.wl"}]];
+  Needs["HVA`Utilities`Validation`"];
+  Needs["HVA`Utilities`Logging`"];
+  Needs["HVA`Utilities`Serialization`"];
+  Needs["HVA`Utilities`ErrorHandling`"];
 ];
 
 (* TODO: implementar en ISSUE-XXXX *)

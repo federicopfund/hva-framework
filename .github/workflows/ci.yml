@@ -1,19 +1,124 @@
-name: CI/CD
+name: CI/CD — HVA Paclet
+
+# =============================================================================
+# Triggers
+# Ramas protegidas: main (producción), develop (integración continua).
+# Feature branches: issue/* (ciclo de un issue, vida corta).
+# Tags v*.*.* disparan el job de GitHub Release.
+# =============================================================================
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, "issue/**"]
     tags: ["v*.*.*"]
   pull_request:
     branches: [main, develop]
 
+# Cancela runs anteriores del mismo branch/PR para ahorrar minutos de CI.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# =============================================================================
+# JOB 1 — Lint de headers canónicos
+# No requiere licencia Wolfram; corre en Alpine, es el check más rápido.
+# Bloquea el merge si algún .wl bajo Kernel/ tiene headers incompletos
+# o inconsistentes con su ruta (SPEC §4.5.1 / METHODOLOGY §5.1).
+# =============================================================================
 jobs:
-  # ─────────────────────────────────────────────
-  # JOB 1 — Tests con Wolfram Engine vía Docker
-  # ─────────────────────────────────────────────
-  test:
-    name: Tests (Wolfram Engine)
+  lint-headers:
+    name: "Lint · Headers canónicos"
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dar permisos al script
+        run: chmod +x .github/workflows/scripts/lint_headers.sh
+
+      - name: Verificar headers
+        run: bash .github/workflows/scripts/lint_headers.sh paclet/Kernel/
+
+# =============================================================================
+# JOB 2 — Detección de capas modificadas (para CI selectivo)
+# Analiza el diff del PR y determina qué capas toca el cambio.
+# Los jobs de tests downstream leen estos outputs para filtrar su ejecución.
+# =============================================================================
+  detect-layers:
+    name: "Análisis · Capas modificadas"
+    runs-on: ubuntu-latest
+    outputs:
+      layers: ${{ steps.detect.outputs.layers }}
+      run_all: ${{ steps.detect.outputs.run_all }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detectar capas tocadas por el diff
+        id: detect
+        run: |
+          # En push a main/develop o tags: correr todo.
+          if [[ "${{ github.event_name }}" == "push" && \
+                ("${{ github.ref }}" == "refs/heads/main" || \
+                 "${{ github.ref }}" == "refs/heads/develop" || \
+                 "${{ github.ref }}" == refs/tags/*) ]]; then
+            echo "layers=Core,Runtime,Services,Adapters,DSL,Utilities,Integration" >> "$GITHUB_OUTPUT"
+            echo "run_all=true" >> "$GITHUB_OUTPUT"
+            echo "Push a rama principal: corriendo todos los tests."
+            exit 0
+          fi
+
+          # En PRs y feature branches: detectar solo las capas modificadas.
+          BASE="${{ github.event.pull_request.base.sha || github.event.before }}"
+          HEAD="${{ github.sha }}"
+          CHANGED_FILES=$(git diff --name-only "$BASE" "$HEAD" 2>/dev/null || git diff --name-only HEAD~1 HEAD)
+
+          LAYERS=""
+
+          add_layer() {
+            local layer="$1"
+            if [[ -z "$LAYERS" ]]; then
+              LAYERS="$layer"
+            elif [[ "$LAYERS" != *"$layer"* ]]; then
+              LAYERS="$LAYERS,$layer"
+            fi
+          }
+
+          echo "Archivos modificados:"
+          echo "$CHANGED_FILES"
+
+          while IFS= read -r f; do
+            case "$f" in
+              paclet/Kernel/Core/*|paclet/Tests/Core/*)        add_layer "Core" ;;
+              paclet/Kernel/Runtime/*|paclet/Tests/Runtime/*)  add_layer "Runtime" ;;
+              paclet/Kernel/Services/*|paclet/Tests/Services/*) add_layer "Services" ;;
+              paclet/Kernel/Adapters/*|paclet/Tests/Adapters/*) add_layer "Adapters" ;;
+              paclet/Kernel/DSL/*|paclet/Tests/DSL/*)          add_layer "DSL" ;;
+              paclet/Kernel/Utilities/*|paclet/Tests/Utilities/*) add_layer "Utilities" ;;
+              paclet/Tests/Integration/*)                       add_layer "Integration" ;;
+              # Cambios en la raíz del paclet: correr todo.
+              paclet/Kernel/HVA.wl|paclet/PacletInfo.wl)       add_layer "Core,Runtime,Services,Adapters,DSL,Utilities,Integration" ;;
+            esac
+          done <<< "$CHANGED_FILES"
+
+          # Si no se detectó ninguna capa (ej: solo docs), igualmente correr smoke.
+          [[ -z "$LAYERS" ]] && LAYERS="Core"
+
+          echo "Capas detectadas: $LAYERS"
+          echo "layers=$LAYERS" >> "$GITHUB_OUTPUT"
+          echo "run_all=false" >> "$GITHUB_OUTPUT"
+
+# =============================================================================
+# JOB 3 — Tests con Wolfram Engine (CI selectivo por capa)
+# Depende de lint-headers y detect-layers.
+# Construye la imagen Docker una sola vez y corre solo los tests relevantes.
+# =============================================================================
+  test:
+    name: "Tests · Wolfram Engine"
+    runs-on: ubuntu-latest
+    needs: [lint-headers, detect-layers]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,22 +129,126 @@ jobs:
       - name: Preparar licencia Wolfram
         run: |
           mkdir -p /tmp/wolfram-license
-          echo "${{ secrets.WOLFRAM_MATHPASS }}" | base64 -d > /tmp/wolfram-license/mathpass
+          echo "${{ secrets.WOLFRAM_MATHPASS }}" | base64 -d \
+            > /tmp/wolfram-license/mathpass
 
-      - name: Ejecutar TestRunner
+      - name: Ejecutar TestRunner (capas ${{ needs.detect-layers.outputs.layers }})
+        env:
+          HVA_TEST_LAYERS: ${{ needs.detect-layers.outputs.layers }}
+          HVA_RUN_ALL:     ${{ needs.detect-layers.outputs.run_all }}
         run: |
+          LAYER_FLAG=""
+          if [[ "$HVA_RUN_ALL" != "true" ]]; then
+            LAYER_FLAG="--layers $HVA_TEST_LAYERS"
+          fi
+
           docker run --rm \
             -v /tmp/wolfram-license/mathpass:/home/wolframengine/.WolframEngine/Licensing/mathpass:ro \
+            -e HVA_TEST_LAYERS="$HVA_TEST_LAYERS" \
             hva:latest \
-            wolframscript -file /app/run_tests.wl
+            wolframscript -file /app/paclet/Tests/TestRunner.wl $LAYER_FLAG
 
-  # ─────────────────────────────────────────────
-  # JOB 2 — Empaquetar .paclet y commit a main
-  # ─────────────────────────────────────────────
+      - name: Publicar resultados de tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: |
+            test-results/**/*.xml
+            test-results/**/*.json
+          retention-days: 14
+
+# =============================================================================
+# JOB 4 — Verificación de trazabilidad formal
+# Cruza los TestIDs de tests nuevos con las referencias :Formalismo: de
+# los módulos modificados. Warning (no error) si hay deuda no documentada.
+# METHODOLOGY §6.3 / §7.1.
+# =============================================================================
+  traceability:
+    name: "Lint · Trazabilidad formal"
+    runs-on: ubuntu-latest
+    needs: [detect-layers]
+    # Solo corre en PRs donde hay módulos Core o Services modificados.
+    if: |
+      github.event_name == 'pull_request' &&
+      (contains(needs.detect-layers.outputs.layers, 'Core') ||
+       contains(needs.detect-layers.outputs.layers, 'Services'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar trazabilidad formalismo ↔ tests
+        id: trace-check
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.sha }}"
+          CHANGED_WL=$(git diff --name-only "$BASE" "$HEAD" | grep 'paclet/Kernel/' | grep '\.wl$' || true)
+
+          WARNINGS=0
+
+          for wl_file in $CHANGED_WL; do
+            [[ ! -f "$wl_file" ]] && continue
+
+            # Extraer referencias :Formalismo: del header
+            FORM_REFS=$(head -20 "$wl_file" | grep ':Formalismo:' | \
+                        sed 's/.*:Formalismo: *//' | tr -d '(*)')
+
+            [[ -z "$FORM_REFS" ]] && continue
+
+            # Buscar el archivo de tests espejo
+            # paclet/Kernel/Core/HybridAgent.wl -> paclet/Tests/Core/HybridAgentTest.wlt
+            MODULE_NAME=$(basename "$wl_file" .wl)
+            LAYER=$(echo "$wl_file" | grep -oP '(?<=Kernel/)[^/]+')
+            TEST_FILE="paclet/Tests/${LAYER}/${MODULE_NAME}Test.wlt"
+
+            if [[ ! -f "$TEST_FILE" ]]; then
+              echo "⚠  No se encontró archivo de tests espejo: $TEST_FILE"
+              ((WARNINGS++)) || true
+              continue
+            fi
+
+            # Para cada referencia formal, verificar que existe al menos un
+            # TestID que la menciona (convención: FORM-Def-N o similar).
+            while IFS=',' read -ra REFS; do
+              for ref in "${REFS[@]}"; do
+                ref=$(echo "$ref" | xargs)  # trim whitespace
+                [[ -z "$ref" ]] && continue
+
+                # Normalizar para búsqueda: "Def. 3.1" -> buscar "Def" y "3.1"
+                SEARCH_TERM=$(echo "$ref" | tr -d '.' | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+
+                if ! grep -qi "$SEARCH_TERM" "$TEST_FILE" 2>/dev/null; then
+                  echo "⚠  ${wl_file}: referencia formal '${ref}' sin TestID correspondiente en ${TEST_FILE}"
+                  echo "   Considerá agregar un test con TestID que incluya '${SEARCH_TERM}' (METHODOLOGY §7.1)"
+                  ((WARNINGS++)) || true
+                fi
+              done
+            done <<< "$FORM_REFS"
+          done
+
+          echo ""
+          if [[ $WARNINGS -eq 0 ]]; then
+            echo "✓ Trazabilidad formal completa."
+          else
+            echo "⚠  ${WARNINGS} advertencia(s) de trazabilidad. No bloquea el merge, pero registrá la deuda en FORMAL_DEBT.md (METHODOLOGY §9.2)."
+          fi
+
+          # Este job es warning-only: siempre exit 0.
+          exit 0
+
+# =============================================================================
+# JOB 5 — Empaquetar .paclet
+# Corre solo en push a main o en tags. Depende de que tests pasen.
+# =============================================================================
   build:
-    name: Build .paclet
-    needs: test
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/v')
+    name: "Build · Empaquetar .paclet"
+    needs: [test]
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/develop' ||
+      startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -49,7 +258,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Token con permisos de escritura para el push posterior
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extraer versión de PacletInfo.wl
@@ -62,7 +270,6 @@ jobs:
       - name: Empaquetar .paclet
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          # Limpiar build anterior y reconstruir desde fuente
           rm -rf "build/HVA-${VERSION}" "build/HVA-${VERSION}.paclet"
           mkdir -p build
           cp -r paclet "build/HVA-${VERSION}"
@@ -71,14 +278,12 @@ jobs:
           echo "Empaquetado: HVA-${VERSION}.paclet ($(du -sh "HVA-${VERSION}.paclet" | cut -f1))"
 
       - name: Commit build/ a main
-        # Solo en push a main (no en tags, que tienen su propio Release)
         if: github.ref == 'refs/heads/main'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "build/HVA-${VERSION}.paclet" "build/HVA-${VERSION}/"
-          # Solo commitea si hay cambios reales
           git diff --cached --quiet || \
             git commit -m "build(ci): reconstruir HVA-${VERSION}.paclet [skip ci]"
           git push origin main
@@ -90,11 +295,11 @@ jobs:
           path: build/HVA-${{ steps.version.outputs.version }}.paclet
           retention-days: 30
 
-  # ─────────────────────────────────────────────
-  # JOB 3 — GitHub Release (solo en tags v*.*.*)
-  # ─────────────────────────────────────────────
+# =============================================================================
+# JOB 6 — GitHub Release (solo en tags v*.*.*)
+# =============================================================================
   release:
-    name: GitHub Release
+    name: "Release · GitHub"
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [test, build]
     runs-on: ubuntu-latest
@@ -112,3 +317,15 @@ jobs:
           files: HVA-${{ needs.build.outputs.version }}.paclet
           generate_release_notes: true
           fail_on_unmatched_files: true
+          body: |
+            ## HVA ${{ needs.build.outputs.version }}
+
+            Paclet listo para instalar en Wolfram Language 13.0+:
+
+            ```wolfram
+            PacletInstall["HVA-${{ needs.build.outputs.version }}.paclet"]
+            Needs["HVA`"]
+            ```
+
+            Consultar `CHANGELOG.md` para detalle de cambios.
+            Consultar `FORMAL_DEBT.md` para hipótesis formales pendientes de verificación.

@@ -4,6 +4,9 @@
 (* :Summary: Registro de adaptadores activos. *)
 (* :Capa: Adapters (1) *)
 (* :Depends: None *)
+(* :Formalismo: FORM Def. 3.1 (𝓂 = ⟨{𝓜ᵢ}, ...⟩ — registro global de agentes activos) *)
+(* :Spec: §11 (interfaces y extensibilidad) *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 

@@ -4,6 +4,9 @@
 (* :Summary: Interfaz abstracta de transporte de mensajes. *)
 (* :Capa: Runtime (3) *)
 (* :Depends: None *)
+(* :Formalismo: FORM Def. 3.1 (Ch canales logicos, Rt relacion de ruteo) *)
+(* :Spec: §9 (runtime y mensajeria) *)
+(* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
