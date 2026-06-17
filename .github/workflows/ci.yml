@@ -126,51 +126,35 @@ jobs:
       - name: Build imagen Docker
         run: docker build -t hva:latest .
 
-      - name: Activar Wolfram Engine y extraer mathpass
+      - name: Preparar mathpass
         run: |
-          if [[ -z "${{ secrets.WOLFRAM_ACTIVATION_KEY }}" ]]; then
-            echo "::error::El secreto WOLFRAM_ACTIVATION_KEY no está configurado."
-            echo "::error::Ve a Settings → Secrets and variables → Actions → New repository secret"
-            echo "::error::Nombre: WOLFRAM_ACTIVATION_KEY  Valor: ej. 4459-4407-EW3EJ2"
+          if [[ -z "${{ secrets.WOLFRAM_MATHPASS }}" ]]; then
+            echo "::error::Secreto WOLFRAM_MATHPASS no configurado."
+            echo "::error::Settings → Secrets → Actions → New secret → WOLFRAM_MATHPASS"
+            echo "::error::Valor: base64 del mathpass válido (expiry 20260713)"
             exit 1
           fi
-
           mkdir -p /tmp/wolfram-license
-
-          # Activar en contenedor nombrado para poder copiar el mathpass resultante
-          docker rm -f wl-activate 2>/dev/null || true
-          docker run --name wl-activate \
-            hva:latest \
-            wolframscript -activate "${{ secrets.WOLFRAM_ACTIVATION_KEY }}" 2>&1
-          ACTIVATE_EXIT=$?
-
-          if [[ $ACTIVATE_EXIT -ne 0 ]]; then
-            echo "::error::wolframscript -activate falló (exit $ACTIVATE_EXIT)."
-            echo "::error::Verifica que WOLFRAM_ACTIVATION_KEY sea válida en account.wolfram.com."
-            docker rm -f wl-activate || true
+          echo "${{ secrets.WOLFRAM_MATHPASS }}" | base64 -d > /tmp/wolfram-license/mathpass
+          if [[ ! -s /tmp/wolfram-license/mathpass ]]; then
+            echo "::error::mathpass vacío tras decodificar WOLFRAM_MATHPASS."
             exit 1
           fi
+          echo "✓ mathpass listo ($(wc -c < /tmp/wolfram-license/mathpass) bytes)"
+          echo "Expiry: $(grep -v '^%' /tmp/wolfram-license/mathpass | head -1 | grep -oP '\d{8}$')"
 
-          # Copiar mathpass fresco al runner
-          docker cp wl-activate:/home/wolframengine/.WolframEngine/Licensing/mathpass \
-            /tmp/wolfram-license/mathpass
-          docker rm -f wl-activate
-
-          echo "✓ mathpass extraído ($(wc -c < /tmp/wolfram-license/mathpass) bytes)."
-          echo "Expiry line: $(grep -v '^%' /tmp/wolfram-license/mathpass | tail -1 | awk '{print $NF}')"
-
-      - name: Verificar activacion
+      - name: Verificar activacion Wolfram Engine
         run: |
           RESULT=$(docker run --rm \
             -v /tmp/wolfram-license/mathpass:/home/wolframengine/.WolframEngine/Licensing/mathpass:ro \
             hva:latest \
-            wolframscript -code '"activated:"<>$Version' 2>&1)
-          echo "Wolfram response: $RESULT"
-          if echo "$RESULT" | grep -qi "not activated\|license-related\|exit code 255"; then
-            echo "::error::Wolfram Engine no se activó correctamente con el mathpass extraído."
+            wolframscript -code '"ok:"<>$Version' 2>&1)
+          echo "Wolfram: $RESULT"
+          if echo "$RESULT" | grep -qi "not activated\|license-related\|Wolfram ID"; then
+            echo "::error::Wolfram Engine no activado. Renueva WOLFRAM_MATHPASS con un mathpass válido."
             exit 1
           fi
-          echo "✓ Wolfram Engine activo: $RESULT"
+          echo "✓ Engine activo"
 
       - name: Ejecutar TestRunner (capas ${{ needs.detect-layers.outputs.layers }})
         env:
