@@ -118,6 +118,12 @@ PacletObject[
       (* ── FrontEnd ─────────────────────────────────────────── *)
       {"Kernel", "Root" -> "FrontEnd",
         "Context" -> {"HVA`FrontEnd`"}}
+
+      ,
+
+      (* ── Documentation ─────────────────────────────────────── *)
+      {"Documentation", "Root" -> "Documentation",
+        "Language" -> "English"}
     }
   |>
 ]
