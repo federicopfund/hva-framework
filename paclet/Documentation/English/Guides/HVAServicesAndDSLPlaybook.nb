@@ -1,0 +1,58 @@
+Notebook[{
+Cell["HVAServicesAndDSLPlaybook", "GuideTitle"],
+Cell["Playbook para explorar Services y DSL sin asumir APIs no implementadas: descubrimiento, seleccion y ejecucion segura.", "GuideAbstract"],
+Cell[CellGroupData[{
+Cell["Categorization", "CategorizationSection"],
+Cell["Guide", "Categorization", CellLabel -> "Entity Type"],
+Cell["HVA", "Categorization", CellLabel -> "Paclet Name"],
+Cell["HVA/guide/HVAServicesAndDSLPlaybook", "Categorization", CellLabel -> "URI"],
+Cell["HVA`", "Categorization", CellLabel -> "Context"]
+}, Closed]],
+Cell[TextData[{
+ "Esta guia propone una metodologia para trabajar con Services y DSL partiendo de simbolos realmente exportados tras ",
+ Cell[BoxData["Needs[\"HVA`\"]"], "InlineCode"],
+ "."
+}], "GuideText"],
+Cell[CellGroupData[{
+Cell["Carga y censo de simbolos", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Needs", "[", "\"HVA`\"", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"serviceDSL", "=", RowBox[{"<|", RowBox[{
+ RowBox[{"\"Services\"", "->", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`Services`*\"", "]"}], ",", "UpTo[40]"}], "]"}]}], ",",
+ RowBox[{"\"Verifier\"", "->", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`Services`Verifier`*\"", "]"}], ",", "UpTo[40]"}], "]"}]}], ",",
+ RowBox[{"\"Simulator\"", "->", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`Services`Simulator`*\"", "]"}], ",", "UpTo[40]"}], "]"}]}], ",",
+ RowBox[{"\"Executor\"", "->", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`Services`Executor`*\"", "]"}], ",", "UpTo[40]"}], "]"}]}], ",",
+ RowBox[{"\"Supervisor\"", "->", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`Services`Supervisor`*\"", "]"}], ",", "UpTo[40]"}], "]"}]}], ",",
+ RowBox[{"\"DSL\"", "->", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`DSL`*\"", "]"}], ",", "UpTo[40]"}], "]"}]}]
+}], "|>"}]}]], "Input"],
+Cell[BoxData["serviceDSL"], "Input"],
+Cell["El censo delimita que rutas de notebook son validas en la version cargada del framework.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Matriz de disponibilidad", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"availability", "=", RowBox[{"AssociationMap", "[", RowBox[{RowBox[{RowBox[{"Length", "[", "#", "]"}], ">", "0"}], "&", ",", "serviceDSL"}], "]"}]}]], "Input"],
+Cell[BoxData["availability"], "Input"],
+Cell[BoxData[RowBox[{"And", "@@", RowBox[{"Lookup", "[", RowBox[{"availability", ",", RowBox[{"{", RowBox[{"\"Services\"", ",", "\"DSL\""}], "}"}]}], "]"}]}]], "Input"],
+Cell["El ultimo bloque indica si la base Services+DSL esta lista para workflows mixtos.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Patron seguro de ejecucion", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"safeEval", "=", RowBox[{"Function", "[", RowBox[{"expr", ",", RowBox[{"Quiet", "@", RowBox[{"Check", "[", RowBox[{"expr", ",", RowBox[{"Failure", "[", RowBox[{"\"ServicePathError\"", ",", RowBox[{"<|", RowBox[{"\"Expr\"", "->", RowBox[{"HoldForm", "[", "expr", "]"}]}], "|>"}]}], "]"}]}], "]"}]}]}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"safeEval", "[", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`DSL`*\"", "]"}], ",", "UpTo[10]"}], "]"}], "]"}]], "Input"],
+Cell["safeEval permite mantener notebooks ejecutables en ramas donde algunas APIs todavia reportan Failure.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Workflow recomendado", "GuideFunctionsSection"],
+Cell["1) Bootstrap + censo de simbolos (esta guia).", "GuideText"],
+Cell["2) Definir agente con guia de Core/HybridAgent.", "GuideText"],
+Cell["3) Ejecutar rutas de Runtime segun disponibilidad.", "GuideText"],
+Cell["4) Invocar Services y DSL con wrappers seguros y reportar Failure explicitas.", "GuideText"]
+}, Open]]
+},
+TaggingRules -> <|
+  "Paclet" -> "HVA",
+  "Context" -> "HVA`",
+  "URI" -> "HVA/guide/HVAServicesAndDSLPlaybook",
+  "GuideType" -> "Guide"
+|>,
+StyleDefinitions -> FrontEnd`FileName[{"Wolfram"}, "GuidePageStylesExt.nb"]
+]

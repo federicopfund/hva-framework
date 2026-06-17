@@ -1,0 +1,65 @@
+Notebook[{
+Cell["HVAFrameworkOverview", "GuideTitle"],
+Cell["Guia integral del framework HVA: bootstrap, superficie publica, capas y rutas de trabajo recomendadas.", "GuideAbstract"],
+Cell[CellGroupData[{
+Cell["Categorization", "CategorizationSection"],
+Cell["Guide", "Categorization", CellLabel -> "Entity Type"],
+Cell["HVA", "Categorization", CellLabel -> "Paclet Name"],
+Cell["HVA/guide/HVAFrameworkOverview", "Categorization", CellLabel -> "URI"],
+Cell["HVA`", "Categorization", CellLabel -> "Context"]
+}, Closed]],
+Cell[TextData[{
+ "Esta guia presenta una vista de alto nivel para trabajar con el paclet usando el contexto ",
+ Cell[BoxData["\"HVA`\""], "InlineCode"],
+ ". Todos los bloques son de inspeccion y carga; no requieren agregar modulos nuevos."
+}], "GuideText"],
+Cell[CellGroupData[{
+Cell["Quick start", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Needs", "[", "\"HVA`\"", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"overview", "=", RowBox[{"<|", RowBox[{
+ RowBox[{"\"workingDirectory\"", "->", "Directory[]"}], ",",
+ RowBox[{"\"hvaContextsInPath\"", "->", RowBox[{"Select", "[", RowBox[{"$ContextPath", ",", RowBox[{"StringStartsQ", "[", RowBox[{"#", ",", "\"HVA`\""}], "]"}], "&"}], "]"}]}], ",",
+ RowBox[{"\"totalContextPathEntries\"", "->", RowBox[{"Length", "[", "$ContextPath", "]"}]}]
+}], "|>"}]}]], "Input"],
+Cell[BoxData["overview"], "Input"],
+Cell["Si el bloque devuelve contextos HVA en $ContextPath, la carga base esta operativa.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Superficie publica por dominio", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"domains", "=", RowBox[{"<|", RowBox[{
+ RowBox[{"\"Utilities\"", "->", "\"HVA`Utilities`*\""}], ",",
+ RowBox[{"\"Core\"", "->", "\"HVA`Core`*\""}], ",",
+ RowBox[{"\"Runtime\"", "->", "\"HVA`Runtime`*\""}], ",",
+ RowBox[{"\"Services\"", "->", "\"HVA`Services`*\""}], ",",
+ RowBox[{"\"Adapters\"", "->", "\"HVA`Adapters`*\""}], ",",
+ RowBox[{"\"DSL\"", "->", "\"HVA`DSL`*\""}]
+}], "|>"}]}]], "Input"],
+Cell[BoxData[RowBox[{"surface", "=", RowBox[{"AssociationMap", "[", RowBox[{RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "#", "]"}], ",", "UpTo[15]"}], "]"}], "&", ",", "domains"}], "]"}]}]], "Input"],
+Cell[BoxData["surface"], "Input"],
+Cell["Este inventario ayuda a detectar rapidamente si una familia de simbolos dejo de exportarse tras cambios en bootstrap o paquetes de capa.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Chequeo de salud de carga", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"health", "=", RowBox[{"AssociationMap", "[", RowBox[{RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "#", "]"}], "]"}], ">", "0"}], "&", ",", "domains"}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"<|", RowBox[{
+ RowBox[{"\"healthByDomain\"", "->", "health"}], ",",
+ RowBox[{"\"allCoreDomainsPresent\"", "->", RowBox[{"And", "@@", RowBox[{"Values", "[", "health", "]"}]}]}]
+}], "|>"}]], "Input"],
+Cell["Un resultado True en allCoreDomainsPresent es un smoke check util para pipelines de build y documentacion.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Rutas de trabajo recomendadas", "GuideFunctionsSection"],
+Cell["1) Modelado formal del agente: empezar por HybridAgent y accessors en Core.", "GuideText"],
+Cell["2) Ejecucion y eventos: continuar con Runtime (Scheduler, Dispatcher, Mailbox, Transport).", "GuideText"],
+Cell["3) Analisis y decisiones: usar Services (Simulator, Verifier, Supervisor, Executor).", "GuideText"],
+Cell["4) Orquestacion declarativa: cerrar con DSL para definicion y ejecucion de sistemas.", "GuideText"]
+}, Open]]
+},
+TaggingRules -> <|
+  "Paclet" -> "HVA",
+  "Context" -> "HVA`",
+  "URI" -> "HVA/guide/HVAFrameworkOverview",
+  "GuideType" -> "Guide"
+|>,
+StyleDefinitions -> FrontEnd`FileName[{"Wolfram"}, "GuidePageStylesExt.nb"]
+]
