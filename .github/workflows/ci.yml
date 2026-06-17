@@ -126,11 +126,28 @@ jobs:
       - name: Build imagen Docker
         run: docker build -t hva:latest .
 
+      - name: Verificar secreto WOLFRAM_MATHPASS
+        run: |
+          if [[ -z "${{ secrets.WOLFRAM_MATHPASS }}" ]]; then
+            echo "::error::El secreto WOLFRAM_MATHPASS no está configurado en este repositorio."
+            echo "::error::Ve a Settings → Secrets and variables → Actions → New repository secret"
+            echo "::error::Nombre: WOLFRAM_MATHPASS  Valor: contenido en base64 del archivo mathpass"
+            echo "::error::Obtén el mathpass en: https://account.wolfram.com → My Wolfram Engine"
+            exit 1
+          fi
+          echo "✓ Secreto WOLFRAM_MATHPASS presente."
+
       - name: Preparar licencia Wolfram
         run: |
           mkdir -p /tmp/wolfram-license
           echo "${{ secrets.WOLFRAM_MATHPASS }}" | base64 -d \
             > /tmp/wolfram-license/mathpass
+          if [[ ! -s /tmp/wolfram-license/mathpass ]]; then
+            echo "::error::El archivo mathpass quedó vacío tras decodificar WOLFRAM_MATHPASS."
+            echo "::error::Verifica que el secreto esté codificado correctamente en base64."
+            exit 1
+          fi
+          echo "✓ mathpass generado ($(wc -c < /tmp/wolfram-license/mathpass) bytes)."
 
       - name: Ejecutar TestRunner (capas ${{ needs.detect-layers.outputs.layers }})
         env:
