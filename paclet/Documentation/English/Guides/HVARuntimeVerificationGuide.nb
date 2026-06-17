@@ -1,0 +1,65 @@
+Notebook[{
+Cell["HVARuntimeVerificationGuide", "GuideTitle"],
+Cell["Guia avanzada de Runtime y Verifier con foco en descubrimiento, chequeos y ejecucion segura en notebook.", "GuideAbstract"],
+Cell[CellGroupData[{
+Cell["Categorization", "CategorizationSection"],
+Cell["Guide", "Categorization", CellLabel -> "Entity Type"],
+Cell["HVA", "Categorization", CellLabel -> "Paclet Name"],
+Cell["HVA/guide/HVARuntimeVerificationGuide", "Categorization", CellLabel -> "URI"],
+Cell["HVA`", "Categorization", CellLabel -> "Context"]
+}, Closed]],
+Cell[TextData[{
+ "Esta guia explica como cargar y auditar la superficie disponible para runtime y verificacion sin asumir implementaciones no presentes."
+}], "GuideText"],
+Cell[CellGroupData[{
+Cell["Carga y descubrimiento", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Needs", "[", "\"HVA`\"", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"Association", "[", RowBox[{
+  RowBox[{"\"RuntimeSymbols\"", "->", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`Runtime`*\"", "]"}], ",", "UpTo[30]"}], "]"}]}], ",",
+  RowBox[{"\"VerifierSymbols\"", "->", RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "\"HVA`Services`Verifier`*\"", "]"}], ",", "UpTo[30]"}], "]"}]}]
+}], "]"}]], "Input"],
+Cell["Este bloque permite inventariar simbolos reales exportados por Runtime y Verifier en la version cargada.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Chequeos de disponibilidad", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Association", "[", RowBox[{
+  RowBox[{"\"HasRuntime\"", "->", RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "\"HVA`Runtime`*\"", "]"}], "]"}], ">", "0"}]}], ",",
+  RowBox[{"\"HasVerifier\"", "->", RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "\"HVA`Services`Verifier`*\"", "]"}], "]"}], ">", "0"}]}], ",",
+  RowBox[{"\"HasSimulator\"", "->", RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "\"HVA`Services`Simulator`*\"", "]"}], "]"}], ">", "0"}]}]
+}], "]"}]], "Input"],
+Cell["Estos predicados son utiles como smoke checks para CI/CD de documentacion y bootstrap.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Mapa de capacidades", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"capabilities", "=", RowBox[{"<|", RowBox[{
+ RowBox[{"\"Runtime\"", "->", RowBox[{"Names", "[", "\"HVA`Runtime`*\"", "]"}]}], ",",
+ RowBox[{"\"Mailbox\"", "->", RowBox[{"Names", "[", "\"HVA`Runtime`Mailbox`*\"", "]"}]}], ",",
+ RowBox[{"\"Transport\"", "->", RowBox[{"Names", "[", "\"HVA`Runtime`Transport`*\"", "]"}]}], ",",
+ RowBox[{"\"Verifier\"", "->", RowBox[{"Names", "[", "\"HVA`Services`Verifier`*\"", "]"}]}], ",",
+ RowBox[{"\"Simulator\"", "->", RowBox[{"Names", "[", "\"HVA`Services`Simulator`*\"", "]"}]}]
+}], "|>"}]}]], "Input"],
+Cell[BoxData[RowBox[{"AssociationMap", "[", RowBox[{RowBox[{"Length", "[", "#", "]"}], "&", ",", "capabilities"}], "]"}]], "Input"],
+Cell["El recuento por dominio es una senal rapida de presencia funcional en la build actual.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Patron seguro para notebooks", "GuideFunctionsSection"],
+Cell["Para usar Runtime/Verifier en notebooks de trabajo: 1) cargar HVA`, 2) confirmar simbolos con Names, 3) encapsular llamadas con Check para capturar Failure en rutas en progreso.", "GuideText"],
+Cell[BoxData[RowBox[{"safeCall", "=", RowBox[{"Function", "[", RowBox[{"expr", ",", RowBox[{"Check", "[", RowBox[{"expr", ",", RowBox[{"Failure", "[", RowBox[{"\"NotebookRuntimeError\"", ",", RowBox[{"<|", RowBox[{"\"Expression\"", "->", RowBox[{"HoldForm", "[", "expr", "]"}]}], "|>"}]}], "]"}]}], "]"}]}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"safeCall", "[", RowBox[{"Names", "[", "\"HVA`Services`Verifier`*\"", "]"}], "]"}]], "Input"],
+Cell["Este wrapper ayuda a ejecutar notebooks de referencia en ramas donde alguna capacidad todavia este en construccion.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Siguientes pasos", "GuideFunctionsSection"],
+Cell["1) Combinar este inventario con una guia de agentes (Core) para preparar escenarios de simulacion.", "GuideText"],
+Cell["2) Cuando haya API estable de verificacion, agregar bloques con certificados y chequeos de fragmento.", "GuideText"],
+Cell["3) Mantener esta guia como smoke funcional de carga para Runtime/Services en CI de documentacion.", "GuideText"]
+}, Open]]
+},
+TaggingRules -> <|
+  "Paclet" -> "HVA",
+  "Context" -> "HVA`",
+  "URI" -> "HVA/guide/HVARuntimeVerificationGuide",
+  "GuideType" -> "Guide"
+|>,
+StyleDefinitions -> FrontEnd`FileName[{"Wolfram"}, "GuidePageStylesExt.nb"]
+]

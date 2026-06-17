@@ -1,0 +1,96 @@
+Notebook[{
+Cell["HVAHybridAgentWorkflow", "GuideTitle"],
+Cell["Flujo completo para crear, inspeccionar, transformar y evaluar un agente hibrido en HVA.", "GuideAbstract"],
+Cell[CellGroupData[{
+Cell["Categorization", "CategorizationSection"],
+Cell["Guide", "Categorization", CellLabel -> "Entity Type"],
+Cell["HVA", "Categorization", CellLabel -> "Paclet Name"],
+Cell["HVA/guide/HVAHybridAgentWorkflow", "Categorization", CellLabel -> "URI"],
+Cell["HVA`", "Categorization", CellLabel -> "Context"]
+}, Closed]],
+Cell[TextData[{
+ "Esta guia documenta el flujo canonic con ",
+ Cell[BoxData["HybridAgent"], "InlineCode"],
+ ", accessors, actualizacion inmutable, transiciones discretas y diagnostico de resultados."
+}], "GuideText"],
+Cell[CellGroupData[{
+Cell["Construccion del agente", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Needs", "[", "\"HVA`\"", "]"}]], "Input"],
+Cell[BoxData[
+ RowBox[{"agent", "=", 
+  RowBox[{"HybridAgent", "[", 
+   RowBox[{"\"TankController\"", ",", 
+    RowBox[{"Modes", "->", RowBox[{"{", RowBox[{"\"Standby\"", ",", "\"Filling\""}], "}"}]}], ",", 
+    RowBox[{"ContinuousVars", "->", RowBox[{"{", "level", "}"}]}], ",", 
+    RowBox[{"ControlInputVars", "->", RowBox[{"{", "u", "}"}]}], ",", 
+    RowBox[{"ObservableVars", "->", RowBox[{"{", "level", "}"}]}], ",", 
+    RowBox[{"VectorFields", "->", 
+      RowBox[{"<|", RowBox[{"\"Standby\"", "->", RowBox[{"{", RowBox[{RowBox[{RowBox[{"level", "'"}], "[", "t", "]"}], "==", "0"}], "}"}], ",", "\"Filling\"", "->", RowBox[{"{", RowBox[{RowBox[{RowBox[{"level", "'"}], "[", "t", "]"}], "==", RowBox[{"0.3", "+", RowBox[{"u", "[", "t", "]"}]}]}], "}"}]}], "|>"}]}], ",",
+    RowBox[{"Transitions", "->", RowBox[{"{", 
+      RowBox[{RowBox[{"<|", RowBox[{"\"from\"", "->", "\"Standby\"", ",", "\"to\"", "->", "\"Filling\"", ",", "\"condition\"", "->", RowBox[{RowBox[{"level", "[", "t", "]"}], "<", "2"}], ",", "\"action\"", "->", "<||>"}], "|>"}], ",",
+      RowBox[{"<|", RowBox[{"\"from\"", "->", "\"Filling\"", ",", "\"to\"", "->", "\"Standby\"", ",", "\"condition\"", "->", RowBox[{RowBox[{"level", "[", "t", "]"}], ">", "9"}], ",", "\"action\"", "->", "<||>"}], "|>"}]}], 
+    "}"}]}], ",",
+    RowBox[{"ModeInvariants", "->", RowBox[{"<|", RowBox[{"\"Standby\"", "->", RowBox[{RowBox[{"level", "[", "t", "]"}], ">=", "0"}], ",", "\"Filling\"", "->", RowBox[{RowBox[{"level", "[", "t", "]"}], "<=", "10"}]}], "|>"}]}], ",",
+    RowBox[{"InitialMode", "->", "\"Standby\""}], ",",
+    RowBox[{"InitialValuation", "->", RowBox[{"<|", RowBox[{"level", "->", "1.5"}], "|>"}]}]}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"HybridAgentQ", "[", "agent", "]"}]], "Input"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Inspeccion canonica", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Association", "[", RowBox[{
+  RowBox[{"\"Id\"", "->", RowBox[{"AgentId", "[", "agent", "]"}]}], ",",
+  RowBox[{"\"Modes\"", "->", RowBox[{"AgentModes", "[", "agent", "]"}]}], ",",
+  RowBox[{"\"CurrentMode\"", "->", RowBox[{"AgentCurrentMode", "[", "agent", "]"}]}], ",",
+  RowBox[{"\"Valuation\"", "->", RowBox[{"AgentValuation", "[", "agent", "]"}]}], ",",
+  RowBox[{"\"Transitions\"", "->", RowBox[{"AgentTransitions", "[", "agent", "]"}]}]
+}], "]"}]], "Input"],
+Cell["Los accessors exponen la forma formal del agente sin necesidad de acceder al Association interno directamente.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Transformaciones inmutables", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"agent2", "=", RowBox[{"WithValuation", "[", RowBox[{"agent", ",", RowBox[{"<|", RowBox[{"level", "->", "1.0"}], "|>"}]}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"Association", "[", RowBox[{
+  RowBox[{"\"hash1\"", "->", RowBox[{"AgentStructuralHash", "[", "agent", "]"}]}], ",",
+  RowBox[{"\"hash2\"", "->", RowBox[{"AgentStructuralHash", "[", "agent2", "]"}]}], ",",
+  RowBox[{"\"sameStructuralHash\"", "->", RowBox[{RowBox[{"AgentStructuralHash", "[", "agent", "]"}], "==", RowBox[{"AgentStructuralHash", "[", "agent2", "]"}]}]}]
+}], "]"}]], "Input"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Transicion discreta", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"g", "=", RowBox[{"First", "[", RowBox[{"AgentTransitions", "[", "agent2", "]"}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"FireGuard", "[", RowBox[{"agent2", ",", "g"}], "]"}]], "Input"],
+Cell["Dependiendo del estado actual y la guarda, FireGuard devuelve un nuevo agente o Failure con diagnostico explicito.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Diagnostico de resultados", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"result", "=", RowBox[{"FireGuard", "[", RowBox[{"agent2", ",", "g"}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"If", "[", RowBox[{RowBox[{"Head", "[", "result", "]"}], "===", "Failure", ",",
+  RowBox[{"<|", RowBox[{
+    RowBox[{"\"status\"", "->", "\"failure\""}], ",",
+    RowBox[{"\"head\"", "->", RowBox[{"Head", "[", "result", "]"}]}], ",",
+    RowBox[{"\"value\"", "->", "result"}]
+  }], "|>"}], ",",
+  RowBox[{"<|", RowBox[{
+    RowBox[{"\"status\"", "->", "\"success\""}], ",",
+    RowBox[{"\"newMode\"", "->", RowBox[{"AgentCurrentMode", "[", "result", "]"}]}], ",",
+    RowBox[{"\"newValuation\"", "->", RowBox[{"AgentValuation", "[", "result", "]"}]}], ",",
+    RowBox[{"\"traceLength\"", "->", RowBox[{"Length", "[", RowBox[{"AgentTrace", "[", "result", "]"}], "]"}]}]
+  }], "|>"}]}], "]"}]], "Input"],
+Cell["Este patron permite dejar un notebook robusto aunque algunas rutas esten en evolucion y devuelvan Failure.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Checklist tecnico", "GuideFunctionsSection"],
+Cell["1) HybridAgentQ devuelve True para la construccion base.", "GuideText"],
+Cell["2) Accessors canonic devuelven estructuras no vacias cuando la capa Core esta cargada.", "GuideText"],
+Cell["3) AgentStructuralHash se conserva ante cambios de estado runtime.", "GuideText"],
+Cell["4) FireGuard produce nuevo agente o Failure explicita, nunca silenciosa.", "GuideText"]
+}, Open]]
+},
+TaggingRules -> <|
+  "Paclet" -> "HVA",
+  "Context" -> "HVA`",
+  "URI" -> "HVA/guide/HVAHybridAgentWorkflow",
+  "GuideType" -> "Guide"
+|>,
+StyleDefinitions -> FrontEnd`FileName[{"Wolfram"}, "GuidePageStylesExt.nb"]
+]
