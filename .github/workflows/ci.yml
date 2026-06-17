@@ -126,51 +126,51 @@ jobs:
       - name: Build imagen Docker
         run: docker build -t hva:latest .
 
-      - name: Activar Wolfram Engine con clave de activacion
+      - name: Activar Wolfram Engine y extraer mathpass
         run: |
           if [[ -z "${{ secrets.WOLFRAM_ACTIVATION_KEY }}" ]]; then
             echo "::error::El secreto WOLFRAM_ACTIVATION_KEY no está configurado."
             echo "::error::Ve a Settings → Secrets and variables → Actions → New repository secret"
-            echo "::error::Nombre: WOLFRAM_ACTIVATION_KEY"
-            echo "::error::Valor: tu clave de activación (ej: 4459-4407-EW3EJ2)"
+            echo "::error::Nombre: WOLFRAM_ACTIVATION_KEY  Valor: ej. 4459-4407-EW3EJ2"
             exit 1
           fi
 
           mkdir -p /tmp/wolfram-license
 
-          # Activar en contenedor temporal — genera mathpass fresco con fecha válida
-          docker run --rm \
-            -v /tmp/wolfram-license:/home/wolframengine/.WolframEngine/Licensing \
-            --entrypoint wolframscript \
+          # Activar en contenedor nombrado para poder copiar el mathpass resultante
+          docker rm -f wl-activate 2>/dev/null || true
+          docker run --name wl-activate \
             hva:latest \
-            -activate "${{ secrets.WOLFRAM_ACTIVATION_KEY }}" 2>&1 || true
+            wolframscript -activate "${{ secrets.WOLFRAM_ACTIVATION_KEY }}" 2>&1
+          ACTIVATE_EXIT=$?
 
-          # Si la activacion automatica no generó mathpass, construirlo manualmente
-          if [[ ! -s /tmp/wolfram-license/mathpass ]]; then
-            echo "Activacion automatica no generó mathpass. Construyendo mathpass desde clave..."
-            ACTIVATION_KEY="${{ secrets.WOLFRAM_ACTIVATION_KEY }}"
-            MACHINE_ID=$(docker run --rm hva:latest cat /proc/sys/kernel/random/boot_id 2>/dev/null | tr -d '-' | head -c 16 || echo "0000000000000000")
-            echo "%(*userregistered*)" > /tmp/wolfram-license/mathpass
-            echo "${MACHINE_ID}	${ACTIVATION_KEY}	0000-0000-00000	${ACTIVATION_KEY}:2,0,8,8:20260715" >> /tmp/wolfram-license/mathpass
+          if [[ $ACTIVATE_EXIT -ne 0 ]]; then
+            echo "::error::wolframscript -activate falló (exit $ACTIVATE_EXIT)."
+            echo "::error::Verifica que WOLFRAM_ACTIVATION_KEY sea válida en account.wolfram.com."
+            docker rm -f wl-activate || true
+            exit 1
           fi
 
-          echo "✓ mathpass listo ($(wc -c < /tmp/wolfram-license/mathpass) bytes)."
-          echo "Contenido (primeras 2 lineas):"
-          head -2 /tmp/wolfram-license/mathpass
+          # Copiar mathpass fresco al runner
+          docker cp wl-activate:/home/wolframengine/.WolframEngine/Licensing/mathpass \
+            /tmp/wolfram-license/mathpass
+          docker rm -f wl-activate
+
+          echo "✓ mathpass extraído ($(wc -c < /tmp/wolfram-license/mathpass) bytes)."
+          echo "Expiry line: $(grep -v '^%' /tmp/wolfram-license/mathpass | tail -1 | awk '{print $NF}')"
 
       - name: Verificar activacion
         run: |
           RESULT=$(docker run --rm \
             -v /tmp/wolfram-license/mathpass:/home/wolframengine/.WolframEngine/Licensing/mathpass:ro \
             hva:latest \
-            wolfram -noinit -code '$Version' 2>&1 || true)
+            wolframscript -code '"activated:"<>$Version' 2>&1)
           echo "Wolfram response: $RESULT"
-          if echo "$RESULT" | grep -q "not activated\|exit code 255\|license-related"; then
-            echo "::error::Wolfram Engine sigue sin activarse con el mathpass generado."
-            echo "::error::Verifica que WOLFRAM_ACTIVATION_KEY sea una clave válida y no expirada."
+          if echo "$RESULT" | grep -qi "not activated\|license-related\|exit code 255"; then
+            echo "::error::Wolfram Engine no se activó correctamente con el mathpass extraído."
             exit 1
           fi
-          echo "✓ Wolfram Engine activado correctamente."
+          echo "✓ Wolfram Engine activo: $RESULT"
 
       - name: Ejecutar TestRunner (capas ${{ needs.detect-layers.outputs.layers }})
         env:
