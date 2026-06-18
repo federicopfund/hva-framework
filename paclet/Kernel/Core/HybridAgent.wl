@@ -3,12 +3,12 @@
 (* :Author: HVA Contributors *)
 (* :Summary: Estructura simbolica canonica del agente hibrido verificable. *)
 (* :Capa: Core (2) *)
-(* :Depends: HVA`Utilities`Validation` *)
+(* :Depends: HVA`Utilities`Validation`, HVA`Utilities`ErrorHandling` *)
 (* :Formalismo: Def. 2.1 (tupla 𝒜), Def. 2.2 (estado s(t)), Def. 2.7 (B1-B4), Def. 4.3 (hash en certificados) *)
 (* :Spec: 5.1, 5.2, 5.3, 5.4, 4.5 ADR-002, 4.5 ADR-005 *)
 (* :Methodology: METHODOLOGY.md §5 *)
 (* :Assumes: ℱ(q) es Lipschitz-continua en un entorno de cada ν ⊨ ℐ(q) (FORM Def. 2.7 B3, Lema C.2) — verificacion diferida a VER-0001 *)
-(* :Issues: CORE-0002, CORE-0003 *)
+(* :Issues: CORE-0002, CORE-0003, UTIL-0003 *)
 (* :License: MIT *)
 
 (* :Discussion:
@@ -47,7 +47,7 @@
      |>]
 *)
 
-BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`AgentTrace`", "HVA`Core`Contract`", "HVA`Core`MessageAlphabet`", "HVA`Utilities`Validation`"}]
+BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`AgentTrace`", "HVA`Core`Contract`", "HVA`Core`MessageAlphabet`", "HVA`Utilities`Validation`", "HVA`Utilities`ErrorHandling`"}]
 
 (* ============================================================== *)
 (* SIMBOLOS EXPORTADOS                                            *)
@@ -138,6 +138,7 @@ FireGuard::usage =
 Begin["`Private`"]
 
 Needs["HVA`Utilities`Validation`"]
+Needs["HVA`Utilities`ErrorHandling`"]
 
 (* ============================================================== *)
 (* MENSAJES (DEF-5, CORE-0003)                                    *)

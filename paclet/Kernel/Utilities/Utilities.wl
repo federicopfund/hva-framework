@@ -23,8 +23,6 @@ LoadUtilities[] := Module[{},
   Needs["HVA`Utilities`ErrorHandling`"];
 ];
 
-(* TODO: implementar en ISSUE-XXXX *)
-
 End[]
 EndPackage[]
 
