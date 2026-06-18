@@ -81,6 +81,10 @@ RaiseHVAError::invalidData =
   "El argumento data no es una Association: `1`. " <>
   "Proporcione una Association con contexto adicional (puede ser <||>).";
 
+RaiseHVAError::missingKey =
+  "Campo requerido ausente en data: `1`. " <>
+  "Asegurese de incluir ese campo en la Association de data.";
+
 Begin["`Private`"]
 
 (* ============================================================== *)
