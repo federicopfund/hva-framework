@@ -44,6 +44,10 @@ Begin["`Private`"]
 
 Needs["HVA`Utilities`ErrorHandling`"]
 
+(* Registrar tags de dominio de este modulo (Issue #11 UTIL-0003) *)
+RegisterErrorTag["HVA.Runtime.NoMatch",   "error"];
+RegisterErrorTag["HVA.Runtime.Ambiguous", "error"];
+
 (* ============================================================== *)
 (* Helpers internos                                               *)
 (* ============================================================== *)

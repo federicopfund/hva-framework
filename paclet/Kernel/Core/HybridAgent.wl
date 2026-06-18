@@ -13,38 +13,6 @@
 
 (* :Discussion:
    Implementa la entidad nuclear del framework HVA.
-
-   PATRONES DE DISENO APLICADOS:
-     - Smart Constructor (D1, D2, D9): construccion solo via HybridAgent[id, opts]
-       o idempotencia HybridAgent[ya_construido] -> ya_construido. El simbolo
-       esta Protect-ido contra reasignacion.
-     - Bridge sintactico (D1, D3): forma de input usa simbolos wolframonicos,
-       forma canonica almacenada usa keys de string para serializacion.
-     - Null Object (D4): Contract y RewriteRules ausentes se reemplazan por
-       valores neutros que el codigo downstream puede consumir sin chequear.
-     - Result Type (D6, D10): errores devuelven Failure[tag, payload], se
-       autopropagan en pipelines sin warnings encadenados.
-     - Type Predicate (D7): HybridAgentQ usado en guards y condicionales.
-     - Immutable Update (D2): With* y AppendTrace devuelven nuevo HybridAgent.
-     - Schema-Driven Validation (D14): validacion declarativa via motor
-       generico de Utilities/Validation.
-     - Hash Identity separado (D12): igualdad nativa de Wolfram para snapshots,
-       AgentStructuralHash para identidad estructural persistente.
-
-   CICLO DE VIDA:
-     Este modulo implementa solo el estado Created del lifecycle 8.2 de la spec.
-     Los estados Verified, Initialized, Running, Suspended, Terminated son
-     responsabilidad de issues downstream (SERV-0001, RUNT-0001).
-
-   FORMA CANONICA:
-     HybridAgent[<|
-       "id", "modes", "continuousVars", "time",
-       "vectorFields", "transitions", "modeInvariants",
-       "contract", "rewriteRules",
-       "initialMode", "initialValuation",
-       "currentMode", "valuation",
-       "mailbox", "trace"
-     |>]
 *)
 
 BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`AgentTrace`", "HVA`Core`Contract`", "HVA`Core`MessageAlphabet`", "HVA`Utilities`Validation`", "HVA`Utilities`ErrorHandling`"}]
@@ -139,6 +107,12 @@ Begin["`Private`"]
 
 Needs["HVA`Utilities`Validation`"]
 Needs["HVA`Utilities`ErrorHandling`"]
+
+(* Registrar tags de dominio de este modulo (Issue #11 UTIL-0003) *)
+RegisterErrorTag["HVA.Core.ValidationFailed",   "error"];
+RegisterErrorTag["HVA.Core.ArgumentError",       "error"];
+RegisterErrorTag["HVA.Core.GuardNotApplicable",  "error"];
+RegisterErrorTag["HVA.Core.GuardConditionFalse", "error"];
 
 (* ============================================================== *)
 (* MENSAJES (DEF-5, CORE-0003)                                    *)
