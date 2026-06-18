@@ -30,8 +30,8 @@ HybridAgent::usage =
   "  ControlInputVars, ObservableVars, MessageAlphabet,\n" <>
   "  Contract, RewriteRules, TimeSymbol (opcionales).\n" <>
   "HybridAgent[a_HybridAgent] es idempotente: devuelve a sin modificacion.\n" <>
-  "Errores se devuelven como Failure[\"HVAValidationError\", ...] o\n" <>
-  "Failure[\"HVAArgumentError\", ...].\n" <>
+  "Errores se devuelven como RaiseHVAError[\"HVA.Core.ValidationFailed\", ...] o\n" <>
+  "RaiseHVAError[\"HVA.Core.ArgumentError\", ...].\n" <>
   "Implementa la tupla 𝒜 = ⟨id, Q, X, U, Y, ℱ, 𝒢, ℐ, ℳ, ℋ, 𝒞, q₀, ν₀⟩ de FORM Def. 2.1.";
 
 HybridAgentQ::usage =
@@ -100,8 +100,8 @@ FireGuard::usage =
   "     evaluando cada expresion en el contexto de la valuacion actual.\n" <>
   "  4. Devuelve nuevo HybridAgent con currentMode = guard[\"to\"],\n" <>
   "     valuation actualizada y evento de transicion en trace.\n" <>
-  "Retorna Failure[\"GuardNotApplicable\", ...] si from != currentMode.\n" <>
-  "Retorna Failure[\"GuardConditionFalse\", ...] si la condicion no se cumple.";
+  "Retorna RaiseHVAError[\"HVA.Core.GuardNotApplicable\", ...] si from != currentMode.\n" <>
+  "Retorna RaiseHVAError[\"HVA.Core.GuardConditionFalse\", ...] si la condicion no se cumple.";
 
 Begin["`Private`"]
 
