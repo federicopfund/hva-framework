@@ -2,15 +2,27 @@
 
 ## Meta de la sesion
 
-Entender como el kernel almacena conocimiento en simbolos y como inspeccionar/depurar definiciones.
+Entender **como el kernel almacena conocimiento** en simbolos y como inspeccionar/depurar definiciones. Cada simbolo tiene "tablas de valores" (`OwnValues`, `DownValues`, `UpValues`, `SubValues`) que el kernel consulta en un orden fijo al evaluar. Dominar estas tablas te permite construir DSLs simbolicas, depurar colisiones de patrones y auditar definiciones de forma profesional.
+
+## Conceptos clave
+
+- **`OwnValues`**: el valor directo de un simbolo (`x = 5`).
+- **`DownValues`**: reglas para `f[...]` (lo mas comun: `f[x_] := ...`).
+- **`UpValues`**: reglas asociadas a un argumento que reescriben un head externo (`g /: head[g[...]] := ...`).
+- **`SubValues`**: reglas para formas curry/anidadas `f[a][b]`.
+- **Orden de despacho**: el kernel busca primero la regla mas especifica; los `UpValues` permiten extender operadores nativos como `Plus` o `Norm`.
 
 ## Funciones foco
 
-1. `OwnValues`
-2. `DownValues`
-3. `UpValues`
-4. `SubValues`
-5. `Information`
+1. `OwnValues` — valores propios.
+2. `DownValues` — reglas del head.
+3. `UpValues` — reglas asociadas a argumentos.
+4. `SubValues` — reglas de formas anidadas.
+5. `Information` — metadatos del simbolo.
+6. `Attributes` — atributos de evaluacion.
+7. `Definition` — definicion completa.
+8. `ValueQ` — test de si un simbolo tiene valor.
+9. `Names` — busqueda de simbolos por patron.
 
 ## Descripcion e implementacion breve
 
@@ -21,44 +33,37 @@ Entender como el kernel almacena conocimiento en simbolos y como inspeccionar/de
 | `UpValues` | Lista reglas asociadas a argumentos que alteran heads externos. | `UpValues[sym]` |
 | `SubValues` | Inspecciona reglas para formas compuestas o anidadas. | `SubValues[f]` |
 | `Information` | Entrega metadatos y definiciones de simbolos. | `Information[sym]` |
+| `Attributes` | Lista los atributos de evaluacion del simbolo. | `Attributes[sym]` |
+| `Definition` | Muestra la definicion completa (todas las tablas). | `Definition[sym]` |
+| `ValueQ` | Indica si el simbolo tiene un valor asignado. | `ValueQ[sym]` |
+| `Names` | Devuelve nombres de simbolos que calzan un patron. | `Names["patron"]` |
 
-## Modelo de despacho de definiciones
+## Casos de uso
 
-```mermaid
-flowchart TD
-    A[Expresion con simbolos] --> B[Busca OwnValues de simbolos atomicos]
-    B --> C[Busca DownValues del head principal]
-    C --> D[Busca UpValues en argumentos]
-    D --> E[Busca SubValues para formas anidadas]
-    E --> F[Aplica regla mas especifica]
-```
+- **Mini-DSLs**: extender `Plus`, `Times` o `Norm` con `UpValues` para tipos propios (vectores, unidades, intervalos).
+- **Memoizacion auditable**: inspeccionar `DownValues` para ver cuantos casos quedaron cacheados.
+- **Introspeccion de APIs**: `Information` y `Definition` documentan simbolos publicos al cerrar un paquete.
+- **Descubrimiento**: `Names["MiCtx`*"]` lista los simbolos exportados por un contexto del framework HVA.
 
 ## Evaluacion por funcion
 
-### `OwnValues[sym]`
+Entradas y salidas reales validadas en Wolfram Engine 14.3.0.
 
-```mermaid
-flowchart LR
-    A[sym] --> B[Consulta valor inmediato asignado]
-    B --> C["{HoldPattern[sym]:>valor}"]
+```wolfram
+h = 5;
+OwnValues[h]   (* => {HoldPattern[h] :> 5} *)
+ValueQ[h]      (* => True *)
+ValueQ[k]      (* => False *)
 ```
 
-### `DownValues[f]`
-
-```mermaid
-flowchart LR
-    A["f[arg]"] --> B[Kernel revisa reglas de f]
-    B --> C[Seleccion por patron]
-    C --> D[Resultado]
+```wolfram
+g[x_] := x^2;
+Head[Definition[g]]   (* => Definition *)
+Attributes[g]         (* => {}   (definido con := no agrega atributos) *)
 ```
 
-### `UpValues`
-
-```mermaid
-flowchart LR
-    A["g[obj]"] --> B[Kernel revisa reglas asociadas a obj]
-    B --> C["Si hay UpValue, puede reescribir g[obj]"]
-    C --> D[Resultado extendido]
+```wolfram
+Take[Names["System`Sin*"], 3]   (* => {"Sin", "Sinc", "SinDegrees"} *)
 ```
 
 ## Prueba de concepto: combinar funciones para crear funciones
@@ -67,41 +72,27 @@ Los tres algoritmos manipulan las tablas de definiciones del kernel. Salidas val
 
 ### Algoritmo simple · contador de reglas
 
-Combina `SetDelayed` + `DownValues`.
+Combina `SetDelayed` + `DownValues` + `Length`. Tras memoizar `fib`, cada caso calculado queda como una regla; contarlas revela cuanto se cacheo.
 
 ```wolfram
 fib[0] = 0; fib[1] = 1;
 fib[n_] := fib[n] = fib[n - 1] + fib[n - 2];
 fib[10];
-Length[DownValues[fib]]   (* => 12  (incluye casos memoizados) *)
-```
-
-```mermaid
-flowchart LR
-    A["Definiciones de fib"] --> B["DownValues lista las reglas"]
-    B --> C["Length cuenta entradas"]
-    C --> D["12"]
+Length[DownValues[fib]]   (* => 12   (incluye casos memoizados) *)
 ```
 
 ### Algoritmo intermedio · propiedad asociada con UpValues
 
-Combina `TagSetDelayed` (`/:`) + `UpValues`.
+Combina `TagSetDelayed` (`/:`) + `UpValues`. La regla se asocia al simbolo `masa`, de modo que el kernel sabe reescribir `peso[masa[...]]` aunque `peso` no este definido directamente.
 
 ```wolfram
 masa /: peso[masa[m_]] := m * 9.8
 peso[masa[10]]   (* => 98. *)
 ```
 
-```mermaid
-flowchart TD
-    A["peso[masa[10]]"] --> B["Kernel busca UpValues en masa"]
-    B --> C["Regla peso[masa[m]] -> m*9.8"]
-    C --> D["98."]
-```
-
 ### Algoritmo complejo · mini-DSL vectorial
 
-Combina `UpValues` sobre `Plus` y `Norm` para extender operadores nativos.
+Combina `UpValues` sobre `Plus` y `Norm` para extender operadores nativos. Las reglas etiquetadas en `vec` ensenan al kernel a sumar componentes y calcular magnitud sin tocar las definiciones internas de `Plus` o `Norm`.
 
 ```wolfram
 vec /: vec[a__] + vec[b__] := vec @@ ({a} + {b})
@@ -111,23 +102,18 @@ vec[1, 2] + vec[3, 4]   (* => vec[4, 6] *)
 Norm[vec[3, 4]]         (* => 5 *)
 ```
 
-```mermaid
-flowchart TD
-    A["Expresion con vec[...]"] --> B{"Operador aplicado"}
-    B -- "+" --> C["UpValue suma componentes"]
-    B -- "Norm" --> D["UpValue calcula magnitud"]
-    C --> E["vec[4,6]"]
-    D --> F["5"]
-```
-
 ## Ejercicios guiados
 
-1. Define una mini-DSL con `UpValues`.
-2. Inspecciona `DownValues` y orden de reglas.
+1. Define una mini-DSL con `UpValues` para intervalos `[a,b]`.
+2. Inspecciona `DownValues` y el orden de reglas de una funcion con varios patrones.
 3. Usa `Information` para auditar simbolos publicos.
+4. Comprueba con `ValueQ` si un simbolo fue definido antes de usarlo.
+5. Lista con `Names["System`Plot*"]` las variantes de `Plot` disponibles.
 
 ## Checklist de dominio
 
 1. Entiendes por que una llamada eligio cierta definicion.
 2. Puedes depurar colisiones de patrones.
-3. Puedes diseñar extensiones simbolicas de forma segura.
+3. Puedes disenar extensiones simbolicas de forma segura.
+4. Distingues `OwnValues`, `DownValues`, `UpValues` y `SubValues`.
+5. Auditas simbolos con `Definition`, `Information` y `Names`.

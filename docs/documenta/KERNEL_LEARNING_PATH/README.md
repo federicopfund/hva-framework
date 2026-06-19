@@ -16,7 +16,19 @@ Este programa cubre 10 sesiones de estudio (principiante a avanzado) con foco en
 2. Entorno local con acceso a `wolfram -noinit`.
 3. Base de algebra, funciones y listas.
 
-## Estructura de sesiones
+## Estructura de cada sesion
+
+Cada sesion sigue el mismo formato profesional, sin diagramas, centrado en codigo evaluado:
+
+1. **Meta y conceptos clave**: marco teorico breve.
+2. **Funciones foco**: lista ampliada de funciones del kernel.
+3. **Descripcion e implementacion breve**: tabla funcion / descripcion / sintaxis.
+4. **Casos de uso**: aplicaciones practicas (varias ligadas al framework HVA).
+5. **Evaluacion por funcion**: entradas y salidas reales validadas en el kernel.
+6. **Prueba de concepto**: 3 algoritmos (simple / intermedio / complejo) que componen las funciones foco.
+7. **Ejercicios guiados** y **checklist de dominio**.
+
+## Indice de sesiones
 
 1. [Sesion 01 - Modelo de expresiones y evaluacion basica](./S01_Evaluacion_Basica.md)
 2. [Sesion 02 - Listas, funciones puras y flujo funcional](./S02_Programacion_Funcional.md)
@@ -31,11 +43,11 @@ Este programa cubre 10 sesiones de estudio (principiante a avanzado) con foco en
 
 ## Metodo recomendado por sesion
 
-1. Leer teoria y diagramas Mermaid.
-2. Ejecutar los ejemplos de cada funcion clave.
-3. Resolver ejercicios propuestos.
-4. Correr checklist de validacion.
-5. Registrar dudas y hallazgos tecnicos.
+1. Leer la teoria, conceptos clave y casos de uso.
+2. Ejecutar los ejemplos de la seccion "Evaluacion por funcion".
+3. Reproducir los 3 algoritmos de la prueba de concepto.
+4. Resolver los ejercicios propuestos.
+5. Correr el checklist de validacion y registrar hallazgos.
 
 ## Criterio de salida del learning path
 

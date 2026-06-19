@@ -2,14 +2,25 @@
 
 ## Meta de la sesion
 
-Modelar y resolver dinamica continua, distinguiendo solucion simbolica exacta, numerica aproximada y eventos hibridos.
+Modelar y resolver **dinamica continua**, distinguiendo solucion simbolica exacta, numerica aproximada y eventos hibridos. Esta sesion es clave para sistemas ciberfisicos: la planta fisica evoluciona de forma continua (`NDSolve`) mientras un controlador discreto cambia de modo (`WhenEvent`). Saber combinar ambos es la base de la simulacion hibrida del framework HVA.
+
+## Conceptos clave
+
+- **Exacto vs numerico**: `DSolve` da una formula cerrada; `NDSolve` da una `InterpolatingFunction` aproximada cuando no hay forma cerrada.
+- **Eventos**: `WhenEvent[cond, accion]` detecta cruces de umbral y aplica saltos discretos (encender/apagar, rebotar).
+- **Variables discretas**: `DiscreteVariables` modela el estado del controlador junto a la dinamica continua.
+- **Reutilizacion**: `ParametricNDSolveValue` compila una solucion parametrizada para barridos eficientes.
 
 ## Funciones foco
 
-1. `DSolve`
-2. `NDSolve`
-3. `WhenEvent`
-4. `ParametricNDSolveValue`
+1. `DSolve` — solucion simbolica exacta.
+2. `NDSolve` — solucion numerica.
+3. `WhenEvent` — eventos en la integracion.
+4. `ParametricNDSolveValue` — solucion parametrica reusable.
+5. `DSolveValue` / `NDSolveValue` — devuelven el valor directo, sin reglas.
+6. `D` — derivadas (construir las ecuaciones).
+7. `Integrate` — integral definida.
+8. `Interpolation` — funcion interpolante desde datos.
 
 ## Descripcion e implementacion breve
 
@@ -18,51 +29,39 @@ Modelar y resolver dinamica continua, distinguiendo solucion simbolica exacta, n
 | `DSolve` | Resuelve ecuaciones diferenciales en forma simbolica. | `DSolve[sistema, y[x], x]` |
 | `NDSolve` | Resuelve numericamente sistemas diferenciales. | `NDSolve[sistema, vars, {t,t0,tf}]` |
 | `WhenEvent` | Dispara acciones cuando se cumple una condicion dinamica. | `WhenEvent[condicion, accion]` |
-| `ParametricNDSolveValue` | Genera solucion numerica parametrica reusable. | `ParametricNDSolveValue[..., parametros]` |
+| `ParametricNDSolveValue` | Genera solucion numerica parametrica reusable. | `ParametricNDSolveValue[..., params]` |
+| `DSolveValue` | Devuelve la expresion solucion directamente. | `DSolveValue[sistema, y[x], x]` |
+| `NDSolveValue` | Devuelve la `InterpolatingFunction` directamente. | `NDSolveValue[sistema, y, {t,t0,tf}]` |
+| `D` | Deriva expresiones para armar las EDO. | `D[expr, x]` |
+| `Integrate` | Integra de forma exacta. | `Integrate[expr, {x, a, b}]` |
+| `Interpolation` | Construye una funcion interpolante desde puntos. | `Interpolation[datos]` |
 
-## Flujo de resolucion dinamica
+## Casos de uso
 
-```mermaid
-flowchart TD
-    A[Modelo diferencial + CI/CF] --> B{Existe forma cerrada?}
-    B -- si --> C[DSolve]
-    B -- no --> D[NDSolve]
-    D --> E[Integracion numerica adaptativa]
-    E --> F{WhenEvent?}
-    F -- si --> G[Aplica salto/cambio de modo]
-    F -- no --> H[Trayectoria continua]
-    C --> I[Solucion simbolica]
-    G --> J[Traza hibrida]
-    H --> J
-```
+- **Termostato / control on-off**: `NDSolve` + `WhenEvent` simulan la planta termica conmutada por un controlador discreto.
+- **Decaimiento y crecimiento**: `DSolve` da la forma exacta `y0 e^(-k t)` para modelos de primer orden.
+- **Barridos de parametros**: `ParametricNDSolveValue` evita recompilar al variar una constante fisica (ganancia, masa).
+- **Reconstruccion de senales**: `Interpolation` convierte muestras discretas en una funcion continua evaluable.
 
 ## Evaluacion por funcion
 
-### `DSolve[{y'[x]==y[x], y[0]==1}, y[x], x]`
+Entradas y salidas reales validadas en Wolfram Engine 14.3.0.
 
-```mermaid
-flowchart LR
-    A[EDO lineal] --> B[Metodo analitico]
-    B --> C["y[x] -> E^x"]
+```wolfram
+DSolve[{y'[x] == y[x], y[0] == 1}, y[x], x]   (* => {{y[x] -> E^x}} *)
+DSolveValue[{y'[x] == y[x], y[0] == 1}, y[x], x] (* => E^x *)
 ```
 
-### `NDSolve` con evento
-
-```mermaid
-flowchart LR
-    A[Sistema + dominio temporal] --> B[Integrador numerico]
-    B --> C[Detecta evento]
-    C --> D[Actualiza estado]
-    D --> E[Continua integracion]
+```wolfram
+nv = NDSolveValue[{y'[t] == -2 y[t], y[0] == 1}, y, {t, 0, 5}];
+nv[1]   (* => 0.135335   (≈ E^-2) *)
 ```
 
-### `ParametricNDSolveValue`
-
-```mermaid
-flowchart LR
-    A[Modelo parametrico] --> B[Compila solucion reusable]
-    B --> C[Evalua por parametro]
-    C --> D[Funcion lista para barridos]
+```wolfram
+D[x^2 y^3, x]           (* => 2 x y^3   (derivada parcial) *)
+Integrate[x^2, {x, 0, 3}] (* => 9 *)
+ifn = Interpolation[{{0, 0}, {1, 1}, {2, 4}, {3, 9}}];
+ifn[1.5]                (* => 2.25 *)
 ```
 
 ## Prueba de concepto: combinar funciones para crear funciones
@@ -71,24 +70,16 @@ Los tres algoritmos modelan dinamica continua e hibrida. Salidas validadas en Wo
 
 ### Algoritmo simple · decaimiento exponencial exacto
 
-Combina `DSolve` + `ReplaceAll`.
+Combina `DSolve` + `ReplaceAll`. Se resuelve la EDO de primer orden y se extrae la formula cerrada de la solucion.
 
 ```wolfram
 decae[k_, y0_] := y[t] /. First[DSolve[{y'[t] == -k y[t], y[0] == y0}, y[t], t]]
 decae[2, 5]   (* => 5 E^(-2 t) *)
 ```
 
-```mermaid
-flowchart LR
-    A["k, y0"] --> B["DSolve resuelve la EDO"]
-    B --> C["Regla y[t] -> 5 E^(-2t)"]
-    C --> D["ReplaceAll extrae solucion"]
-    D --> E["5 E^(-2 t)"]
-```
-
 ### Algoritmo intermedio · solucion numerica reusable
 
-Combina `ParametricNDSolveValue` para barrer parametros.
+Combina `ParametricNDSolveValue` para barrer parametros. Se compila una vez una solucion en funcion de `k` y luego se evalua para distintos valores sin recalcular el modelo.
 
 ```wolfram
 modelo = ParametricNDSolveValue[
@@ -96,17 +87,9 @@ modelo = ParametricNDSolveValue[
 modelo[0.5][3]   (* evalua la trayectoria para k=0.5 en t=3 *)
 ```
 
-```mermaid
-flowchart TD
-    A["Modelo con parametro k"] --> B["ParametricNDSolveValue compila solucion"]
-    B --> C["Funcion reusable modelo[k]"]
-    C --> D["Evalua modelo[0.5] en t=3"]
-    D --> E["Valor numerico"]
-```
-
 ### Algoritmo complejo · termostato hibrido
 
-Combina `NDSolve` + `WhenEvent` + `DiscreteVariables` (modo discreto + dinamica continua).
+Combina `NDSolve` + `WhenEvent` + `DiscreteVariables`. La temperatura `T[t]` evoluciona de forma continua mientras el estado discreto `q[t]` conmuta entre encendido/apagado al cruzar umbrales: una simulacion hibrida completa.
 
 ```wolfram
 sol = NDSolve[{
@@ -115,29 +98,21 @@ sol = NDSolve[{
     WhenEvent[T[t] <= 18, q[t] -> 1],   (* enciende *)
     WhenEvent[T[t] >= 24, q[t] -> 0]    (* apaga *)
   }, {T, q}, {t, 0, 40}, DiscreteVariables -> q];
-T[20] /. First[sol]   (* ~18.39 *)
-```
-
-```mermaid
-flowchart TD
-    A["Estado inicial T=22, q=0"] --> B["NDSolve integra T'(t)"]
-    B --> C{"WhenEvent disparado?"}
-    C -- "T<=18" --> D["q -> 1 (enciende)"]
-    C -- "T>=24" --> E["q -> 0 (apaga)"]
-    C -- no --> F["Continua integracion"]
-    D --> F
-    E --> F
-    F --> G["Traza hibrida T(t), q(t)"]
+T[20] /. First[sol]   (* => ~18.39 *)
 ```
 
 ## Ejercicios guiados
 
-1. Resuelve una EDO por `DSolve` y valida derivando el resultado.
-2. Repite con `NDSolve` y compara error en una grilla.
-3. Agrega `WhenEvent` para cambiar dinamica por umbral.
+1. Resuelve una EDO por `DSolve` y valida derivando el resultado con `D`.
+2. Repite con `NDSolve` y compara el error en una grilla de tiempos.
+3. Agrega `WhenEvent` para cambiar la dinamica por umbral.
+4. Reconstruye una funcion desde 4 puntos con `Interpolation` y evaluala.
+5. Usa `ParametricNDSolveValue` para barrer `k ∈ {0.2, 0.5, 1.0}`.
 
 ## Checklist de dominio
 
 1. Distingues exactitud simbolica vs aproximacion numerica.
-2. Sabes construir simulacion hibrida con eventos.
+2. Sabes construir una simulacion hibrida con eventos.
 3. Sabes interpretar estabilidad numerica basica.
+4. Usas `ParametricNDSolveValue` para barridos eficientes.
+5. Conviertes datos discretos en funciones continuas con `Interpolation`.
