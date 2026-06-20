@@ -11,6 +11,9 @@
 (* :Issues: CORE-0003 *)
 (* :License: MIT *)
 
+(* Guard: remove stale Global` shadow that would trigger General::shdw on load. *)
+If[NameQ["Global`MessageAlphabet"], Unprotect["Global`MessageAlphabet"]; Remove["Global`MessageAlphabet"]];
+
 BeginPackage["HVA`Core`MessageAlphabet`", {"HVA`Utilities`Validation`"}]
 
 MessageAlphabet::usage =
@@ -53,11 +56,6 @@ MessageHead::usage =
 MessagePayload::usage =
   "MessagePayload[m] devuelve la lista de argumentos del termino mensaje m. \
     Corresponde a los argumentos del termino en 𝒯(Σ,V) de FORM §1.1.";
-
-AgentMessageAlphabet::usage =
-  "AgentMessageAlphabet[agent] devuelve el MessageAlphabet declarado en \
-    el campo \"messageAlphabet\" del agente. \
-    Implementa el accessor del componente ℳ de FORM Def. 2.1.";
 
 MessageAlphabetQ::usage =
   "MessageAlphabetQ[expr] devuelve True si expr es un MessageAlphabet \
@@ -137,17 +135,6 @@ MessageHead[m_] := Head[m]
 MessagePayload[m_] := List @@ m
 
 (* ============================================================== *)
-(* ACCESSOR                                                       *)
-(* ============================================================== *)
-
-(* AgentMessageAlphabet accede al campo "messageAlphabet" de la
-   Association interna del HybridAgent. La existencia del campo
-   se garantiza por el schema de HybridAgent.wl (CORE-0002). *)
-
-AgentMessageAlphabet[agent_] :=
-  agent["messageAlphabet"]
-
-(* ============================================================== *)
 (* PROTECCION                                                     *)
 (* ============================================================== *)
 
@@ -156,8 +143,8 @@ Protect[
   MessageTermQ, MessagePatternQ, MessageMatchQ,
   MessageHead, MessagePayload
 ];
-(* AgentMessageAlphabet is protected by HybridAgent.wl after
-   defineAccessor adds its downvalue (HybridAgent.wl Protect block). *)
+(* AgentMessageAlphabet is owned and protected by HVA`Core`HybridAgent`.
+   MessageAlphabet.wl owns only the MessageAlphabet type and its operations. *)
 
 End[]
 EndPackage[]
