@@ -91,6 +91,15 @@ MessageAlphabetQ[MessageAlphabet[_List, $valid]] := True
 MessageAlphabetQ[_] := False
 
 (* ============================================================== *)
+(* FORMATO DE SALIDA                                              *)
+(* ============================================================== *)
+
+(* Oculta el marcador interno $valid en el output del kernel.
+   Sin esta regla el REPL mostraria MessageAlphabet[patterns, $valid]. *)
+Format[MessageAlphabet[patterns_List, $valid]] :=
+  HoldForm[MessageAlphabet[patterns]]
+
+(* ============================================================== *)
 (* MEMBERSHIP: m ∈ ℳ (FORM Def. 2.1)                             *)
 (* ============================================================== *)
 
