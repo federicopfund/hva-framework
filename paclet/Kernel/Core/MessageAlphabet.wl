@@ -34,8 +34,25 @@ MessageTermQ::usage =
 MessagePatternQ::usage =
   "MessagePatternQ[m, pattern] devuelve True si el mensaje m unifica con \
     el patron pattern (con guarda opcional via Condition). \
+    Alias de MessageMatchQ por compatibilidad hacia atras. \
     Implementa la unificacion de FORM Def. 2.5 y FORM Def. B.9: \
     existe sustitucion σ tal que σ(pattern) = m.";
+
+MessageMatchQ::usage =
+  "MessageMatchQ[m, pattern] devuelve True si el mensaje m unifica con \
+    el patron pattern (con guarda opcional via Condition). \
+    Nombre canonico segun SPEC §4.4.2. \
+    Implementa la unificacion de FORM Def. 2.5 y FORM Def. B.9: \
+    existe sustitucion σ tal que σ(pattern) = m.";
+
+MessageHead::usage =
+  "MessageHead[m] devuelve el head del termino mensaje m. \
+    El head identifica el tipo de mensaje en el alfabeto Σ. \
+    Implementa head(m) del termino en 𝒯(Σ,V) de FORM §1.1.";
+
+MessagePayload::usage =
+  "MessagePayload[m] devuelve la lista de argumentos del termino mensaje m. \
+    Corresponde a los argumentos del termino en 𝒯(Σ,V) de FORM §1.1.";
 
 AgentMessageAlphabet::usage =
   "AgentMessageAlphabet[agent] devuelve el MessageAlphabet declarado en \
@@ -104,6 +121,21 @@ SetAttributes[MessagePatternQ, HoldRest]
 
 MessagePatternQ[m_, pattern_] := MatchQ[m, pattern]
 
+(* MessageMatchQ: nombre canonico SPEC §4.4.2, alias de MessagePatternQ *)
+SetAttributes[MessageMatchQ, HoldRest]
+
+MessageMatchQ[m_, pattern_] := MatchQ[m, pattern]
+
+(* ============================================================== *)
+(* INSPECTORES DE ESTRUCTURA — FORM §1.1                          *)
+(* ============================================================== *)
+
+(* MessageHead: head del termino, identifica el tipo de mensaje en Σ *)
+MessageHead[m_] := Head[m]
+
+(* MessagePayload: argumentos del termino (todos excepto el head) *)
+MessagePayload[m_] := List @@ m
+
 (* ============================================================== *)
 (* ACCESSOR                                                       *)
 (* ============================================================== *)
@@ -115,7 +147,17 @@ MessagePatternQ[m_, pattern_] := MatchQ[m, pattern]
 AgentMessageAlphabet[agent_] :=
   agent["messageAlphabet"]
 
+(* ============================================================== *)
+(* PROTECCION                                                     *)
+(* ============================================================== *)
 
+Protect[
+  MessageAlphabet, MessageAlphabetQ,
+  MessageTermQ, MessagePatternQ, MessageMatchQ,
+  MessageHead, MessagePayload
+];
+(* AgentMessageAlphabet is protected by HybridAgent.wl after
+   defineAccessor adds its downvalue (HybridAgent.wl Protect block). *)
 
 End[]
 EndPackage[]

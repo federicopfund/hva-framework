@@ -127,3 +127,54 @@ VerificationTest[
   False,
   TestID -> "Core-MessageAlphabet-08-termQ-alfabeto-invalido"
 ]
+
+(* ── Tests para MessageMatchQ (nombre canonico SPEC §4.4.2) ─────────────── *)
+
+(* T09: MessageMatchQ acepta mensaje que unifica con patron — mismo comportamiento
+   que MessagePatternQ. Caso microgrid: PowerRequest con potencia positiva. *)
+
+VerificationTest[
+  MessageMatchQ[
+    PowerRequest["battery", 30, Global`t],
+    PowerRequest[_, p_?NumericQ, _] /; p > 0
+  ],
+  True,
+  TestID -> "Core-MessageAlphabet-09-matchQ-acepta-Def-2.5"
+]
+
+(* T10: MessageMatchQ rechaza cuando la guarda falla. *)
+
+VerificationTest[
+  MessageMatchQ[
+    PowerRequest["battery", -5, Global`t],
+    PowerRequest[_, p_?NumericQ, _] /; p > 0
+  ],
+  False,
+  TestID -> "Core-MessageAlphabet-10-matchQ-rechaza-guarda-Def-2.5"
+]
+
+(* ── Tests para MessageHead y MessagePayload (FORM §1.1) ────────────────── *)
+
+(* T11: MessageHead extrae el head del mensaje — identifica el tipo en Σ. *)
+
+VerificationTest[
+  MessageHead[PowerRequest["battery", 30, Global`t]],
+  PowerRequest,
+  TestID -> "Core-MessageAlphabet-11-head-tipo-Def-1.1"
+]
+
+(* T12: MessagePayload extrae los argumentos del mensaje. *)
+
+VerificationTest[
+  MessagePayload[PowerRequest["battery", 30, Global`t]],
+  {"battery", 30, Global`t},
+  TestID -> "Core-MessageAlphabet-12-payload-args-Def-1.1"
+]
+
+(* T13: MessagePayload en mensaje sin argumentos devuelve lista vacia. *)
+
+VerificationTest[
+  MessagePayload[Ping[]],
+  {},
+  TestID -> "Core-MessageAlphabet-13-payload-vacio-Def-1.1"
+]

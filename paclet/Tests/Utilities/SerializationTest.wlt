@@ -119,7 +119,11 @@ VerificationTest[
     {
       HybridAgent[<||>],
       Contract[<||>],
-      CausalModel[<||>],
+      (* CausalModel ahora tiene smart constructor — se requieren campos minimos *)
+      CausalModel[<|
+        "exogenousVars" -> {}, "endogenousVars" -> {},
+        "structuralEquations" -> {}, "exogenousPrior" -> <||>
+      |>],
       AgentTrace[<||>],
       VerificationCertificate[<|HVA`Services`Verifier`Certificate`CertFragment -> "inductive"|>]
     },
