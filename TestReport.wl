@@ -60,7 +60,7 @@ $suites = {
   }},
   {"DSL",         {"DSL/DSLTest.wlt"}},
   {"Integration", {"Integration/ThermostatEndToEndTest.wlt"}},
-  {"Utilities",   {"Utilities/ValidationTest.wlt", "Utilities/SerializationTest.wlt", "Utilities/LoggingTest.wlt"}}
+  {"Utilities",   {"Utilities/ValidationTest.wlt", "Utilities/SerializationTest.wlt", "Utilities/LoggingTest.wlt", "Utilities/ErrorHandlingTest.wlt"}}
 };
 
 (* Filtrar capas si se especifico --layer *)
