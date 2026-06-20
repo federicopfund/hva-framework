@@ -257,7 +257,15 @@ $executeWorkflow[workflowLabel_String, targets_List] :=
     Scan[Function[ctx,
       If[MemberQ[$Packages, ctx],
         AppendTo[alreadyLoaded, ctx],
-        outcome = Check[Needs[ctx]; "ok", $Failed];
+        (* Las advertencias de shadowing (General::shdw) son benignas: el modulo
+           se carga correctamente aunque exista un simbolo homonimo en Global`
+           (p. ej. el usuario referencio el simbolo antes de Needs["HVA`"]).
+           El unico criterio de fallo es que Needs devuelva $Failed o que se
+           emita un mensaje distinto de shadowing. *)
+        outcome = Check[
+          If[Quiet[Needs[ctx], {General::shdw}] === $Failed, $Failed, "ok"],
+          $Failed
+        ];
         If[outcome === $Failed,
           Message[HVA::moduleLoadError, ctx, "Needs devolvio $Failed"];
           AppendTo[failed, ctx],
