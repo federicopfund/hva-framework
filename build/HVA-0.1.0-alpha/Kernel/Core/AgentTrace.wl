@@ -178,6 +178,15 @@ TraceMonotonicQ[source_] :=
   ];
 
 (* ============================================================== *)
+(* FORMATO DE SALIDA — oculta el marcador interno $valid          *)
+(* ============================================================== *)
+
+(* Sin esta regla, el output muestra HVA`Core`AgentTrace`Private`$valid
+   en cada evento, contaminando la representacion del usuario. *)
+Format[TraceEvent[t_, type_, data_, $valid]] :=
+  HoldForm[TraceEvent[t, type, data]]
+
+(* ============================================================== *)
 (* PROTECCION                                                     *)
 (* ============================================================== *)
 (* AgentTrace NO se protege aqui: HybridAgent.wl agrega un downvalue
