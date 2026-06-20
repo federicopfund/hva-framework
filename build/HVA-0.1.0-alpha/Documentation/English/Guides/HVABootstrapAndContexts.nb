@@ -1,0 +1,61 @@
+Notebook[{
+Cell["HVABootstrapAndContexts", "GuideTitle"],
+Cell["Guia detallada para bootstrap del paclet, diagnostico de contextos y validacion de carga transversal.", "GuideAbstract"],
+Cell[CellGroupData[{
+Cell["Categorization", "CategorizationSection"],
+Cell["Guide", "Categorization", CellLabel -> "Entity Type"],
+Cell["HVA", "Categorization", CellLabel -> "Paclet Name"],
+Cell["HVA/guide/HVABootstrapAndContexts", "Categorization", CellLabel -> "URI"],
+Cell["HVA`", "Categorization", CellLabel -> "Context"]
+}, Closed]],
+Cell[TextData[{
+ "Esta guia concentra las practicas de carga inicial para asegurar que el bootstrap de ",
+ Cell[BoxData["\"HVA`\""], "InlineCode"],
+ " queda consistente antes de ejecutar notebooks de modelado o verificacion."
+}], "GuideText"],
+Cell[CellGroupData[{
+Cell["Carga base", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Needs", "[", "\"HVA`\"", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"bootstrapStatus", "=", RowBox[{"<|", RowBox[{
+ RowBox[{"\"cwd\"", "->", "Directory[]"}], ",",
+ RowBox[{"\"hasHVAInContextPath\"", "->", RowBox[{"MemberQ", "[", RowBox[{"$ContextPath", ",", "\"HVA`\""}], "]"}]}], ",",
+ RowBox[{"\"hvaContextPathCount\"", "->", RowBox[{"Length", "[", RowBox[{"Select", "[", RowBox[{"$ContextPath", ",", RowBox[{"StringStartsQ", "[", RowBox[{"#", ",", "\"HVA`\""}], "]"}], "&"}], "]"}], "]"}]}]
+}], "|>"}]}]], "Input"],
+Cell[BoxData["bootstrapStatus"], "Input"],
+Cell["Este bloque debe ejecutarse primero en cualquier notebook tecnico del proyecto.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Diagnostico por patrones", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"patterns", "=", RowBox[{"{", RowBox[{"\"HVA`Utilities`*\"", ",", "\"HVA`Core`*\"", ",", "\"HVA`Runtime`*\"", ",", "\"HVA`Services`*\"", ",", "\"HVA`Adapters`*\"", ",", "\"HVA`DSL`*\""}], "}"}]}]], "Input"],
+Cell[BoxData[RowBox[{"patternStats", "=", RowBox[{"AssociationMap", "[", RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "#", "]"}], "]"}], "&", ",", "patterns"}], "]"}]}]], "Input"],
+Cell[BoxData["patternStats"], "Input"],
+Cell["Los recuentos son utiles para detectar regresiones de exportacion en ramas en desarrollo.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Predicados de salud", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"health", "=", RowBox[{"<|", RowBox[{
+ RowBox[{"\"corePresent\"", "->", RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "\"HVA`Core`*\"", "]"}], "]"}], ">", "0"}]}], ",",
+ RowBox[{"\"runtimePresent\"", "->", RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "\"HVA`Runtime`*\"", "]"}], "]"}], ">", "0"}]}], ",",
+ RowBox[{"\"servicesPresent\"", "->", RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "\"HVA`Services`*\"", "]"}], "]"}], ">", "0"}]}]
+}], "|>"}]}]], "Input"],
+Cell[BoxData[RowBox[{"<|", RowBox[{
+ RowBox[{"\"health\"", "->", "health"}], ",",
+ RowBox[{"\"allCriticalPresent\"", "->", RowBox[{"And", "@@", RowBox[{"Values", "[", "health", "]"}]}]}]
+}], "|>"}]], "Input"],
+Cell["Cuando allCriticalPresent es False, revisar orden de carga o exportaciones del paclet antes de seguir.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Uso en CI de documentacion", "GuideFunctionsSection"],
+Cell["1) Ejecutar este notebook en modo headless.", "GuideText"],
+Cell["2) Fijar umbrales minimos para patternStats en dominios criticos.", "GuideText"],
+Cell["3) Fallar pipeline si allCriticalPresent no es True.", "GuideText"]
+}, Open]]
+},
+TaggingRules -> <|
+  "Paclet" -> "HVA",
+  "Context" -> "HVA`",
+  "URI" -> "HVA/guide/HVABootstrapAndContexts",
+  "GuideType" -> "Guide"
+|>,
+StyleDefinitions -> FrontEnd`FileName[{"Wolfram"}, "GuidePageStylesExt.nb"]
+]

@@ -1,0 +1,76 @@
+Notebook[{
+Cell["InitLoadDefination", "GuideTitle"],
+Cell["Carga inicial del paclet HVA, definicion base de un agente y especificacion formal del proyecto.", "GuideAbstract"],
+Cell[CellGroupData[{
+Cell["Categorization", "CategorizationSection"],
+Cell["Guide", "Categorization", CellLabel -> "Entity Type"],
+Cell["HVA", "Categorization", CellLabel -> "Paclet Name"],
+Cell["HVA/guide/InitLoadDefination", "Categorization", CellLabel -> "URI"],
+Cell["HVA`", "Categorization", CellLabel -> "Context"]
+}, Closed]],
+Cell[TextData[{
+ "Esta guia define una secuencia minima para cargar el contexto principal ",
+ Cell[BoxData["\"HVA`\""], "InlineCode"],
+ ", instanciar un agente hibrido verificable y documentar su correspondencia con la formalizacion ",
+ Cell[BoxData[FormBox[RowBox[{"\\[ScriptCapitalA]", "=", RowBox[{"\\[LeftAngleBracket]", RowBox[{"id", ",", "Q", ",", "X", ",", "U", ",", "Y", ",", "\\[ScriptCapitalF]", ",", "\\[ScriptCapitalG]", ",", "\\[ScriptCapitalI]", ",", "\\[ScriptCapitalM]", ",", "\\[ScriptCapitalH]", ",", "\\[ScriptCapitalC]", ",", SubscriptBox["q", "0"], ",", SubscriptBox["\\[Nu]", "0"]}], "\\[RightAngleBracket]"}]}], TraditionalForm]], "InlineMath"],
+ "."
+}], "GuideText"],
+Cell[CellGroupData[{
+Cell["Contexto y carga", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Needs", "[", "\"HVA`\"", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"$ContextPath", "//", "Short"}]], "Input"],
+Cell["El contexto principal del paclet es HVA` y expone los simbolos de capas cargadas por el bootstrap oficial.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Definicion minima de un agente", "GuideFunctionsSection"],
+Cell[BoxData[
+ RowBox[{"agent", "=", 
+  RowBox[{"HybridAgent", "[", 
+   RowBox[{"\"ThermostatAgent\"", ",", 
+    RowBox[{"Modes", "->", RowBox[{"{", RowBox[{"\"Idle\"", ",", "\"Heating\""}], "}"}]}], ",", 
+    RowBox[{"ContinuousVars", "->", RowBox[{"{", "temp", "}"}]}], ",", 
+    RowBox[{"ControlInputVars", "->", RowBox[{"{", "u", "}"}]}], ",", 
+    RowBox[{"ObservableVars", "->", RowBox[{"{", "temp", "}"}]}], ",", 
+    RowBox[{"VectorFields", "->", 
+     RowBox[{"<|", 
+      RowBox[{"\"Idle\"", "->", 
+        RowBox[{"{", RowBox[{RowBox[{RowBox[{"temp", "'"}], "[", "t", "]"}], "==", RowBox[{RowBox[{"-0.1", "*", RowBox[{"(", RowBox[{RowBox[{"temp", "[", "t", "]"}], "-", "20"}], ")"}]}], "+", RowBox[{"u", "[", "t", "]"}]}]}], "}"}], ",", 
+       "\"Heating\"", "->", 
+        RowBox[{"{", RowBox[{RowBox[{RowBox[{"temp", "'"}], "[", "t", "]"}], "==", RowBox[{RowBox[{"-0.1", "*", RowBox[{"(", RowBox[{RowBox[{"temp", "[", "t", "]"}], "-", "20"}], ")"}]}], "+", "1", "+", RowBox[{"u", "[", "t", "]"}]}]}], "}"}]}], "|>"}]}], ",", 
+    RowBox[{"Transitions", "->", 
+     RowBox[{"{", 
+      RowBox[{RowBox[{"<|", RowBox[{"\"from\"", "->", "\"Idle\"", ",", "\"to\"", "->", "\"Heating\"", ",", "\"condition\"", "->", RowBox[{RowBox[{"temp", "[", "t", "]"}], "<", "19"}], ",", "\"action\"", "->", "<||>"}], "|>"}], ",", 
+       RowBox[{"<|", RowBox[{"\"from\"", "->", "\"Heating\"", ",", "\"to\"", "->", "\"Idle\"", ",", "\"condition\"", "->", RowBox[{RowBox[{"temp", "[", "t", "]"}], ">", "22"}], ",", "\"action\"", "->", "<||>"}], "|>"}]}], 
+      "}"}]}], ",", 
+    RowBox[{"ModeInvariants", "->", 
+      RowBox[{"<|", RowBox[{"\"Idle\"", "->", RowBox[{RowBox[{"temp", "[", "t", "]"}], "<=", "23"}], ",", "\"Heating\"", "->", RowBox[{RowBox[{"temp", "[", "t", "]"}], ">=", "18"}]}], "|>"}]}], ",", 
+    RowBox[{"InitialMode", "->", "\"Idle\""}], ",", 
+    RowBox[{"InitialValuation", "->", RowBox[{"<|", RowBox[{"temp", "->", "20"}], "|>"}]}]}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"HybridAgentQ", "[", "agent", "]"}]], "Input"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Especificacion formal del proyecto", "GuideFunctionsSection"],
+Cell[TextData[{
+ "La definicion de agente del framework sigue la tupla formal ",
+ Cell[BoxData[FormBox[RowBox[{"\\[ScriptCapitalA]", "=", RowBox[{"\\[LeftAngleBracket]", RowBox[{"id", ",", "Q", ",", "X", ",", "U", ",", "Y", ",", "\\[ScriptCapitalF]", ",", "\\[ScriptCapitalG]", ",", "\\[ScriptCapitalI]", ",", "\\[ScriptCapitalM]", ",", "\\[ScriptCapitalH]", ",", "\\[ScriptCapitalC]", ",", SubscriptBox["q", "0"], ",", SubscriptBox["\\[Nu]", "0"]}], "\\[RightAngleBracket]"}]}], TraditionalForm]], "InlineMath"],
+ ". El estado de ejecucion se modela como ",
+ Cell[BoxData[FormBox[RowBox[{"s", "(", "t", ")", "=", RowBox[{"\\[LeftAngleBracket]", RowBox[{"q", ",", "\\[Nu]", ",", "\\[Mu]", ",", "\\[Tau]"}], "\\[RightAngleBracket]"}]}], TraditionalForm]], "InlineMath"],
+ "."
+}], "GuideText"],
+Cell[TextData[{
+ "Esta pagina esta pensada para que ",
+ Cell[BoxData["PacletDocumentationBuild"], "InlineCode"],
+ " pueda generar HTML y luego desplegarlo a cloud publico mediante un wrapper DevOps (por ejemplo, ",
+ Cell[BoxData["HVABuildDocs[]"], "InlineCode"],
+ ")."
+}], "GuideText"]
+}, Open]]
+},
+TaggingRules -> <|
+  "Paclet" -> "HVA",
+  "Context" -> "HVA`",
+  "URI" -> "HVA/guide/InitLoadDefination",
+  "GuideType" -> "Guide"
+|>,
+StyleDefinitions -> FrontEnd`FileName[{"Wolfram"}, "GuidePageStylesExt.nb"]
+]

@@ -1,0 +1,64 @@
+Notebook[{
+Cell["HVALayerArchitecture", "GuideTitle"],
+Cell["Arquitectura por capas del framework HVA, orden de carga y diagnosticos por familia de contextos.", "GuideAbstract"],
+Cell[CellGroupData[{
+Cell["Categorization", "CategorizationSection"],
+Cell["Guide", "Categorization", CellLabel -> "Entity Type"],
+Cell["HVA", "Categorization", CellLabel -> "Paclet Name"],
+Cell["HVA/guide/HVALayerArchitecture", "Categorization", CellLabel -> "URI"],
+Cell["HVA`", "Categorization", CellLabel -> "Context"]
+}, Closed]],
+Cell[TextData[{
+ "La arquitectura se organiza en capas y subdominios registrados en ",
+ Cell[BoxData["PacletInfo.wl"], "InlineCode"],
+ ". Esta guia muestra como inspeccionar el orden activo desde runtime y como verificar presencia de exportaciones por capa."
+}], "GuideText"],
+Cell[CellGroupData[{
+Cell["Bootstrap y contextos", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"Needs", "[", "\"HVA`\"", "]"}]], "Input"],
+Cell[BoxData[RowBox[{"Sort", "[", RowBox[{"Select", "[", RowBox[{"$ContextPath", ",", RowBox[{"StringStartsQ", "[", RowBox[{"#", ",", "\"HVA`\""}], "]"}], "&"}], "]"}], "]"}]], "Input"],
+Cell["La salida permite verificar que las familias de contextos esperadas estan disponibles tras Needs[\"HVA`\"].", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Vista por familias", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"families", "=", RowBox[{"<|", RowBox[{
+ RowBox[{"\"Utilities\"", "->", "\"HVA`Utilities`*\""}], ",",
+ RowBox[{"\"Core\"", "->", "\"HVA`Core`*\""}], ",",
+ RowBox[{"\"Runtime\"", "->", "\"HVA`Runtime`*\""}], ",",
+ RowBox[{"\"RuntimeMailbox\"", "->", "\"HVA`Runtime`Mailbox`*\""}], ",",
+ RowBox[{"\"RuntimeTransport\"", "->", "\"HVA`Runtime`Transport`*\""}], ",",
+ RowBox[{"\"Services\"", "->", "\"HVA`Services`*\""}], ",",
+ RowBox[{"\"ServicesVerifier\"", "->", "\"HVA`Services`Verifier`*\""}], ",",
+ RowBox[{"\"ServicesSimulator\"", "->", "\"HVA`Services`Simulator`*\""}], ",",
+ RowBox[{"\"Adapters\"", "->", "\"HVA`Adapters`*\""}], ",",
+ RowBox[{"\"DSL\"", "->", "\"HVA`DSL`*\""}]
+}], "|>"}]}]], "Input"],
+Cell[BoxData[RowBox[{"familySurface", "=", RowBox[{"AssociationMap", "[", RowBox[{RowBox[{"Take", "[", RowBox[{RowBox[{"Names", "[", "#", "]"}], ",", "UpTo[20]"}], "]"}], "&", ",", "families"}], "]"}]}]], "Input"],
+Cell[BoxData["familySurface"], "Input"],
+Cell["Este inventario ayuda a detectar faltantes de carga o exportaciones incompletas al evolucionar el paclet.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Diagnostico minimo", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"checks", "=", RowBox[{"AssociationMap", "[", RowBox[{RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "#", "]"}], "]"}], ">", "0"}], "&", ",", "families"}], "]"}]}]], "Input"],
+Cell[BoxData[RowBox[{"<|", RowBox[{
+ RowBox[{"\"checks\"", "->", "checks"}], ",",
+ RowBox[{"\"coreRuntimeServicesOK\"", "->", RowBox[{"And", "@@", RowBox[{"Lookup", "[", RowBox[{"checks", ",", RowBox[{"{", RowBox[{"\"Core\"", ",", "\"Runtime\"", ",", "\"Services\""}], "}"}]}], "]"}]}]}], ",",
+ RowBox[{"\"runtimeSubdomainsOK\"", "->", RowBox[{"And", "@@", RowBox[{"Lookup", "[", RowBox[{"checks", ",", RowBox[{"{", RowBox[{"\"RuntimeMailbox\"", ",", "\"RuntimeTransport\""}], "}"}]}], "]"}]}]}]
+}], "|>"}]], "Input"],
+Cell["Estos predicados sirven como smoke checks de arquitectura activa en CI local o pipelines de documentacion.", "GuideText"]
+}, Open]],
+Cell[CellGroupData[{
+Cell["Trazabilidad por capa", "GuideFunctionsSection"],
+Cell[BoxData[RowBox[{"layerSummary", "=", RowBox[{"AssociationMap", "[", RowBox[{RowBox[{"Length", "[", RowBox[{"Names", "[", "#", "]"}], "]"}], "&", ",", "families"}], "]"}]}]], "Input"],
+Cell[BoxData["layerSummary"], "Input"],
+Cell["Un cambio abrupto de cardinalidad en una familia suele indicar regresion de carga o cambio de exportacion.", "GuideText"]
+}, Open]]
+},
+TaggingRules -> <|
+  "Paclet" -> "HVA",
+  "Context" -> "HVA`",
+  "URI" -> "HVA/guide/HVALayerArchitecture",
+  "GuideType" -> "Guide"
+|>,
+StyleDefinitions -> FrontEnd`FileName[{"Wolfram"}, "GuidePageStylesExt.nb"]
+]

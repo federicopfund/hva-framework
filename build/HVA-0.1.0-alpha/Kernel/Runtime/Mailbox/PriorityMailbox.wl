@@ -1,18 +1,19 @@
 (* :Title: PriorityMailbox *)
 (* :Context: HVA`Runtime`Mailbox`PriorityMailbox` *)
 (* :Author: HVA Contributors *)
-(* :Summary: Implementacion de mailbox con prioridad. *)
+(* :Summary: Mailbox con politica de prioridad (emergency-first). *)
 (* :Capa: Runtime (3) *)
 (* :Depends: HVA`Runtime`Mailbox` *)
-(* :Formalismo: TBD — ver SPEC_TECNICA.md §6 *)
-(* :Spec: TBD *)
+(* :Formalismo: FORM Anexo B — politica Priority *)
+(* :Spec: §9 *)
 (* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: ARCH-0001 (scaffolding) *)
 (* :License: MIT *)
 
 BeginPackage["HVA`Runtime`Mailbox`PriorityMailbox`", {"HVA`Runtime`Mailbox`"}]
 
-CreatePriorityMailbox::usage = "CreatePriorityMailbox[] crea un mailbox con prioridad.";
+PriorityMailbox::usage = "PriorityMailbox[] crea un mailbox con prioridad (emergency-first). Implementa PriorityMailbox de FORM Anexo B.";
+CreatePriorityMailbox::usage = "CreatePriorityMailbox[] crea un mailbox con prioridad. Alias de PriorityMailbox[].";
 
 
 Begin["`Private`"]

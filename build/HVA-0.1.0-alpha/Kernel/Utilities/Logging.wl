@@ -104,11 +104,12 @@ QueryLog[opts___Rule] := Module[
   (* Nivel minimo no reconocido: devolver todo *)
   minOrder = Lookup[$severityOrder, minSeverity, 0];
 
-  results = Select[$logBuffer,
-              Function[entry,
-                  Lookup[$severityOrder, entry["severity"], 0] >= minOrder &&
-                  (contextPrefix === "" || StringStartsQ[entry["context"], contextPrefix])
-                ]
+  results =
+   Select[$logBuffer,
+      Function[entry,
+        Lookup[$severityOrder, entry["severity"], 0] >= minOrder &&
+        (contextPrefix === "" || StringStartsQ[entry["context"], contextPrefix])
+      ]
   ];
 
   results

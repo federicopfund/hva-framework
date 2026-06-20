@@ -17,13 +17,11 @@ LoadUtilities::usage = "LoadUtilities[] carga utilidades de validacion, logging 
 Begin["`Private`"]
 
 LoadUtilities[] := Module[{},
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Validation.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Logging.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "Serialization.wl"}]];
-  Get[FileNameJoin[{DirectoryName[$InputFileName], "ErrorHandling.wl"}]];
+  Needs["HVA`Utilities`Validation`"];
+  Needs["HVA`Utilities`Logging`"];
+  Needs["HVA`Utilities`Serialization`"];
+  Needs["HVA`Utilities`ErrorHandling`"];
 ];
-
-(* TODO: implementar en ISSUE-XXXX *)
 
 End[]
 EndPackage[]

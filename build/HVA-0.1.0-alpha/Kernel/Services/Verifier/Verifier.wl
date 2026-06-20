@@ -17,11 +17,15 @@ LoadVerifier::usage = "LoadVerifier[] inicializa los modulos de verificacion.";
 
 Begin["`Private`"]
 
-Get[FileNameJoin[{DirectoryName[$InputFileName], "Certificate.wl"}]];
-Get[FileNameJoin[{DirectoryName[$InputFileName], "ContractChecker.wl"}]];
-Get[FileNameJoin[{DirectoryName[$InputFileName], "InvariantChecker.wl"}]];
-Get[FileNameJoin[{DirectoryName[$InputFileName], "ReachabilityChecker.wl"}]];
-Get[FileNameJoin[{DirectoryName[$InputFileName], "VectorFieldAnalysis.wl"}]];
+LoadVerifier[] := Module[{},
+  Needs["HVA`Services`Verifier`Certificate`"];
+  Needs["HVA`Services`Verifier`ContractChecker`"];
+  Needs["HVA`Services`Verifier`InvariantChecker`"];
+  Needs["HVA`Services`Verifier`ReachabilityChecker`"];
+  Needs["HVA`Services`Verifier`VectorFieldAnalysis`"];
+];
 
 End[]
 EndPackage[]
+
+LoadVerifier[];
