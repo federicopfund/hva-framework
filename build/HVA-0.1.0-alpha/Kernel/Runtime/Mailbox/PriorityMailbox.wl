@@ -7,18 +7,24 @@
 (* :Formalismo: FORM Anexo B — politica Priority *)
 (* :Spec: §9 *)
 (* :Methodology: METHODOLOGY.md §5 *)
-(* :Issues: ARCH-0001 (scaffolding) *)
+(* :Issues: RT-0002 *)
 (* :License: MIT *)
 
 BeginPackage["HVA`Runtime`Mailbox`PriorityMailbox`", {"HVA`Runtime`Mailbox`"}]
 
-PriorityMailbox::usage = "PriorityMailbox[] crea un mailbox con prioridad (emergency-first). Implementa PriorityMailbox de FORM Anexo B.";
-CreatePriorityMailbox::usage = "CreatePriorityMailbox[] crea un mailbox con prioridad. Alias de PriorityMailbox[].";
+PriorityMailbox::usage = "PriorityMailbox[] crea un mailbox con prioridad (todos los mensajes con igual prioridad: degenera en FIFO).\nPriorityMailbox[f] usa la funcion de prioridad f (m -> numero); mayor numero se atiende primero, empate -> FIFO.\nImplementa PriorityMailbox de FORM Anexo B (GLOSARIO Bloque VII).";
+CreatePriorityMailbox::usage = "CreatePriorityMailbox[] o CreatePriorityMailbox[f] crea un mailbox con prioridad. Alias de PriorityMailbox.";
 
 
 Begin["`Private`"]
 
-(* TODO: implementar en ISSUE-XXXX *)
+(* Delega en el constructor base con el selector de politica Priority. *)
+PriorityMailbox[] := EmptyMailbox[Priority];
+PriorityMailbox[f_] := EmptyMailbox[Priority, f];
+CreatePriorityMailbox[] := EmptyMailbox[Priority];
+CreatePriorityMailbox[f_] := EmptyMailbox[Priority, f];
+
+Protect[PriorityMailbox, CreatePriorityMailbox];
 
 End[]
 EndPackage[]
