@@ -40,6 +40,7 @@ $suites = {
     "Core/ContractTest.wlt",
     "Core/CausalModelTest.wlt",
     "Core/MessageAlphabetTest.wlt",
+    "Core/MessageEnvelopeTest.wlt",
     "Core/TraceTest.wlt"
   }},
   {"Runtime", {

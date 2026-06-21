@@ -3,7 +3,7 @@
 (* :Author: HVA Contributors *)
 (* :Summary: Inicializador de la capa Core. *)
 (* :Capa: Core (2) *)
-(* :Depends: HVA`Core`Contract`, HVA`Core`AgentTrace`, HVA`Core`HybridAgent`, HVA`Core`MessageAlphabet`, HVA`Core`CausalModel` *)
+(* :Depends: HVA`Core`Contract`, HVA`Core`AgentTrace`, HVA`Core`HybridAgent`, HVA`Core`MessageAlphabet`, HVA`Core`MessageEnvelope`, HVA`Core`CausalModel` *)
 (* :Formalismo: N/A (inicializador de capa) *)
 (* :Spec: N/A *)
 (* :Methodology: METHODOLOGY.md §5 *)
@@ -20,6 +20,7 @@ LoadCore[] := Module[{},
   Needs["HVA`Core`Contract`"];
   Needs["HVA`Core`AgentTrace`"];
   Needs["HVA`Core`MessageAlphabet`"];
+  Needs["HVA`Core`MessageEnvelope`"];
   Needs["HVA`Core`HybridAgent`"];
   Needs["HVA`Core`CausalModel`"];
 ];

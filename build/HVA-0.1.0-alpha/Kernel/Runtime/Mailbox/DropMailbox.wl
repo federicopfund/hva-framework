@@ -7,18 +7,22 @@
 (* :Formalismo: FORM Anexo B — politica BoundedDrop *)
 (* :Spec: §9 *)
 (* :Methodology: METHODOLOGY.md §5 *)
-(* :Issues: ARCH-0001 (scaffolding) *)
+(* :Issues: RT-0002 *)
 (* :License: MIT *)
 
 BeginPackage["HVA`Runtime`Mailbox`DropMailbox`", {"HVA`Runtime`Mailbox`"}]
 
-BoundedDropMailbox::usage = "BoundedDropMailbox[n] crea un mailbox de capacidad n que descarta mensajes al saturarse. Implementa BoundedDropMailbox de FORM Anexo B.";
+BoundedDropMailbox::usage = "BoundedDropMailbox[n] crea un mailbox de capacidad n que descarta el mensaje entrante al estar saturado. Implementa BoundedDropMailbox de FORM Anexo B (GLOSARIO Bloque VII).";
 CreateDropMailbox::usage = "CreateDropMailbox[n] crea un mailbox con drop. Alias de BoundedDropMailbox[n].";
 
 
 Begin["`Private`"]
 
-(* TODO: implementar en ISSUE-XXXX *)
+(* Delega en el constructor base con el selector de politica BoundedDrop. *)
+BoundedDropMailbox[n_] := EmptyMailbox[BoundedDrop, n];
+CreateDropMailbox[n_] := EmptyMailbox[BoundedDrop, n];
+
+Protect[BoundedDropMailbox, CreateDropMailbox];
 
 End[]
 EndPackage[]
