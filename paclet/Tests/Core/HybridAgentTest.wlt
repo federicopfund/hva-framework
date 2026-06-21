@@ -3,17 +3,17 @@
 (* :Author: HVA Contributors *)
 (* :Summary: Test de Estructura simbolica canonica del agente hibrido verificable. *)
 (* :Capa: Core (2) *)
-(* :Depends: HVA`Utilities`Validation` *)
+(* :Depends: HVA`Utilities`Validation`, HVA`Utilities`ErrorHandling` *)
 (* :Formalismo: Def. 2.1 (tupla 𝒜), Def. 2.2 (estado s(t)), Def. 2.7 (B1-B4), Def. 4.3 (hash en certificados) *)
 (* :Spec: 5.1, 5.2, 5.3, 5.4, 4.5 ADR-002, 4.5 ADR-005 *)
 (* :Methodology: METHODOLOGY.md §5 *)
 (* :Assumes: ℱ(q) es Lipschitz-continua en un entorno de cada ν ⊨ ℐ(q) (FORM Def. 2.7 B3, Lema C.2) — verificacion diferida a VER-0001 *)
-(* :Issues: CORE-0002, CORE-0003 *)
+(* :Issues: CORE-0002, CORE-0003, UTIL-0003 *)
 (* :License: MIT *)
 (* HybridAgent.wl Unit Tests *)
 
 VerificationTest[
-  Quiet[Needs["HVA`Core`HybridAgent`"]; True],
+  Quiet[Needs["HVA`Core`HybridAgent`"]; Needs["HVA`Utilities`ErrorHandling`"]; True],
   True,
   TestID -> "Core-HybridAgent-Loads"
 ]
@@ -60,7 +60,7 @@ VerificationTest[
     InitialMode -> "s1",
     InitialValuation -> <||>
   ];
-  FailureQ[result] && result["MessageTemplate"] === "Unknown option(s) provided to HybridAgent.",
+  HVAErrorQ[result] && HVAErrorData[result]["Code"] === "UnknownOption",
   True,
   TestID -> "Core-HybridAgent-03-constructor-unknown-option"
 ]
@@ -112,8 +112,8 @@ VerificationTest[
     InitialValuation -> <||>,
     TimeSymbol -> t
   ];
-  FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
+  HVAErrorQ[result] &&
+  Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-06-bienformacion-dynamics-missing-B2"
 ]
@@ -130,8 +130,8 @@ VerificationTest[
     InitialValuation -> <||>,
     TimeSymbol -> t
   ];
-  FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
+  HVAErrorQ[result] &&
+  Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-07-bienformacion-dynamics-extra-B2"
 ]
@@ -152,8 +152,8 @@ VerificationTest[
     InitialValuation -> <|x -> 0|>,
     TimeSymbol -> t
   ];
-  FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
+  HVAErrorQ[result] &&
+  Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-08-bienformacion-undeclared-var-B3"
 ]
@@ -174,8 +174,8 @@ VerificationTest[
     InitialValuation -> <||>,
     TimeSymbol -> t
   ];
-  FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "transitions", ___|>] =!= {},
+  HVAErrorQ[result] &&
+  Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "transitions", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-09-bienformacion-guard-target-B2"
 ]
@@ -196,8 +196,8 @@ VerificationTest[
     InitialValuation -> <||>,
     TimeSymbol -> t
   ];
-  FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialMode", ___|>] =!= {},
+  HVAErrorQ[result] &&
+  Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialMode", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-10-bienformacion-initial-state-B1"
 ]
@@ -218,8 +218,8 @@ VerificationTest[
     TimeSymbol -> t,
     InitialValuation -> <|x -> 0|>  (* y falta! *)
   ];
-  FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValuation", ___|>] =!= {},
+  HVAErrorQ[result] &&
+  Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValuation", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-11-bienformacion-missing-init-value-B1"
 ]
@@ -236,8 +236,8 @@ VerificationTest[
     TimeSymbol -> t,
     InitialValuation -> <|x -> 0, y -> 1|>  (* y extra! *)
   ];
-  FailureQ[result] &&
-  Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValuation", ___|>] =!= {},
+  HVAErrorQ[result] &&
+  Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "initialValuation", ___|>] =!= {},
   True,
   TestID -> "Core-HybridAgent-12-bienformacion-extra-init-value-B1"
 ]
@@ -405,7 +405,7 @@ VerificationTest[
 (* Test 25: WithCurrentMode rechaza non-HybridAgent *)
 VerificationTest[
   result = WithCurrentMode[<|"fake" -> "agent"|>, "state"];
-  FailureQ[result] && result["Expected"] === "HybridAgent",
+  HVAErrorQ[result] && HVAErrorData[result]["Expected"] === "HybridAgent",
   True,
   TestID -> "Core-HybridAgent-25-with-current-mode-type-error"
 ]
@@ -413,7 +413,7 @@ VerificationTest[
 (* Test 26: AgentStructuralHash rechaza non-HybridAgent *)
 VerificationTest[
   result = AgentStructuralHash[not_an_agent];
-  FailureQ[result] && result["Expected"] === "HybridAgent",
+  HVAErrorQ[result] && HVAErrorData[result]["Expected"] === "HybridAgent",
   True,
   TestID -> "Core-HybridAgent-26-structural-hash-type-error"
 ]
@@ -434,8 +434,8 @@ VerificationTest[
     InitialValuation -> <|x -> 1|>,
     TimeSymbol -> t
   ]},
-    FailureQ[result] &&
-    Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "transitions", ___|>] =!= {}
+    HVAErrorQ[result] &&
+    Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "transitions", ___|>] =!= {}
   ],
   True,
   TestID -> "Core-HybridAgent-27-transition-missing-condition-key-CORE-0003-DEF-1"
@@ -453,8 +453,8 @@ VerificationTest[
     InitialValuation -> <|x -> 0|>,
     TimeSymbol -> t
   ]},
-    FailureQ[result] &&
-    Cases[result["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {}
+    HVAErrorQ[result] &&
+    Cases[HVAErrorData[result]["Errors"], <|"Code" -> "ConstraintViolation", "Path" -> "vectorFields", ___|>] =!= {}
   ],
   True,
   TestID -> "Core-HybridAgent-28-vector-field-missing-temporal-arg-CORE-0003-DEF-2"

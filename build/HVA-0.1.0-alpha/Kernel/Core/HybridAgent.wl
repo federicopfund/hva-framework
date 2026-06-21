@@ -3,51 +3,19 @@
 (* :Author: HVA Contributors *)
 (* :Summary: Estructura simbolica canonica del agente hibrido verificable. *)
 (* :Capa: Core (2) *)
-(* :Depends: HVA`Utilities`Validation` *)
+(* :Depends: HVA`Utilities`Validation`, HVA`Utilities`ErrorHandling` *)
 (* :Formalismo: Def. 2.1 (tupla 𝒜), Def. 2.2 (estado s(t)), Def. 2.7 (B1-B4), Def. 4.3 (hash en certificados) *)
 (* :Spec: 5.1, 5.2, 5.3, 5.4, 4.5 ADR-002, 4.5 ADR-005 *)
 (* :Methodology: METHODOLOGY.md §5 *)
 (* :Assumes: ℱ(q) es Lipschitz-continua en un entorno de cada ν ⊨ ℐ(q) (FORM Def. 2.7 B3, Lema C.2) — verificacion diferida a VER-0001 *)
-(* :Issues: CORE-0002, CORE-0003 *)
+(* :Issues: CORE-0002, CORE-0003, UTIL-0003 *)
 (* :License: MIT *)
 
 (* :Discussion:
    Implementa la entidad nuclear del framework HVA.
-
-   PATRONES DE DISENO APLICADOS:
-     - Smart Constructor (D1, D2, D9): construccion solo via HybridAgent[id, opts]
-       o idempotencia HybridAgent[ya_construido] -> ya_construido. El simbolo
-       esta Protect-ido contra reasignacion.
-     - Bridge sintactico (D1, D3): forma de input usa simbolos wolframonicos,
-       forma canonica almacenada usa keys de string para serializacion.
-     - Null Object (D4): Contract y RewriteRules ausentes se reemplazan por
-       valores neutros que el codigo downstream puede consumir sin chequear.
-     - Result Type (D6, D10): errores devuelven Failure[tag, payload], se
-       autopropagan en pipelines sin warnings encadenados.
-     - Type Predicate (D7): HybridAgentQ usado en guards y condicionales.
-     - Immutable Update (D2): With* y AppendTrace devuelven nuevo HybridAgent.
-     - Schema-Driven Validation (D14): validacion declarativa via motor
-       generico de Utilities/Validation.
-     - Hash Identity separado (D12): igualdad nativa de Wolfram para snapshots,
-       AgentStructuralHash para identidad estructural persistente.
-
-   CICLO DE VIDA:
-     Este modulo implementa solo el estado Created del lifecycle 8.2 de la spec.
-     Los estados Verified, Initialized, Running, Suspended, Terminated son
-     responsabilidad de issues downstream (SERV-0001, RUNT-0001).
-
-   FORMA CANONICA:
-     HybridAgent[<|
-       "id", "modes", "continuousVars", "time",
-       "vectorFields", "transitions", "modeInvariants",
-       "contract", "rewriteRules",
-       "initialMode", "initialValuation",
-       "currentMode", "valuation",
-       "mailbox", "trace"
-     |>]
 *)
 
-BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`AgentTrace`", "HVA`Core`Contract`", "HVA`Core`MessageAlphabet`", "HVA`Utilities`Validation`"}]
+BeginPackage["HVA`Core`HybridAgent`", {"HVA`Core`AgentTrace`", "HVA`Core`Contract`", "HVA`Core`MessageAlphabet`", "HVA`Utilities`Validation`", "HVA`Utilities`ErrorHandling`"}]
 
 (* ============================================================== *)
 (* SIMBOLOS EXPORTADOS                                            *)
@@ -62,8 +30,8 @@ HybridAgent::usage =
   "  ControlInputVars, ObservableVars, MessageAlphabet,\n" <>
   "  Contract, RewriteRules, TimeSymbol (opcionales).\n" <>
   "HybridAgent[a_HybridAgent] es idempotente: devuelve a sin modificacion.\n" <>
-  "Errores se devuelven como Failure[\"HVAValidationError\", ...] o\n" <>
-  "Failure[\"HVAArgumentError\", ...].\n" <>
+  "Errores se devuelven como RaiseHVAError[\"HVA.Core.ValidationFailed\", ...] o\n" <>
+  "RaiseHVAError[\"HVA.Core.ArgumentError\", ...].\n" <>
   "Implementa la tupla 𝒜 = ⟨id, Q, X, U, Y, ℱ, 𝒢, ℐ, ℳ, ℋ, 𝒞, q₀, ν₀⟩ de FORM Def. 2.1.";
 
 HybridAgentQ::usage =
@@ -132,12 +100,19 @@ FireGuard::usage =
   "     evaluando cada expresion en el contexto de la valuacion actual.\n" <>
   "  4. Devuelve nuevo HybridAgent con currentMode = guard[\"to\"],\n" <>
   "     valuation actualizada y evento de transicion en trace.\n" <>
-  "Retorna Failure[\"GuardNotApplicable\", ...] si from != currentMode.\n" <>
-  "Retorna Failure[\"GuardConditionFalse\", ...] si la condicion no se cumple.";
+  "Retorna RaiseHVAError[\"HVA.Core.GuardNotApplicable\", ...] si from != currentMode.\n" <>
+  "Retorna RaiseHVAError[\"HVA.Core.GuardConditionFalse\", ...] si la condicion no se cumple.";
 
 Begin["`Private`"]
 
 Needs["HVA`Utilities`Validation`"]
+Needs["HVA`Utilities`ErrorHandling`"]
+
+(* Registrar tags de dominio de este modulo (Issue #11 UTIL-0003) *)
+RegisterErrorTag["HVA.Core.ValidationFailed",   "error"];
+RegisterErrorTag["HVA.Core.ArgumentError",       "error"];
+RegisterErrorTag["HVA.Core.GuardNotApplicable",  "error"];
+RegisterErrorTag["HVA.Core.GuardConditionFalse", "error"];
 
 (* ============================================================== *)
 (* MENSAJES (DEF-5, CORE-0003)                                    *)
@@ -434,11 +409,8 @@ HybridAgent[id_String, opts___?OptionQ] := Module[
   validationResult = ValidateStructure[canonicalAssoc, $HybridAgentSchema];
   If[validationResult =!= True,
     Return[
-      Failure["HVAValidationError", <|
-        "MessageTemplate" -> "Invalid HybridAgent specification.",
-        "Tag" -> "InvalidHybridAgent",
-        "Errors" -> validationResult["Errors"]
-      |>]
+      RaiseHVAError["HVA.Core.ValidationFailed",
+        <|"Errors" -> validationResult["Errors"]|>]
     ]
   ];
 
@@ -466,13 +438,11 @@ parseOptions[optsList_List] := Module[{providedAssoc, normalizedAssoc, unknownSy
     !KeyExistsQ[$optionToKey, #] &
   ];
   If[unknownSymbols =!= {},
-    Failure["HVAArgumentError", <|
-      "MessageTemplate" -> "Unknown option(s) provided to HybridAgent.",
-      "Function" -> "HybridAgent",
-      "Code" -> "UnknownOption",
-      "UnknownSymbols" -> unknownSymbols,
-      "ValidOptions" -> Keys[$optionToKey]
-    |>],
+    RaiseHVAError["HVA.Core.ArgumentError",
+      <|"Function"       -> "HybridAgent",
+        "Code"           -> "UnknownOption",
+        "UnknownSymbols" -> unknownSymbols,
+        "ValidOptions"   -> Keys[$optionToKey]|>],
     normalizedAssoc
   ]
 ];
@@ -572,12 +542,10 @@ HybridAgentQ[_] := False;
 defineAccessor[name_Symbol, key_String] := (
   name[HybridAgent[a_Association]] := a[key];
   name[expr_] /; !HybridAgentQ[expr] :=
-    Failure["HVAArgumentError", <|
-      "MessageTemplate" -> "Expected HybridAgent.",
-      "Function" -> SymbolName[name],
-      "Expected" -> "HybridAgent",
-      "Got" -> ToString[Head[expr]]
-    |>];
+    RaiseHVAError["HVA.Core.ArgumentError",
+      <|"Function" -> SymbolName[name],
+        "Expected" -> "HybridAgent",
+        "Got"      -> ToString[Head[expr]]|>];
 );
 
 defineAccessor[AgentId,              "id"];
@@ -609,15 +577,14 @@ defineAccessor[AgentTime,         "time"];
 (* ModeVectorField[a, mode]: ℱ(q) para q=mode. VectorFields es siempre Association. *)
 ModeVectorField[HybridAgent[a_Association], mode_String] :=
   Lookup[a["vectorFields"], mode,
-    Failure["HVAArgumentError", <|
-      "Function" -> "ModeVectorField",
-      "Message"  -> "Mode '" <> mode <> "' not found in AgentVectorFields."
-    |>]
+    RaiseHVAError["HVA.Core.ArgumentError",
+      <|"Function" -> "ModeVectorField",
+        "Message"  -> "Mode '" <> mode <> "' not found in AgentVectorFields."|>]
   ];
 ModeVectorField[expr_, _String] /; !HybridAgentQ[expr] :=
-  Failure["HVAArgumentError", <|
-    "Function" -> "ModeVectorField",
-    "Expected" -> "HybridAgent", "Got" -> ToString[Head[expr]]|>];
+  RaiseHVAError["HVA.Core.ArgumentError",
+    <|"Function" -> "ModeVectorField",
+      "Expected" -> "HybridAgent", "Got" -> ToString[Head[expr]]|>];
 
 (* ModeInvariantOf[a, mode]: ℐ(q) para q=mode.
    Requiere ModeInvariants en forma canonica Association <|mode -> pred|>.
@@ -627,28 +594,25 @@ ModeInvariantOf[HybridAgent[a_Association], mode_String] :=
     Which[
       AssociationQ[inv],
         Lookup[inv, mode,
-          Failure["HVAArgumentError", <|
-            "Function" -> "ModeInvariantOf",
-            "Message"  -> "Mode '" <> mode <> "' not found in ModeInvariants."
-          |>]],
+          RaiseHVAError["HVA.Core.ArgumentError",
+            <|"Function" -> "ModeInvariantOf",
+              "Message"  -> "Mode '" <> mode <> "' not found in ModeInvariants."|>]],
       ListQ[inv],
-        Failure["HVAArgumentError", <|
-          "Function" -> "ModeInvariantOf",
-          "Message"  -> "ModeInvariants es lista plana (legado). " <>
-                        "Use ModeInvariants -> <|mode -> pred|> para acceso por modo, " <>
-                        "o AgentModeInvariants[a] para obtener la lista completa."
-        |>],
+        RaiseHVAError["HVA.Core.ArgumentError",
+          <|"Function" -> "ModeInvariantOf",
+            "Message"  -> "ModeInvariants es lista plana (legado). " <>
+                          "Use ModeInvariants -> <|mode -> pred|> para acceso por modo, " <>
+                          "o AgentModeInvariants[a] para obtener la lista completa."|>],
       True,
-        Failure["HVAArgumentError", <|
-          "Function" -> "ModeInvariantOf",
-          "Message"  -> "Formato de ModeInvariants inesperado."
-        |>]
+        RaiseHVAError["HVA.Core.ArgumentError",
+          <|"Function" -> "ModeInvariantOf",
+            "Message"  -> "Formato de ModeInvariants inesperado."|>]
     ]
   ];
 ModeInvariantOf[expr_, _String] /; !HybridAgentQ[expr] :=
-  Failure["HVAArgumentError", <|
-    "Function" -> "ModeInvariantOf",
-    "Expected" -> "HybridAgent", "Got" -> ToString[Head[expr]]|>];
+  RaiseHVAError["HVA.Core.ArgumentError",
+    <|"Function" -> "ModeInvariantOf",
+      "Expected" -> "HybridAgent", "Got" -> ToString[Head[expr]]|>];
 
 (* ============================================================== *)
 (* ACTUALIZACION INMUTABLE                                        *)
@@ -658,41 +622,37 @@ WithMailbox[HybridAgent[a_Association], newMailbox_List] :=
   HybridAgent[<|a, "mailbox" -> newMailbox|>];
 
 WithMailbox[expr_, _] /; !HybridAgentQ[expr] :=
-  Failure["HVAArgumentError", <|
-    "Function" -> "WithMailbox",
-    "Expected" -> "HybridAgent",
-    "Got" -> ToString[Head[expr]]
-  |>];
+  RaiseHVAError["HVA.Core.ArgumentError",
+    <|"Function" -> "WithMailbox",
+      "Expected" -> "HybridAgent",
+      "Got"      -> ToString[Head[expr]]|>];
 
 WithCurrentMode[HybridAgent[a_Association], newState_String] :=
   HybridAgent[<|a, "currentMode" -> newState|>];
 
 WithCurrentMode[expr_, _] /; !HybridAgentQ[expr] :=
-  Failure["HVAArgumentError", <|
-    "Function" -> "WithCurrentMode",
-    "Expected" -> "HybridAgent",
-    "Got" -> ToString[Head[expr]]
-  |>];
+  RaiseHVAError["HVA.Core.ArgumentError",
+    <|"Function" -> "WithCurrentMode",
+      "Expected" -> "HybridAgent",
+      "Got"      -> ToString[Head[expr]]|>];
 
 WithValuation[HybridAgent[a_Association], newValuation_Association] :=
   HybridAgent[<|a, "valuation" -> newValuation|>];
 
 WithValuation[expr_, _] /; !HybridAgentQ[expr] :=
-  Failure["HVAArgumentError", <|
-    "Function" -> "WithValuation",
-    "Expected" -> "HybridAgent",
-    "Got" -> ToString[Head[expr]]
-  |>];
+  RaiseHVAError["HVA.Core.ArgumentError",
+    <|"Function" -> "WithValuation",
+      "Expected" -> "HybridAgent",
+      "Got"      -> ToString[Head[expr]]|>];
 
 AppendTrace[HybridAgent[a_Association], event_] :=
   HybridAgent[<|a, "trace" -> Append[a["trace"], event]|>];
 
 AppendTrace[expr_, _] /; !HybridAgentQ[expr] :=
-  Failure["HVAArgumentError", <|
-    "Function" -> "AppendTrace",
-    "Expected" -> "HybridAgent",
-    "Got" -> ToString[Head[expr]]
-  |>];
+  RaiseHVAError["HVA.Core.ArgumentError",
+    <|"Function" -> "AppendTrace",
+      "Expected" -> "HybridAgent",
+      "Got"      -> ToString[Head[expr]]|>];
 
 (* ============================================================== *)
 (* TRANSICION DISCRETA: FireGuard                                 *)
@@ -709,18 +669,16 @@ FireGuard[HybridAgent[a_Association], guard_Association] := Module[
   action    = Lookup[guard, "action",    <||>];
   (* Paso 1: la guarda debe originarse desde el estado actual *)
   If[from =!= curState,
-    Return[Failure["GuardNotApplicable", <|
-      "Message" -> "Guard 'from' (" <> ToString[from] <>
-                   ") != currentMode (" <> ToString[curState] <> ")."
-    |>]]
+    Return[RaiseHVAError["HVA.Core.GuardNotApplicable",
+      <|"Message" -> "Guard 'from' (" <> ToString[from] <>
+                     ") != currentMode (" <> ToString[curState] <> ")."|>]]
   ];
   (* Paso 2: evaluar condicion bajo valuacion actual *)
   condResult = TrueQ[cond /. Normal[valuation]];
   If[!condResult,
-    Return[Failure["GuardConditionFalse", <|
-      "Message" -> "Condition " <> ToString[cond] <> " not satisfied under " <>
-                   ToString[Normal[valuation]]
-    |>]]
+    Return[RaiseHVAError["HVA.Core.GuardConditionFalse",
+      <|"Message" -> "Condition " <> ToString[cond] <> " not satisfied under " <>
+                     ToString[Normal[valuation]]|>]]
   ];
   (* Paso 3: aplicar reset map — cada rhs se evalua bajo valuacion actual *)
   newValuation = If[AssociationQ[action] && Length[action] > 0,
@@ -744,11 +702,10 @@ FireGuard[HybridAgent[a_Association], guard_Association] := Module[
 ];
 
 FireGuard[expr_, _Association] /; !HybridAgentQ[expr] :=
-  Failure["HVAArgumentError", <|
-    "Function" -> "FireGuard",
-    "Expected" -> "HybridAgent",
-    "Got"      -> ToString[Head[expr]]
-  |>];
+  RaiseHVAError["HVA.Core.ArgumentError",
+    <|"Function" -> "FireGuard",
+      "Expected" -> "HybridAgent",
+      "Got"      -> ToString[Head[expr]]|>];
 
 (* ============================================================== *)
 (* HASH ESTRUCTURAL (D12)                                         *)
@@ -758,11 +715,10 @@ AgentStructuralHash[HybridAgent[a_Association]] :=
   Hash[KeyTake[a, $structuralFields], "MD5"];
 
 AgentStructuralHash[expr_] /; !HybridAgentQ[expr] :=
-  Failure["HVAArgumentError", <|
-    "Function" -> "AgentStructuralHash",
-    "Expected" -> "HybridAgent",
-    "Got" -> ToString[Head[expr]]
-  |>];
+  RaiseHVAError["HVA.Core.ArgumentError",
+    <|"Function" -> "AgentStructuralHash",
+      "Expected" -> "HybridAgent",
+      "Got"      -> ToString[Head[expr]]|>];
 
 (* ============================================================== *)
 (* FORMATO (D11)  →  delegado a FrontEnd                         *)

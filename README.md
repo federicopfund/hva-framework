@@ -243,6 +243,7 @@ docker compose run --rm wolfram -noinit -script paclet/Tests/TestRunner.wl
 | Glosario FMA | [`docs/documenta/GLOSARIO..md`](docs/documenta/GLOSARIO..md) | Nombres normativos de todos los símbolos públicos |
 | Deuda formal | [`docs/documenta/FORMAL_DEBT.md`](docs/documenta/FORMAL_DEBT.md) | Hipótesis asumidas pendientes de verificación formal |
 | Metodología | [`docs/documenta/METODOLOGIA.md`](docs/documenta/METODOLOGIA.md) | Protocolo de sesión, checklist de cierre, registro de desvíos |
+| Learning path del Kernel | [`docs/documenta/KERNEL_LEARNING_PATH/README.md`](docs/documenta/KERNEL_LEARNING_PATH/README.md) | Ruta completa (10 sesiones) para dominar evaluación y funciones del Kernel de Wolfram |
 
 ---
 

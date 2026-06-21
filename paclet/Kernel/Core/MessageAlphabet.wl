@@ -11,6 +11,9 @@
 (* :Issues: CORE-0003 *)
 (* :License: MIT *)
 
+(* Guard: remove stale Global` shadow that would trigger General::shdw on load. *)
+If[NameQ["Global`MessageAlphabet"], Unprotect["Global`MessageAlphabet"]; Remove["Global`MessageAlphabet"]];
+
 BeginPackage["HVA`Core`MessageAlphabet`", {"HVA`Utilities`Validation`"}]
 
 MessageAlphabet::usage =
@@ -34,13 +37,25 @@ MessageTermQ::usage =
 MessagePatternQ::usage =
   "MessagePatternQ[m, pattern] devuelve True si el mensaje m unifica con \
     el patron pattern (con guarda opcional via Condition). \
+    Alias de MessageMatchQ por compatibilidad hacia atras. \
     Implementa la unificacion de FORM Def. 2.5 y FORM Def. B.9: \
     existe sustitucion σ tal que σ(pattern) = m.";
 
-AgentMessageAlphabet::usage =
-  "AgentMessageAlphabet[agent] devuelve el MessageAlphabet declarado en \
-    el campo \"messageAlphabet\" del agente. \
-    Implementa el accessor del componente ℳ de FORM Def. 2.1.";
+MessageMatchQ::usage =
+  "MessageMatchQ[m, pattern] devuelve True si el mensaje m unifica con \
+    el patron pattern (con guarda opcional via Condition). \
+    Nombre canonico segun SPEC §4.4.2. \
+    Implementa la unificacion de FORM Def. 2.5 y FORM Def. B.9: \
+    existe sustitucion σ tal que σ(pattern) = m.";
+
+MessageHead::usage =
+  "MessageHead[m] devuelve el head del termino mensaje m. \
+    El head identifica el tipo de mensaje en el alfabeto Σ. \
+    Implementa head(m) del termino en 𝒯(Σ,V) de FORM §1.1.";
+
+MessagePayload::usage =
+  "MessagePayload[m] devuelve la lista de argumentos del termino mensaje m. \
+    Corresponde a los argumentos del termino en 𝒯(Σ,V) de FORM §1.1.";
 
 MessageAlphabetQ::usage =
   "MessageAlphabetQ[expr] devuelve True si expr es un MessageAlphabet \
@@ -76,6 +91,15 @@ MessageAlphabetQ[MessageAlphabet[_List, $valid]] := True
 MessageAlphabetQ[_] := False
 
 (* ============================================================== *)
+(* FORMATO DE SALIDA                                              *)
+(* ============================================================== *)
+
+(* Oculta el marcador interno $valid en el output del kernel.
+   Sin esta regla el REPL mostraria MessageAlphabet[patterns, $valid]. *)
+Format[MessageAlphabet[patterns_List, $valid]] :=
+  HoldForm[MessageAlphabet[patterns]]
+
+(* ============================================================== *)
 (* MEMBERSHIP: m ∈ ℳ (FORM Def. 2.1)                             *)
 (* ============================================================== *)
 
@@ -104,18 +128,32 @@ SetAttributes[MessagePatternQ, HoldRest]
 
 MessagePatternQ[m_, pattern_] := MatchQ[m, pattern]
 
+(* MessageMatchQ: nombre canonico SPEC §4.4.2, alias de MessagePatternQ *)
+SetAttributes[MessageMatchQ, HoldRest]
+
+MessageMatchQ[m_, pattern_] := MatchQ[m, pattern]
+
 (* ============================================================== *)
-(* ACCESSOR                                                       *)
+(* INSPECTORES DE ESTRUCTURA — FORM §1.1                          *)
 (* ============================================================== *)
 
-(* AgentMessageAlphabet accede al campo "messageAlphabet" de la
-   Association interna del HybridAgent. La existencia del campo
-   se garantiza por el schema de HybridAgent.wl (CORE-0002). *)
+(* MessageHead: head del termino, identifica el tipo de mensaje en Σ *)
+MessageHead[m_] := Head[m]
 
-AgentMessageAlphabet[agent_] :=
-  agent["messageAlphabet"]
+(* MessagePayload: argumentos del termino (todos excepto el head) *)
+MessagePayload[m_] := List @@ m
 
+(* ============================================================== *)
+(* PROTECCION                                                     *)
+(* ============================================================== *)
 
+Protect[
+  MessageAlphabet, MessageAlphabetQ,
+  MessageTermQ, MessagePatternQ, MessageMatchQ,
+  MessageHead, MessagePayload
+];
+(* AgentMessageAlphabet is owned and protected by HVA`Core`HybridAgent`.
+   MessageAlphabet.wl owns only the MessageAlphabet type and its operations. *)
 
 End[]
 EndPackage[]
