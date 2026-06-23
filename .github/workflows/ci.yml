@@ -126,11 +126,21 @@ jobs:
       - name: Build imagen Docker
         run: docker build -t hva:latest .
 
-      - name: Preparar licencia Wolfram
+      # Licencia on-demand de Wolfram Engine (Free / On-Demand).
+      # No se monta mathpass: el engine se activa por red en cada run usando
+      # el Entitlement ID. Esto evita el node-lock a un MachineID concreto,
+      # incompatible con runners efímeros de GitHub.
+      # Obtené el Entitlement ID en https://account.wolfram.com → Wolfram Engine
+      # On-Demand, y guardalo como secret WOLFRAM_ENTITLEMENTID.
+      - name: Verificar entitlement de Wolfram Engine
         run: |
-          mkdir -p /tmp/wolfram-license
-          echo "${{ secrets.WOLFRAM_MATHPASS }}" | base64 -d \
-            > /tmp/wolfram-license/mathpass
+          if [[ -z "${{ secrets.WOLFRAM_ENTITLEMENTID }}" ]]; then
+            echo "::error::Falta el secret WOLFRAM_ENTITLEMENTID (activación on-demand)."
+            echo "::error::Obtené un Entitlement ID en https://account.wolfram.com (Wolfram Engine On-Demand)."
+            echo "::error::Settings → Secrets and variables → Actions → New secret → WOLFRAM_ENTITLEMENTID"
+            exit 1
+          fi
+          echo "✓ Secret WOLFRAM_ENTITLEMENTID presente."
 
       - name: Ejecutar TestRunner (capas ${{ needs.detect-layers.outputs.layers }})
         env:
@@ -143,7 +153,7 @@ jobs:
           fi
 
           docker run --rm \
-            -v /tmp/wolfram-license/mathpass:/home/wolframengine/.WolframEngine/Licensing/mathpass:ro \
+            -e WOLFRAMSCRIPT_ENTITLEMENTID="${{ secrets.WOLFRAM_ENTITLEMENTID }}" \
             -e HVA_TEST_LAYERS="$HVA_TEST_LAYERS" \
             hva:latest \
             wolframscript -file /app/paclet/Tests/TestRunner.wl $LAYER_FLAG

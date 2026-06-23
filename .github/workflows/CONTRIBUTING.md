@@ -279,12 +279,13 @@ Aplicar en Settings → Branches de GitHub:
 
 | Secreto | Descripción |
 |---|---|
-| `WOLFRAM_MATHPASS` | Licencia Wolfram Engine en base64. Requerido por el job `test`. |
+| `WOLFRAM_ENTITLEMENTID` | Entitlement ID de Wolfram Engine On-Demand. Requerido por el job `test`. Activa el engine por red en cada run (sin node-lock a un MachineID). |
 
-Para codificar la licencia:
-```bash
-base64 -i ~/.WolframEngine/Licensing/mathpass | tr -d '\n'
-```
+Para obtener el Entitlement ID:
+1. Entrá a <https://account.wolfram.com> con tu Wolfram ID.
+2. Activá una licencia **Wolfram Engine** (gratuita) y generá un **On-Demand Entitlement**.
+3. Copiá el ID con formato `O-WSTD-XXXX-XXXXXXXXXXXXX`.
+4. Settings → Secrets and variables → Actions → New secret → `WOLFRAM_ENTITLEMENTID`.
 
 ---
 
