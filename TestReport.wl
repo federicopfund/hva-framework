@@ -52,8 +52,11 @@ $suites = {
   {"Services", {
     "Services/ExecutorTest.wlt",
     "Services/SimulatorTest.wlt",
+    "Services/HybridIntegratorTest.wlt",
+    "Services/ReplayTest.wlt",
     "Services/SupervisorTest.wlt",
-    "Services/VerifierTest.wlt"
+    "Services/VerifierTest.wlt",
+    "Services/InvariantCheckerTest.wlt"
   }},
   {"Adapters",    {
     "Adapters/AdaptersTest.wlt",
