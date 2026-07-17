@@ -49,10 +49,10 @@ Needs["HVA`Core`HybridAgent`"]
 (* tVar = AgentTime[agent] (tipicamente Global`t) asegura coherencia de simbolos.
    WhenEvent usa With[] para inlinear valores (WhenEvent tiene HoldAll).
    modeIdx es discreta: cambia solo via WhenEvent, sin ODE propia. *)
-$buildNDSolveSystem[agent_HybridAgent, tMax_?Positive] :=
+$buildNDSolveSystem[agent_HybridAgent, tMax_?Positive, modeIdxSym_Symbol] :=
   Module[
     {vars, nu0, modes, vfs, trans, modeIndex,
-     tVar, varFuns, ic, odes, whenEvents, modeIC},
+     tVar, varFuns, stripRules, ic, odes, whenEvents, modeIC},
     vars      = AgentContinuousVars[agent];
     nu0       = AgentInitialValuation[agent];
     modes     = AgentModes[agent];
@@ -61,6 +61,11 @@ $buildNDSolveSystem[agent_HybridAgent, tMax_?Positive] :=
     modeIndex = AssociationThread[modes, Range[Length[modes]]];
     tVar      = AgentTime[agent];
     varFuns   = Map[Function[var, var[tVar]], vars];
+    (* Reglas para quitar cualquier aplicacion temporal previa en los RHS:
+       var[cualquierCosa] -> var, antes de aplicar la sustitucion var -> var[tVar].
+       Esto hace $buildNDSolveSystem robusto frente a VectorFields declarados
+       en forma eT[eTime] (NDSolve-style) o en forma pura eT. *)
+    stripRules = Map[Function[v, HoldPattern[v[_]] -> v], vars];
     ic        = KeyValueMap[Function[{var, val}, var[0] == val], nu0];
     odes = Map[
       Function[var,
@@ -68,7 +73,7 @@ $buildNDSolveSystem[agent_HybridAgent, tMax_?Positive] :=
           idx    = Position[vars, var][[1, 1]];
           pieces = MapThread[
             Function[{q, i},
-              {(vfs[q] /. Thread[vars -> varFuns])[[idx]], modeIdx[tVar] == i}
+              {(vfs[q] /. stripRules /. Thread[vars -> varFuns])[[idx]], modeIdxSym[tVar] == i}
             ],
             {modes, Range[Length[modes]]}
           ];
@@ -82,23 +87,24 @@ $buildNDSolveSystem[agent_HybridAgent, tMax_?Positive] :=
         With[
           {fromIdx = modeIndex[tr["from"]],
            toIdx   = modeIndex[tr["to"]],
-           condFun = tr["condition"] /. Thread[vars -> varFuns],
-           tV      = tVar},
+           condFun = tr["condition"] /. stripRules /. Thread[vars -> varFuns],
+           tV      = tVar,
+           miSym   = modeIdxSym},
           WhenEvent[
-            condFun && modeIdx[tV] == fromIdx,
-            {modeIdx[tV] -> toIdx, "RestartIntegration"}
+            condFun && miSym[tV] == fromIdx,
+            {miSym[tV] -> toIdx, "RestartIntegration"}
           ]
         ]
       ],
       trans
     ];
-    modeIC = {modeIdx[0] == modeIndex[AgentCurrentMode[agent]]};
+    modeIC = {modeIdxSym[0] == modeIndex[AgentCurrentMode[agent]]};
     Join[odes, whenEvents, ic, modeIC]
   ];
 
 IntegrateHybridSystemPrecise[agent_HybridAgent, tMax_?Positive, opts : OptionsPattern[]] :=
   Module[
-    {vars, modes, modeIndex, tVar, system, sol,
+    {vars, modes, modeIndex, tVar, modeIdx, system, sol,
      modeIdxInterp, solFunAssoc, dt0, tSamples,
      modeHistory, modeDiffs, jumpIdx, transitions,
      finalModeIdx, finalMode, sampleAt},
@@ -112,7 +118,10 @@ IntegrateHybridSystemPrecise[agent_HybridAgent, tMax_?Positive, opts : OptionsPa
     modes     = AgentModes[agent];
     modeIndex = AssociationThread[modes, Range[Length[modes]]];
     tVar      = AgentTime[agent];
-    system    = $buildNDSolveSystem[agent, tMax];
+    (* modeIdx es local al Module: cada invocacion tiene su propio simbolo
+       aislado. Esto evita contaminacion entre llamadas consecutivas en el
+       mismo kernel (critico en la suite de tests de CI). *)
+    system    = $buildNDSolveSystem[agent, tMax, modeIdx];
 
     sol = Quiet[
       Check[
@@ -131,7 +140,7 @@ IntegrateHybridSystemPrecise[agent_HybridAgent, tMax_?Positive, opts : OptionsPa
       Return[$Failed]
     ];
 
-    (* Extraer InterpolatingFunctions dentro del contexto donde modeIdx es correcto *)
+    (* modeIdx aqui es el simbolo local del Module — ya no es Global *)
     modeIdxInterp = modeIdx /. sol;
     solFunAssoc   = AssociationThread[vars, Map[Function[var, var /. sol], vars]];
 

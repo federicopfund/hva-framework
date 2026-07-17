@@ -28,6 +28,12 @@ CertTarget::usage   = "Campo CertTarget: predicado objetivo Ψ a verificar. Impl
 CertProof::usage    = "Campo CertProof: evidencia de la demostracion (Association o expresion simbolica). Implementa π de FORM Def. 4.1.";
 CertWitness::usage  = "Campo CertWitness: testigo o contraejemplo. Implementa witness de FORM Def. 4.1.";
 CertStatus::usage   = "Campo CertStatus: estado del certificado. Valores canonicos: Verified | Falsified | Inconclusive | Pending. Implementa status de FORM Def. 4.1.";
+
+(* Valores canonicos de CertStatus — exportados como simbolos para uso en pattern matching *)
+Verified::usage     = "Valor canonico de CertStatus: el verificador probo la propiedad.";
+Falsified::usage    = "Valor canonico de CertStatus: el verificador encontro un contraejemplo.";
+Inconclusive::usage = "Valor canonico de CertStatus: el verificador no pudo probar ni refutar.";
+Pending::usage      = "Valor canonico de CertStatus: verificacion no ejecutada todavia.";
 CertFragment::usage =
   "Campo CertFragment (OBLIGATORIO): fragmento de decidibilidad usado en la verificacion.\n" <>
   "Valores canonicos: inductive | barrier | bounded-model-check | simulation.\n" <>
@@ -86,7 +92,8 @@ GenerateCertificate[___] :=
 Protect[
   VerificationCertificate, VerificationCertificateQ,
   CertAgent, CertTarget, CertProof, CertWitness, CertStatus, CertFragment,
-  GenerateCertificate
+  GenerateCertificate,
+  Verified, Falsified, Inconclusive, Pending
 ];
 
 End[]
