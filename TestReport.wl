@@ -53,6 +53,7 @@ $suites = {
     "Services/ExecutorTest.wlt",
     "Services/SimulatorTest.wlt",
     "Services/HybridIntegratorTest.wlt",
+    "Services/EventDetectorTest.wlt",
     "Services/ReplayTest.wlt",
     "Services/SupervisorTest.wlt",
     "Services/VerifierTest.wlt",
