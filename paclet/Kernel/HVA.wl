@@ -106,7 +106,18 @@ $HVAModuleGraph = <|
     "HVA`Services`Verifier`ReachabilityChecker`",
     "HVA`Services`Verifier`ContractChecker`"
   },
-  "HVA`Services`Simulator`"                     -> {"HVA`Core`", "HVA`Runtime`"},
+  (* Simulator sub-modules *)
+  "HVA`Services`Simulator`HybridIntegrator`"    -> {"HVA`Core`"},
+  "HVA`Services`Simulator`EventDetector`"       -> {"HVA`Core`"},
+  "HVA`Services`Simulator`MultiAgentScheduler`" -> {"HVA`Core`", "HVA`Runtime`"},
+  "HVA`Services`Simulator`Replay`"              -> {"HVA`Core`"},
+  "HVA`Services`Simulator`"                     -> {
+    "HVA`Core`", "HVA`Runtime`",
+    "HVA`Services`Simulator`HybridIntegrator`",
+    "HVA`Services`Simulator`EventDetector`",
+    "HVA`Services`Simulator`MultiAgentScheduler`",
+    "HVA`Services`Simulator`Replay`"
+  },
   "HVA`Services`Executor`"                      -> {"HVA`Core`", "HVA`Runtime`"},
   "HVA`Services`Supervisor`"                    -> {"HVA`Core`"},
   "HVA`Services`"                               -> {
@@ -114,8 +125,24 @@ $HVAModuleGraph = <|
     "HVA`Services`Executor`", "HVA`Services`Supervisor`"
   },
   "HVA`Adapters`"                               -> {"HVA`Core`"},
-  "HVA`DSL`"                                    -> {
-    "HVA`Core`", "HVA`Runtime`", "HVA`Services`", "HVA`Adapters`"
+  (* DSL sub-modules *)
+  "HVA`DSL`DefineAgent`"       -> {"HVA`Core`"},
+  "HVA`DSL`DefineContract`"    -> {"HVA`Core`"},
+  "HVA`DSL`DefineCausalModel`" -> {"HVA`Core`"},
+  "HVA`DSL`ExportCertificate`" -> {"HVA`Services`Verifier`Certificate`"},
+  "HVA`DSL`SystemCommands`"    -> {
+    "HVA`Core`",
+    "HVA`Services`Verifier`InvariantChecker`",
+    "HVA`Services`Verifier`ContractChecker`",
+    "HVA`Services`Verifier`Certificate`",
+    "HVA`Services`Simulator`HybridIntegrator`"
+  },
+  "HVA`DSL`RunSystem`"         -> {"HVA`Core`", "HVA`Runtime`", "HVA`Services`"},
+  "HVA`DSL`"                   -> {
+    "HVA`Core`", "HVA`Runtime`", "HVA`Services`", "HVA`Adapters`",
+    "HVA`DSL`DefineAgent`", "HVA`DSL`DefineContract`",
+    "HVA`DSL`DefineCausalModel`", "HVA`DSL`ExportCertificate`",
+    "HVA`DSL`SystemCommands`", "HVA`DSL`RunSystem`"
   },
   "HVA`FrontEnd`"                               -> {"HVA`DSL`"}
 |>;
