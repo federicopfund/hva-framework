@@ -72,28 +72,37 @@ Needs["HVA`Services`Simulator`HybridIntegrator`"]
 
 (* ── VerifyAgent ────────────────────────────────────────────────── *)
 VerifyAgent[agent_] /; HybridAgentQ[agent] :=
-  Module[{invs, tVar, varFuns, results, allPass, witness, fragment, status},
+  Module[{invs, tVar, contVars, normRules, normAgent,
+          results, allPass, witness, fragment, status},
 
-    invs = AgentModeInvariants[agent];
-    tVar = AgentTime[agent];
+    tVar     = AgentTime[agent];
+    contVars = AgentContinuousVars[agent];
 
-    (* Normalizar: si es Association <|mode->pred|>, tomar los valores;
-       si es lista plana, usar directamente. *)
-    invs = If[AssociationQ[invs], Values[invs], invs];
-
-    (* Filtrar True (invariante trivial — siempre verificado, no testear) *)
-    invs = Select[invs, # =!= True &];
-
-    (* Normalizar var[tVar] -> var en los predicados.
+    (* Reglas de normalizacion: var[tVar] -> var para todas las vars continuas.
        CheckInvariantInductive trabaja con variables simbolicas puras (x, no x[t]).
-       Los invariantes declarados como eT[eTime] <= 30 deben convertirse a eT <= 30
-       para que freeSymbols, predicateToBarrier y el Resolve operen correctamente. *)
-    invs = Map[
-      Function[pred,
-        pred /. Map[Function[v, v[tVar] -> v], AgentContinuousVars[agent]]
-      ],
-      invs
+       Tanto los predicados como los VectorFields deben estar normalizados
+       para que gradP . rhs, FindInstance y Resolve operen correctamente. *)
+    normRules = Map[Function[v, v[tVar] -> v], contVars];
+
+    (* Construir agente normalizado: VectorFields y ModeInvariants sin var[t] *)
+    normAgent = HybridAgent[AgentId[agent],
+      Modes            -> AgentModes[agent],
+      ContinuousVars   -> contVars,
+      VectorFields     -> Map[Function[rhs, rhs /. normRules],
+                               AgentVectorFields[agent], {2}],
+      Transitions      -> AgentTransitions[agent],
+      ModeInvariants   -> Map[Function[pred, pred /. normRules],
+                               AgentModeInvariants[agent]],
+      InitialMode      -> AgentInitialMode[agent],
+      InitialValuation -> AgentInitialValuation[agent],
+      Contract         -> AgentContract[agent],
+      TimeSymbol       -> tVar
     ];
+    If[!HybridAgentQ[normAgent], Return[$Failed]];
+
+    invs = AgentModeInvariants[normAgent];
+    invs = If[AssociationQ[invs], Values[invs], invs];
+    invs = Select[invs, # =!= True &];
 
     (* Sin invariantes no-triviales: certificado trivialmente Verified *)
     If[invs === {},
@@ -103,9 +112,9 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
       ]]
     ];
 
-    (* Verificar cada invariante de forma inductiva *)
+    (* Verificar cada invariante de forma inductiva sobre el agente normalizado *)
     results = Map[
-      Function[pred, CheckInvariantInductive[agent, pred]],
+      Function[pred, CheckInvariantInductive[normAgent, pred]],
       invs
     ];
 
