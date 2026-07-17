@@ -20,7 +20,7 @@ $replayAgent := HybridAgent["replay-test",
   ContinuousVars   -> {rpX, rpV},
   VectorFields     -> <|
     "a" -> {rpX'[rpT] == rpV[rpT], rpV'[rpT] == -rpX[rpT]},
-    "b" -> {rpX'[rpT] == 0, rpV'[rpT] == 0}
+    "b" -> {rpX'[rpT] == 0.0, rpV'[rpT] == 0.0}
   |>,
   Transitions      -> {
     <|"from" -> "a", "to" -> "b", "condition" -> rpX[rpT] > 0.8, "action" -> <||>|>
@@ -32,12 +32,13 @@ $replayAgent := HybridAgent["replay-test",
 ];
 
 (* Construir traza real directamente con HVA Core — sin depender de ningún integrador *)
+(* $eulerManual extrae los RHS de EDOs x'[t]==rhs y aplica un paso de Euler.
+   subRules sustituye var[_]->val para evaluar numericamente los RHS aplicados. *)
 $eulerManual[a_, dt_] :=
   Module[{q, nu, vars, edos, subRules, rhsList, newNu},
     q    = AgentCurrentMode[a];
     nu   = AgentValuation[a];
     vars = AgentContinuousVars[a];
-    (* Extraer RHS de EDOs lhs'[t] == rhs; sustituir var[_] -> val *)
     edos     = AgentVectorFields[a][q];
     subRules = KeyValueMap[Function[{var, val}, HoldPattern[var[_]] -> val], nu];
     rhsList  = Map[Last[#] /. subRules &, edos];

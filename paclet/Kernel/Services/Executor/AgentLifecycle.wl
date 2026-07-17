@@ -12,7 +12,7 @@
 (* :License: MIT *)
 
 BeginPackage["HVA`Services`Executor`AgentLifecycle`",
-  {"HVA`Core`HybridAgent`"}]
+  {"HVA`Core`HybridAgent`", "HVA`Core`AgentTrace`"}]
 
 AdvanceAgentLifecycle::usage =
   "AdvanceAgentLifecycle[agent, event] avanza el ciclo de vida del agente.\n" <>
