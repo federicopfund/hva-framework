@@ -197,15 +197,15 @@ CheckContractPair[contractI_, contractJ_] :=
 
 (* ── CheckSystemContracts ──────────────────────────────────────── *)
 CheckSystemContracts[agents_List] :=
-  Module[{ids, contracts, pairChecks, allPass},
+  Module[{ids, contracts, pairChecks, allPass, badIdx},
 
-    (* Validar que todos los elementos son HybridAgents *)
-    Do[
-      If[!HybridAgentQ[agents[[k]]],
-        Message[CheckSystemContracts::notAgentList, k];
-        Return[$Failed]
-      ],
-      {k, Length[agents]}
+    (* Validar que todos los elementos son HybridAgents.
+       Return[$Failed] dentro de Do no sale del Module en WL — usamos
+       una busqueda previa con SelectFirst para detectar el primer elemento invalido. *)
+    badIdx = SelectFirst[Range[Length[agents]], !HybridAgentQ[agents[[#]]] &, None];
+    If[badIdx =!= None,
+      Message[CheckSystemContracts::notAgentList, badIdx];
+      Return[$Failed]
     ];
 
     ids       = AgentId /@ agents;
