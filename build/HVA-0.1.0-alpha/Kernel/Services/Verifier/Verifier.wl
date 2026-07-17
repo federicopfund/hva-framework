@@ -3,7 +3,7 @@
 (* :Author: HVA Contributors *)
 (* :Summary: Inicializador del subsistema de verificacion. *)
 (* :Capa: Services (4) *)
-(* :Depends: HVA`Verifier`InvariantChecker`, HVA`Verifier`ContractChecker`, HVA`Verifier`ReachabilityChecker`, HVA`Verifier`VectorFieldAnalysis`, HVA`Verifier`Certificate` *)
+(* :Depends: HVA`Services`Verifier`Certificate`, HVA`Services`Verifier`ContractChecker`, HVA`Services`Verifier`InvariantChecker`, HVA`Services`Verifier`ReachabilityChecker`, HVA`Services`Verifier`VectorFieldAnalysis` *)
 (* :Formalismo: N/A (inicializador de subsistema) *)
 (* :Spec: N/A *)
 (* :Methodology: METHODOLOGY.md §5 *)
