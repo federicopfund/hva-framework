@@ -87,13 +87,19 @@ VerificationTest[
 (* ── Validacion de argumentos ─────────────────────────────────────────────── *)
 
 VerificationTest[
-  HVA`Runtime`Scheduler`ScheduleAgentTask["agentBad", Function[Null], -1.0],
+  Quiet[
+    HVA`Runtime`Scheduler`ScheduleAgentTask["agentBad", Function[Null], -1.0],
+    HVA`Runtime`Scheduler`ScheduleAgentTask::badInterval
+  ],
   $Failed,
   TestID -> "Runtime-Scheduler-07-bad-interval-negative"
 ]
 
 VerificationTest[
-  HVA`Runtime`Scheduler`ScheduleAgentTask[123, Function[Null], 1.0],
+  Quiet[
+    HVA`Runtime`Scheduler`ScheduleAgentTask[123, Function[Null], 1.0],
+    HVA`Runtime`Scheduler`ScheduleAgentTask::notAgent
+  ],
   $Failed,
   TestID -> "Runtime-Scheduler-08-bad-agent-not-string"
 ]

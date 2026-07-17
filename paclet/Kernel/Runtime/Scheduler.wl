@@ -106,7 +106,7 @@ CancelAgentTask[agentId_String] :=
 
 CancelAgentTask[_] := False;
 
-Protect[ScheduleAgentTask, CancelAgentTask, $ActiveAgentTasks];
+Protect[ScheduleAgentTask, CancelAgentTask];
 
 End[]
 EndPackage[]
