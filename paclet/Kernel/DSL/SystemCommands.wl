@@ -72,9 +72,10 @@ Needs["HVA`Services`Simulator`HybridIntegrator`"]
 
 (* ── VerifyAgent ────────────────────────────────────────────────── *)
 VerifyAgent[agent_] /; HybridAgentQ[agent] :=
-  Module[{invs, results, allPass, witness, fragment, status},
+  Module[{invs, tVar, varFuns, results, allPass, witness, fragment, status},
 
     invs = AgentModeInvariants[agent];
+    tVar = AgentTime[agent];
 
     (* Normalizar: si es Association <|mode->pred|>, tomar los valores;
        si es lista plana, usar directamente. *)
@@ -82,6 +83,17 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
 
     (* Filtrar True (invariante trivial — siempre verificado, no testear) *)
     invs = Select[invs, # =!= True &];
+
+    (* Normalizar var[tVar] -> var en los predicados.
+       CheckInvariantInductive trabaja con variables simbolicas puras (x, no x[t]).
+       Los invariantes declarados como eT[eTime] <= 30 deben convertirse a eT <= 30
+       para que freeSymbols, predicateToBarrier y el Resolve operen correctamente. *)
+    invs = Map[
+      Function[pred,
+        pred /. Map[Function[v, v[tVar] -> v], AgentContinuousVars[agent]]
+      ],
+      invs
+    ];
 
     (* Sin invariantes no-triviales: certificado trivialmente Verified *)
     If[invs === {},
@@ -98,12 +110,13 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
     ];
 
     allPass  = AllTrue[results, TrueQ[#["status"]] &];
-    (* Primer contraejemplo o missing *)
     witness  = SelectFirst[results, !TrueQ[#["status"]] &, Missing["NotApplicable"]];
-    fragment = If[allPass, "inductive",
-                 If[AnyTrue[results, #["fragment"] === "inconclusive" &],
-                   "inconclusive", "inductive"]];
-    status   = Which[
+    fragment = Which[
+      allPass,                                                    "inductive",
+      AnyTrue[results, #["fragment"] === "inconclusive" &],      "inconclusive",
+      True,                                                       "inductive"
+    ];
+    status = Which[
       allPass,                                   HVA`Services`Verifier`Certificate`Verified,
       AnyTrue[results, #["status"] === False &], HVA`Services`Verifier`Certificate`Falsified,
       True,                                      HVA`Services`Verifier`Certificate`Inconclusive
@@ -113,7 +126,7 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
       AgentId[agent],
       invs,
       AssociationThread[invs, results],
-      If[MissingQ[witness], witness, witness],
+      witness,
       status,
       fragment
     ]
@@ -136,7 +149,7 @@ SimulateAgent[_, tMax_] /; !TrueQ[tMax > 0] :=
 VerifySystem[agents_List] :=
   Module[{result, allPass, status},
     result  = CheckSystemContracts[agents];
-    If[result === $Failed, Return[$Failed]];
+    If[result === $Failed || FailureQ[result], Return[$Failed]];
     allPass = TrueQ[result["status"]];
     status  = If[allPass,
       HVA`Services`Verifier`Certificate`Verified,
