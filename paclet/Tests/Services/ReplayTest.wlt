@@ -28,7 +28,7 @@ $replayAgent := HybridAgent["replay-test",
   TimeSymbol       -> rpT
 ];
 
-$realTrace := AgentTrace[Last[NestList[
+$realTrace := Last[NestList[
   Function[a, Module[{q, nu, vars, rhs, newNu},
     q    = AgentCurrentMode[a];
     nu   = AgentValuation[a];
@@ -40,7 +40,7 @@ $realTrace := AgentTrace[Last[NestList[
       <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
   ]],
   $replayAgent, 15
-]]];
+]]["trace"];
 
 $run := Quiet[IntegrateHybridSystemPrecise[$replayAgent, 3.0]];
 
@@ -99,14 +99,11 @@ VerificationTest[
 (* ── 5. Determinismo: dos replays de la misma traza son idénticos ── *)
 
 VerificationTest[
-  Quiet[
-    Module[{tau, r1, r2},
-      tau = $realTrace;
-      r1  = ReplayTrace[$replayAgent, tau];
-      r2  = ReplayTrace[$replayAgent, tau];
-      r1 === r2
-    ],
-    ReplayTrace::notAgent, ReplayTrace::notList
+  Module[{tau, r1, r2},
+    tau = $realTrace;
+    r1  = ReplayTrace[$replayAgent, tau];
+    r2  = ReplayTrace[$replayAgent, tau];
+    r1 === r2
   ],
   True,
   TestID -> "Services-Replay-05-deterministic-replay-Def-2.2"
@@ -115,14 +112,11 @@ VerificationTest[
 (* ── 6. Functional: traza del estado final acumula todos los eventos ── *)
 
 VerificationTest[
-  Quiet[
-    Module[{tau, replayed, finalTau},
-      tau      = $realTrace;
-      replayed = ReplayTrace[$replayAgent, tau];
-      finalTau = AgentTrace[Last[replayed]];
-      Length[finalTau] === Length[tau]
-    ],
-    ReplayTrace::notAgent, ReplayTrace::notList
+  Module[{tau, replayed, finalTau},
+    tau      = $realTrace;
+    replayed = ReplayTrace[$replayAgent, tau];
+    finalTau = Last[replayed]["trace"];
+    Length[finalTau] === Length[tau]
   ],
   True,
   TestID -> "Services-Replay-06-trace-accumulates-events-Def-2.2"
@@ -369,7 +363,7 @@ VerificationTest[
     replayed = ReplayPreciseRun[singleAgent, run2, 0.1];
     HybridAgentQ[Last[replayed]] &&
     AgentCurrentMode[Last[replayed]] === "q" &&
-    AllTrue[AgentTrace[Last[replayed]], #["type"] === "flow" &]
+    AllTrue[Last[replayed]["trace"], #["type"] === "flow" &]
   ],
   True,
   TestID -> "Services-Replay-26-no-transition-run-stays-in-single-mode-Def-2.4"
