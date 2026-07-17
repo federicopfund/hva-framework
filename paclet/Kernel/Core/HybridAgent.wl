@@ -363,14 +363,22 @@ constraintTransitionsHaveConditionKey[expr_Association] := Module[
 ];
 
 (* DEF-2, CORE-0003: las EDOs deben aplicar el simbolo temporal explicito.
-   Detecta Derivative[n][var] sin argumento: aparece como subexpresion directa
-   (sin Heads->True) solo cuando no esta aplicado a [timeSym]. *)
+   Detecta Derivative[n][var] sin argumento temporal aplicado.
+   Forma INVALIDA: Derivative[1][var] == rhs  (sin [t])
+   Forma VALIDA:   Derivative[1][var][t] == rhs (con [t] aplicado)
+   Una EDO es invalida si contiene Derivative[n][s] SIN aplicar:
+   !FreeQ[edo, Derivative[_][_Symbol]] Y FreeQ[edo, Derivative[_][_Symbol][_]]
+   => hay Derivative sin argumento aplicado. *)
 constraintVectorFieldsHaveTemporalArg[expr_Association] := Module[
   {timeSym, allEDOs, badEDOs},
   timeSym = expr["time"];
   allEDOs = Flatten @ Values[expr["vectorFields"]];
   badEDOs = Select[allEDOs,
-    Function[edo, Cases[edo, Derivative[_][_Symbol], Infinity] =!= {}]];
+    Function[edo,
+      !FreeQ[edo, Derivative[_][_Symbol]] &&
+      FreeQ[edo, Derivative[_][_Symbol][_]]
+    ]
+  ];
   If[badEDOs === {},
     True,
     <|"Code" -> "ConstraintViolation",
