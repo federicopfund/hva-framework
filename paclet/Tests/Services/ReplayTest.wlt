@@ -15,7 +15,12 @@ Needs["HVA`"];
 Needs["HVA`Services`Simulator`HybridIntegrator`"];
 Clear[rpX, rpV, rpT];
 
-$replayAgent := HybridAgent["replay-test",
+(* Construir el agente UNA sola vez con Set (=).
+   SetDelayed (:=) re-evaluaria la expresion en cada acceso; como los
+   modos se llaman "a" y "b", cualquier variable local llamada 'a' o
+   'b' en un Function anidado substituiria los strings de modo, corrompiendo
+   el agente. Con = el valor queda fijo en el momento de la carga. *)
+$replayAgent = HybridAgent["replay-test",
   Modes            -> {"a", "b"},
   ContinuousVars   -> {rpX, rpV},
   VectorFields     -> <|"a" -> {rpV, -rpX}, "b" -> {0, 0}|>,
@@ -28,8 +33,12 @@ $replayAgent := HybridAgent["replay-test",
   TimeSymbol       -> rpT
 ];
 
-$realTrace := Last[NestList[
-  Function[st, Module[{q, nu, vars, rhs, newNu},
+(* Calcular la traza UNA sola vez con Set.
+   Last[states]["trace"] accede directamente al campo sin pasar por el
+   simbolo AgentTrace (ADR-008: AgentTrace existe en dos contextos). *)
+$realTrace = Module[{agent0, step, states},
+  agent0 = $replayAgent;
+  step = Function[st, Module[{q, nu, vars, rhs, newNu},
     q    = AgentCurrentMode[st];
     nu   = AgentValuation[st];
     vars = AgentContinuousVars[st];
@@ -38,11 +47,12 @@ $realTrace := Last[NestList[
       MapThread[Function[{v, r}, v + 0.1 * r], {Lookup[nu, vars], rhs}]];
     AppendTrace[WithValuation[st, newNu],
       <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
-  ]],
-  $replayAgent, 15
-]]["trace"];
+  ]];
+  states = NestList[step, agent0, 15];
+  Last[states]["trace"]
+];
 
-$run := Quiet[IntegrateHybridSystemPrecise[$replayAgent, 3.0]];
+$run = Quiet[IntegrateHybridSystemPrecise[$replayAgent, 3.0]];
 
 (* ── 1. Smoke ────────────────────────────────────────────────────── *)
 
