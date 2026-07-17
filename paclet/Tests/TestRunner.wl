@@ -47,7 +47,7 @@ Print["Failed: ", $failed];
 (* Imprimir detalle de fallos *)
 If[$failed > 0,
   Print[""];
-  Print["── FAILURES ─────────────────────────────────────────────────"];
+  Print["-- FAILURES --------------------------------------------------"];
   Do[
     Module[{outcome, testId, input, expected, actual, msgs, expMsgs},
       outcome = res["Outcome"];
@@ -83,7 +83,7 @@ If[$failed > 0,
         If[msgs =!= {} && msgs =!= Missing["KeyAbsent", "ActualMessages"],
           Print["    Messages:"];
           Scan[
-            Function[m, Print["      -> ", StringTake[ToString[m], Min[StringLength[ToString[m]], 300]]]],
+            Function[m, Print["      >> ", StringTake[ToString[m], Min[StringLength[ToString[m]], 300]]]],
             msgs
           ]
         ];
@@ -96,7 +96,7 @@ If[$failed > 0,
           Print["    Expected messages: ", ToString[expMsgs]]
         ];
 
-        Print["  ─────────────────────────────────────────────────────"]
+        Print["  ------------------------------------------------------"]
       ]
     ],
     {res, Values[$report["TestResults"]]}

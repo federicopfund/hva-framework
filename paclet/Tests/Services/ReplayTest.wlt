@@ -29,14 +29,14 @@ $replayAgent := HybridAgent["replay-test",
 ];
 
 $realTrace := Last[NestList[
-  Function[a, Module[{q, nu, vars, rhs, newNu},
-    q    = AgentCurrentMode[a];
-    nu   = AgentValuation[a];
-    vars = AgentContinuousVars[a];
-    rhs  = AgentVectorFields[a][q] /. Normal[nu];
+  Function[st, Module[{q, nu, vars, rhs, newNu},
+    q    = AgentCurrentMode[st];
+    nu   = AgentValuation[st];
+    vars = AgentContinuousVars[st];
+    rhs  = AgentVectorFields[st][q] /. Normal[nu];
     newNu = AssociationThread[vars,
       MapThread[Function[{v, r}, v + 0.1 * r], {Lookup[nu, vars], rhs}]];
-    AppendTrace[WithValuation[a, newNu],
+    AppendTrace[WithValuation[st, newNu],
       <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
   ]],
   $replayAgent, 15
