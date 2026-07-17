@@ -20,7 +20,7 @@ Needs["HVA`Services`Simulator`HybridIntegrator`"];
    de simbolos entre suites. *)
 With[{rpX = Unique["rpX"], rpV = Unique["rpV"], rpT = Unique["rpT"]},
 
-  $replayAgent = Quiet[HybridAgent["replay-test",
+  $replayAgent = HybridAgent["replay-test",
     HVA`Core`HybridAgent`Modes            -> {"a", "b"},
     HVA`Core`HybridAgent`ContinuousVars   -> {rpX, rpV},
     HVA`Core`HybridAgent`VectorFields     -> <|"a" -> {rpV, -rpX}, "b" -> {0, 0}|>,
@@ -31,7 +31,7 @@ With[{rpX = Unique["rpX"], rpV = Unique["rpV"], rpT = Unique["rpT"]},
     HVA`Core`HybridAgent`InitialMode      -> "a",
     HVA`Core`HybridAgent`InitialValuation -> <|rpX -> 0.0, rpV -> 1.0|>,
     HVA`Core`HybridAgent`TimeSymbol       -> rpT
-  ]];
+  ];
 
   (* Construir traza via Euler manual — sin depender del integrador *)
   $realTrace = AgentTrace[Last[NestList[
@@ -106,11 +106,14 @@ VerificationTest[
 (* ── 5. Determinismo: dos replays de la misma traza son idénticos ── *)
 
 VerificationTest[
-  Module[{tau, r1, r2},
-    tau = $realTrace;
-    r1  = ReplayTrace[$replayAgent, tau];
-    r2  = ReplayTrace[$replayAgent, tau];
-    r1 === r2
+  Quiet[
+    Module[{tau, r1, r2},
+      tau = $realTrace;
+      r1  = ReplayTrace[$replayAgent, tau];
+      r2  = ReplayTrace[$replayAgent, tau];
+      r1 === r2
+    ],
+    ReplayTrace::notAgent, ReplayTrace::notList
   ],
   True,
   TestID -> "Services-Replay-05-deterministic-replay-Def-2.2"
@@ -119,11 +122,14 @@ VerificationTest[
 (* ── 6. Functional: traza del estado final acumula todos los eventos ── *)
 
 VerificationTest[
-  Module[{tau, replayed, finalTau},
-    tau      = $realTrace;
-    replayed = ReplayTrace[$replayAgent, tau];
-    finalTau = AgentTrace[Last[replayed]];
-    Length[finalTau] === Length[tau]
+  Quiet[
+    Module[{tau, replayed, finalTau},
+      tau      = $realTrace;
+      replayed = ReplayTrace[$replayAgent, tau];
+      finalTau = AgentTrace[Last[replayed]];
+      Length[finalTau] === Length[tau]
+    ],
+    ReplayTrace::notAgent, ReplayTrace::notList
   ],
   True,
   TestID -> "Services-Replay-06-trace-accumulates-events-Def-2.2"
@@ -355,21 +361,23 @@ VerificationTest[
 (* ── 26. Agente sin transiciones: replay queda en el modo unico ──────── *)
 
 VerificationTest[
-  Module[{singleAgent, run2, replayed, sgX, sgV, sgT},
-    singleAgent = HybridAgent["replay-single",
-      Modes            -> {"q"},
-      ContinuousVars   -> {sgX, sgV},
-      VectorFields     -> <|"q" -> {sgV, -sgX}|>,
-      Transitions      -> {},
-      ModeInvariants   -> <|"q" -> True|>,
-      InitialMode      -> "q",
-      InitialValuation -> <|sgX -> 0.0, sgV -> 1.0|>,
-      TimeSymbol       -> sgT
-    ];
-    run2     = IntegrateHybridSystemPrecise[singleAgent, 2.0];
-    replayed = ReplayPreciseRun[singleAgent, run2, 0.1];
-    AgentCurrentMode[Last[replayed]] === "q" &&
-    AllTrue[AgentTrace[Last[replayed]], #["type"] === "flow" &]
+  With[{sgX = Unique["sgX"], sgV = Unique["sgV"], sgT = Unique["sgT"]},
+    Module[{singleAgent, run2, replayed},
+      singleAgent = HybridAgent["replay-single",
+        HVA`Core`HybridAgent`Modes            -> {"q"},
+        HVA`Core`HybridAgent`ContinuousVars   -> {sgX, sgV},
+        HVA`Core`HybridAgent`VectorFields     -> <|"q" -> {sgV, -sgX}|>,
+        HVA`Core`HybridAgent`Transitions      -> {},
+        HVA`Core`HybridAgent`ModeInvariants   -> <|"q" -> True|>,
+        HVA`Core`HybridAgent`InitialMode      -> "q",
+        HVA`Core`HybridAgent`InitialValuation -> <|sgX -> 0.0, sgV -> 1.0|>,
+        HVA`Core`HybridAgent`TimeSymbol       -> sgT
+      ];
+      run2     = IntegrateHybridSystemPrecise[singleAgent, 2.0];
+      replayed = ReplayPreciseRun[singleAgent, run2, 0.1];
+      AgentCurrentMode[Last[replayed]] === "q" &&
+      AllTrue[AgentTrace[Last[replayed]], #["type"] === "flow" &]
+    ]
   ],
   True,
   TestID -> "Services-Replay-26-no-transition-run-stays-in-single-mode-Def-2.4"
