@@ -88,20 +88,36 @@ $pacletEntryFile = $InputFileName;
    de carga se recomputa automaticamente.
    ═══════════════════════════════════════════════════════════════════════════ *)
 $HVAModuleGraph = <|
-  "HVA`Utilities`"           -> {},
-  "HVA`Core`"                -> {"HVA`Utilities`"},
-  "HVA`Runtime`"             -> {"HVA`Core`"},
-  "HVA`Services`Verifier`"   -> {"HVA`Core`"},
-  "HVA`Services`Simulator`"  -> {"HVA`Core`", "HVA`Runtime`"},
-  "HVA`Services`Executor`"   -> {"HVA`Core`", "HVA`Runtime`"},
-  "HVA`Services`Supervisor`" -> {"HVA`Core`"},
-  "HVA`Services`"            -> {
+  "HVA`Utilities`"                              -> {},
+  "HVA`Core`"                                   -> {"HVA`Utilities`"},
+  "HVA`Runtime`"                                -> {"HVA`Core`"},
+  (* Verifier sub-modules — permiten Needs directo y workflows de grano fino *)
+  "HVA`Services`Verifier`Certificate`"          -> {"HVA`Core`"},
+  "HVA`Services`Verifier`VectorFieldAnalysis`"  -> {"HVA`Core`"},
+  "HVA`Services`Verifier`InvariantChecker`"     -> {"HVA`Core`", "HVA`Services`Simulator`"},
+  "HVA`Services`Verifier`ReachabilityChecker`"  -> {"HVA`Core`"},
+  "HVA`Services`Verifier`ContractChecker`"      -> {
+    "HVA`Core`", "HVA`Services`Verifier`Certificate`"
+  },
+  "HVA`Services`Verifier`"                      -> {
+    "HVA`Services`Verifier`Certificate`",
+    "HVA`Services`Verifier`VectorFieldAnalysis`",
+    "HVA`Services`Verifier`InvariantChecker`",
+    "HVA`Services`Verifier`ReachabilityChecker`",
+    "HVA`Services`Verifier`ContractChecker`"
+  },
+  "HVA`Services`Simulator`"                     -> {"HVA`Core`", "HVA`Runtime`"},
+  "HVA`Services`Executor`"                      -> {"HVA`Core`", "HVA`Runtime`"},
+  "HVA`Services`Supervisor`"                    -> {"HVA`Core`"},
+  "HVA`Services`"                               -> {
     "HVA`Services`Verifier`", "HVA`Services`Simulator`",
     "HVA`Services`Executor`", "HVA`Services`Supervisor`"
   },
-  "HVA`Adapters`"            -> {"HVA`Core`"},
-  "HVA`DSL`"                 -> {"HVA`Core`", "HVA`Runtime`", "HVA`Services`", "HVA`Adapters`"},
-  "HVA`FrontEnd`"            -> {"HVA`DSL`"}
+  "HVA`Adapters`"                               -> {"HVA`Core`"},
+  "HVA`DSL`"                                    -> {
+    "HVA`Core`", "HVA`Runtime`", "HVA`Services`", "HVA`Adapters`"
+  },
+  "HVA`FrontEnd`"                               -> {"HVA`DSL`"}
 |>;
 
 (* ═══════════════════════════════════════════════════════════════════════════
