@@ -13,43 +13,36 @@
 (* ── Bootstrap ──────────────────────────────────────────────────── *)
 Needs["HVA`"];
 Needs["HVA`Services`Simulator`HybridIntegrator`"];
+Clear[rpX, rpV, rpT];
 
-(* Simbolos de fixtures creados con Unique para aislamiento total del kernel.
-   Se usan = (Set) para fijar el agente una vez al cargar el archivo; las
-   definiciones retardadas := causaban re-evaluacion con posible contaminacion
-   de simbolos entre suites. *)
-With[{rpX = Unique["rpX"], rpV = Unique["rpV"], rpT = Unique["rpT"]},
-
-  $replayAgent = HybridAgent["replay-test",
-    HVA`Core`HybridAgent`Modes            -> {"a", "b"},
-    HVA`Core`HybridAgent`ContinuousVars   -> {rpX, rpV},
-    HVA`Core`HybridAgent`VectorFields     -> <|"a" -> {rpV, -rpX}, "b" -> {0, 0}|>,
-    HVA`Core`HybridAgent`Transitions      -> {
-      <|"from" -> "a", "to" -> "b", "condition" -> rpX > 0.8, "action" -> <||>|>
-    },
-    HVA`Core`HybridAgent`ModeInvariants   -> <|"a" -> True, "b" -> True|>,
-    HVA`Core`HybridAgent`InitialMode      -> "a",
-    HVA`Core`HybridAgent`InitialValuation -> <|rpX -> 0.0, rpV -> 1.0|>,
-    HVA`Core`HybridAgent`TimeSymbol       -> rpT
-  ];
-
-  (* Construir traza via Euler manual — sin depender del integrador *)
-  $realTrace = AgentTrace[Last[NestList[
-    Function[a, Module[{q, nu, vars, rhs, newNu},
-      q    = AgentCurrentMode[a];
-      nu   = AgentValuation[a];
-      vars = AgentContinuousVars[a];
-      rhs  = AgentVectorFields[a][q] /. Normal[nu];
-      newNu = AssociationThread[vars,
-        MapThread[Function[{v, r}, v + 0.1 * r], {Lookup[nu, vars], rhs}]];
-      AppendTrace[WithValuation[a, newNu],
-        <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
-    ]],
-    $replayAgent, 15
-  ]]];
-
-  $run = IntegrateHybridSystemPrecise[$replayAgent, 3.0];
+$replayAgent := HybridAgent["replay-test",
+  Modes            -> {"a", "b"},
+  ContinuousVars   -> {rpX, rpV},
+  VectorFields     -> <|"a" -> {rpV, -rpX}, "b" -> {0, 0}|>,
+  Transitions      -> {
+    <|"from" -> "a", "to" -> "b", "condition" -> rpX > 0.8, "action" -> <||>|>
+  },
+  ModeInvariants   -> <|"a" -> True, "b" -> True|>,
+  InitialMode      -> "a",
+  InitialValuation -> <|rpX -> 0.0, rpV -> 1.0|>,
+  TimeSymbol       -> rpT
 ];
+
+$realTrace := AgentTrace[Last[NestList[
+  Function[a, Module[{q, nu, vars, rhs, newNu},
+    q    = AgentCurrentMode[a];
+    nu   = AgentValuation[a];
+    vars = AgentContinuousVars[a];
+    rhs  = AgentVectorFields[a][q] /. Normal[nu];
+    newNu = AssociationThread[vars,
+      MapThread[Function[{v, r}, v + 0.1 * r], {Lookup[nu, vars], rhs}]];
+    AppendTrace[WithValuation[a, newNu],
+      <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
+  ]],
+  $replayAgent, 15
+]]];
+
+$run := Quiet[IntegrateHybridSystemPrecise[$replayAgent, 3.0]];
 
 (* ── 1. Smoke ────────────────────────────────────────────────────── *)
 
@@ -361,23 +354,22 @@ VerificationTest[
 (* ── 26. Agente sin transiciones: replay queda en el modo unico ──────── *)
 
 VerificationTest[
-  With[{sgX = Unique["sgX"], sgV = Unique["sgV"], sgT = Unique["sgT"]},
-    Module[{singleAgent, run2, replayed},
-      singleAgent = HybridAgent["replay-single",
-        HVA`Core`HybridAgent`Modes            -> {"q"},
-        HVA`Core`HybridAgent`ContinuousVars   -> {sgX, sgV},
-        HVA`Core`HybridAgent`VectorFields     -> <|"q" -> {sgV, -sgX}|>,
-        HVA`Core`HybridAgent`Transitions      -> {},
-        HVA`Core`HybridAgent`ModeInvariants   -> <|"q" -> True|>,
-        HVA`Core`HybridAgent`InitialMode      -> "q",
-        HVA`Core`HybridAgent`InitialValuation -> <|sgX -> 0.0, sgV -> 1.0|>,
-        HVA`Core`HybridAgent`TimeSymbol       -> sgT
-      ];
-      run2     = IntegrateHybridSystemPrecise[singleAgent, 2.0];
-      replayed = ReplayPreciseRun[singleAgent, run2, 0.1];
-      AgentCurrentMode[Last[replayed]] === "q" &&
-      AllTrue[AgentTrace[Last[replayed]], #["type"] === "flow" &]
-    ]
+  Module[{singleAgent, run2, replayed, sgX, sgV, sgT},
+    singleAgent = HybridAgent["replay-single",
+      Modes            -> {"q"},
+      ContinuousVars   -> {sgX, sgV},
+      VectorFields     -> <|"q" -> {sgV, -sgX}|>,
+      Transitions      -> {},
+      ModeInvariants   -> <|"q" -> True|>,
+      InitialMode      -> "q",
+      InitialValuation -> <|sgX -> 0.0, sgV -> 1.0|>,
+      TimeSymbol       -> sgT
+    ];
+    run2     = Quiet[IntegrateHybridSystemPrecise[singleAgent, 2.0]];
+    replayed = ReplayPreciseRun[singleAgent, run2, 0.1];
+    HybridAgentQ[Last[replayed]] &&
+    AgentCurrentMode[Last[replayed]] === "q" &&
+    AllTrue[AgentTrace[Last[replayed]], #["type"] === "flow" &]
   ],
   True,
   TestID -> "Services-Replay-26-no-transition-run-stays-in-single-mode-Def-2.4"
