@@ -52,7 +52,7 @@ Needs["HVA`Core`HybridAgent`"]
 $buildNDSolveSystem[agent_HybridAgent, tMax_?Positive, modeIdxSym_Symbol] :=
   Module[
     {vars, nu0, modes, vfs, trans, modeIndex,
-     tVar, varFuns, ic, odes, whenEvents, modeIC},
+     tVar, varFuns, stripRules, ic, odes, whenEvents, modeIC},
     vars      = AgentContinuousVars[agent];
     nu0       = AgentInitialValuation[agent];
     modes     = AgentModes[agent];
@@ -61,6 +61,11 @@ $buildNDSolveSystem[agent_HybridAgent, tMax_?Positive, modeIdxSym_Symbol] :=
     modeIndex = AssociationThread[modes, Range[Length[modes]]];
     tVar      = AgentTime[agent];
     varFuns   = Map[Function[var, var[tVar]], vars];
+    (* Reglas para quitar cualquier aplicacion temporal previa en los RHS:
+       var[cualquierCosa] -> var, antes de aplicar la sustitucion var -> var[tVar].
+       Esto hace $buildNDSolveSystem robusto frente a VectorFields declarados
+       en forma eT[eTime] (NDSolve-style) o en forma pura eT. *)
+    stripRules = Map[Function[v, HoldPattern[v[_]] -> v], vars];
     ic        = KeyValueMap[Function[{var, val}, var[0] == val], nu0];
     odes = Map[
       Function[var,
@@ -68,7 +73,7 @@ $buildNDSolveSystem[agent_HybridAgent, tMax_?Positive, modeIdxSym_Symbol] :=
           idx    = Position[vars, var][[1, 1]];
           pieces = MapThread[
             Function[{q, i},
-              {(vfs[q] /. Thread[vars -> varFuns])[[idx]], modeIdxSym[tVar] == i}
+              {(vfs[q] /. stripRules /. Thread[vars -> varFuns])[[idx]], modeIdxSym[tVar] == i}
             ],
             {modes, Range[Length[modes]]}
           ];
@@ -82,7 +87,7 @@ $buildNDSolveSystem[agent_HybridAgent, tMax_?Positive, modeIdxSym_Symbol] :=
         With[
           {fromIdx = modeIndex[tr["from"]],
            toIdx   = modeIndex[tr["to"]],
-           condFun = tr["condition"] /. Thread[vars -> varFuns],
+           condFun = tr["condition"] /. stripRules /. Thread[vars -> varFuns],
            tV      = tVar,
            miSym   = modeIdxSym},
           WhenEvent[
