@@ -18,9 +18,12 @@ Clear[rpX, rpV, rpT];
 $replayAgent := HybridAgent["replay-test",
   Modes            -> {"a", "b"},
   ContinuousVars   -> {rpX, rpV},
-  VectorFields     -> <|"a" -> {rpV, -rpX}, "b" -> {0, 0}|>,
+  VectorFields     -> <|
+    "a" -> {rpX'[rpT] == rpV[rpT], rpV'[rpT] == -rpX[rpT]},
+    "b" -> {rpX'[rpT] == 0, rpV'[rpT] == 0}
+  |>,
   Transitions      -> {
-    <|"from" -> "a", "to" -> "b", "condition" -> rpX > 0.8, "action" -> <||>|>
+    <|"from" -> "a", "to" -> "b", "condition" -> rpX[rpT] > 0.8, "action" -> <||>|>
   },
   ModeInvariants   -> <|"a" -> True, "b" -> True|>,
   InitialMode      -> "a",
@@ -30,13 +33,16 @@ $replayAgent := HybridAgent["replay-test",
 
 (* Construir traza real directamente con HVA Core — sin depender de ningún integrador *)
 $eulerManual[a_, dt_] :=
-  Module[{q, nu, vars, rhs, newNu},
+  Module[{q, nu, vars, edos, subRules, rhsList, newNu},
     q    = AgentCurrentMode[a];
     nu   = AgentValuation[a];
     vars = AgentContinuousVars[a];
-    rhs  = AgentVectorFields[a][q] /. Normal[nu];
+    (* Extraer RHS de EDOs lhs'[t] == rhs; sustituir var[_] -> val *)
+    edos     = AgentVectorFields[a][q];
+    subRules = KeyValueMap[Function[{var, val}, HoldPattern[var[_]] -> val], nu];
+    rhsList  = Map[Last[#] /. subRules &, edos];
     newNu = AssociationThread[vars,
-      MapThread[#1 + dt * #2 &, {Lookup[nu, vars], rhs}]];
+      MapThread[#1 + dt * #2 &, {Lookup[nu, vars], rhsList}]];
     AppendTrace[WithValuation[a, newNu],
       <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
   ];
@@ -346,7 +352,7 @@ VerificationTest[
     singleAgent = HybridAgent["replay-single",
       Modes            -> {"q"},
       ContinuousVars   -> {sgX, sgV},
-      VectorFields     -> <|"q" -> {sgV, -sgX}|>,
+      VectorFields     -> <|"q" -> {sgX'[sgT] == sgV[sgT], sgV'[sgT] == -sgX[sgT]}|>,
       Transitions      -> {},
       ModeInvariants   -> <|"q" -> True|>,
       InitialMode      -> "q",

@@ -14,7 +14,7 @@
 (* ── Smoke ──────────────────────────────────────────────────────────────── *)
 
 VerificationTest[
-  Quiet[Needs["HVA`Executor`"]; True],
+  Quiet[Needs["HVA`Services`Executor`"]; True],
   True,
   TestID -> "Services-Executor-01-smoke-load"
 ]
@@ -107,7 +107,10 @@ Module[{agent},
 
   (* Transicion invalida: Created --start--> $Failed *)
   VerificationTest[
-    HVA`Services`Executor`AgentLifecycle`AdvanceAgentLifecycle[agent, "start"],
+    Quiet[
+      HVA`Services`Executor`AgentLifecycle`AdvanceAgentLifecycle[agent, "start"],
+      HVA`Services`Executor`AgentLifecycle`AdvanceAgentLifecycle::invalidTransition
+    ],
     $Failed,
     TestID -> "Services-Executor-10-lifecycle-invalid-transition"
   ];
@@ -125,7 +128,10 @@ Module[{agent},
       TestID -> "Services-Executor-11-lifecycle-terminated"
     ];
     VerificationTest[
-      HVA`Services`Executor`AgentLifecycle`AdvanceAgentLifecycle[aT, "start"],
+      Quiet[
+        HVA`Services`Executor`AgentLifecycle`AdvanceAgentLifecycle[aT, "start"],
+        HVA`Services`Executor`AgentLifecycle`AdvanceAgentLifecycle::invalidTransition
+      ],
       $Failed,
       TestID -> "Services-Executor-12-lifecycle-terminated-no-advance"
     ]
@@ -182,7 +188,10 @@ Module[{agent, trace, restored},
 
 (* Errores *)
 VerificationTest[
-  HVA`Services`Executor`StateRestore`RestoreAgentState["notAgent", {}],
+  Quiet[
+    HVA`Services`Executor`StateRestore`RestoreAgentState["notAgent", {}],
+    HVA`Services`Executor`StateRestore`RestoreAgentState::notAgent
+  ],
   $Failed,
   TestID -> "Services-Executor-16-staterestore-bad-agent"
 ]

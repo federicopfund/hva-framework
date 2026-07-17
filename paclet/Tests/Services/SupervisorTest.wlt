@@ -17,7 +17,7 @@
 (* ── Smoke ──────────────────────────────────────────────────────────────── *)
 
 VerificationTest[
-  Quiet[Needs["HVA`Supervisor`"]; True],
+  Quiet[Needs["HVA`Services`Supervisor`"]; True],
   True,
   TestID -> "Services-Supervisor-01-smoke-load"
 ]
@@ -59,8 +59,11 @@ Module[{model, posterior},
 
 (* Error: no CausalModel *)
 VerificationTest[
-  HVA`Services`Supervisor`BayesianInference`InferCauseProbabilities[
-    "notAModel", <|"s1" -> True|>
+  Quiet[
+    HVA`Services`Supervisor`BayesianInference`InferCauseProbabilities[
+      "notAModel", <|"s1" -> True|>
+    ],
+    HVA`Services`Supervisor`BayesianInference`InferCauseProbabilities::notModel
   ],
   $Failed,
   TestID -> "Services-Supervisor-05-bayes-bad-model"
@@ -92,10 +95,10 @@ VerificationTest[
   TestID -> "Services-Supervisor-08-confidence-ambiguo"
 ]
 
-(* Desconocido: max=0.3 < 0.4 *)
+(* Desconocido: todas las probs <= 0.35, max=0.35 < 0.4 *)
 VerificationTest[
   HVA`Services`Supervisor`ConfidenceEvaluator`EvaluateConfidence[
-    <|"causeA" -> 0.3, "causeB" -> 0.3, "causeC" -> 0.4|>
+    <|"causeA" -> 0.35, "causeB" -> 0.35, "causeC" -> 0.30|>
   ]["regime"],
   "Desconocido",
   TestID -> "Services-Supervisor-09-confidence-desconocido"
@@ -110,9 +113,12 @@ VerificationTest[
   TestID -> "Services-Supervisor-10-confidence-topcause"
 ]
 
-(* posterior vacio *)
+(* posterior vacio: emite ::emptyPosterior y devuelve "Desconocido" *)
 VerificationTest[
-  HVA`Services`Supervisor`ConfidenceEvaluator`EvaluateConfidence[<||>]["regime"],
+  Quiet[
+    HVA`Services`Supervisor`ConfidenceEvaluator`EvaluateConfidence[<||>]["regime"],
+    HVA`Services`Supervisor`ConfidenceEvaluator`EvaluateConfidence::emptyPosterior
+  ],
   "Desconocido",
   TestID -> "Services-Supervisor-11-confidence-empty"
 ]
@@ -203,9 +209,12 @@ Module[{history, priors},
   ];
 ]
 
-(* Sin history ni KnownCauses -> vacio *)
+(* Sin history ni KnownCauses -> vacio: emite ::emptyHistory *)
 VerificationTest[
-  HVA`Services`Supervisor`PriorLearning`UpdatePriors[{}],
+  Quiet[
+    HVA`Services`Supervisor`PriorLearning`UpdatePriors[{}],
+    HVA`Services`Supervisor`PriorLearning`UpdatePriors::emptyHistory
+  ],
   <||>,
   TestID -> "Services-Supervisor-22-prior-empty-history"
 ]
