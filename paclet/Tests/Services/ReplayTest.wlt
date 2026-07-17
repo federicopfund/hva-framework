@@ -12,38 +12,33 @@
 
 (* ── Bootstrap ──────────────────────────────────────────────────── *)
 Needs["HVA`"];
-(* Simbolos propios de este test file — nombres unicos para evitar colision *)
-Clear[rpX, rpV, rpT];
+(* Simbolos propios de este test file.
+   ClearAll garantiza que no queden valores, DownValues ni UpValues residuales
+   de runs anteriores del mismo kernel. *)
+ClearAll[rpX, rpV, rpT];
 
-$replayAgent := HybridAgent["replay-test",
-  Modes            -> {"a", "b"},
-  ContinuousVars   -> {rpX, rpV},
-  VectorFields     -> <|
-    "a" -> {rpX'[rpT] == rpV[rpT], rpV'[rpT] == -rpX[rpT]},
-    "b" -> {rpX'[rpT] == 0.0, rpV'[rpT] == 0.0}
-  |>,
-  Transitions      -> {
-    <|"from" -> "a", "to" -> "b", "condition" -> rpX[rpT] > 0.8, "action" -> <||>|>
+$replayAgent := Quiet[HybridAgent["replay-test",
+  HVA`Core`HybridAgent`Modes            -> {"a", "b"},
+  HVA`Core`HybridAgent`ContinuousVars   -> {rpX, rpV},
+  HVA`Core`HybridAgent`VectorFields     -> <|"a" -> {rpV, -rpX}, "b" -> {0, 0}|>,
+  HVA`Core`HybridAgent`Transitions      -> {
+    <|"from" -> "a", "to" -> "b", "condition" -> rpX > 0.8, "action" -> <||>|>
   },
-  ModeInvariants   -> <|"a" -> True, "b" -> True|>,
-  InitialMode      -> "a",
-  InitialValuation -> <|rpX -> 0.0, rpV -> 1.0|>,
-  TimeSymbol       -> rpT
-];
+  HVA`Core`HybridAgent`ModeInvariants   -> <|"a" -> True, "b" -> True|>,
+  HVA`Core`HybridAgent`InitialMode      -> "a",
+  HVA`Core`HybridAgent`InitialValuation -> <|rpX -> 0.0, rpV -> 1.0|>,
+  HVA`Core`HybridAgent`TimeSymbol       -> rpT
+], {HybridAgent::shdw, HybridAgent::optx}];
 
 (* Construir traza real directamente con HVA Core — sin depender de ningún integrador *)
-(* $eulerManual extrae los RHS de EDOs x'[t]==rhs y aplica un paso de Euler.
-   subRules sustituye var[_]->val para evaluar numericamente los RHS aplicados. *)
 $eulerManual[a_, dt_] :=
-  Module[{q, nu, vars, edos, subRules, rhsList, newNu},
+  Module[{q, nu, vars, rhs, newNu},
     q    = AgentCurrentMode[a];
     nu   = AgentValuation[a];
     vars = AgentContinuousVars[a];
-    edos     = AgentVectorFields[a][q];
-    subRules = KeyValueMap[Function[{var, val}, HoldPattern[var[_]] -> val], nu];
-    rhsList  = Map[Last[#] /. subRules &, edos];
+    rhs  = AgentVectorFields[a][q] /. Normal[nu];
     newNu = AssociationThread[vars,
-      MapThread[#1 + dt * #2 &, {Lookup[nu, vars], rhsList}]];
+      MapThread[#1 + dt * #2 &, {Lookup[nu, vars], rhs}]];
     AppendTrace[WithValuation[a, newNu],
       <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
   ];
@@ -353,7 +348,7 @@ VerificationTest[
     singleAgent = HybridAgent["replay-single",
       Modes            -> {"q"},
       ContinuousVars   -> {sgX, sgV},
-      VectorFields     -> <|"q" -> {sgX'[sgT] == sgV[sgT], sgV'[sgT] == -sgX[sgT]}|>,
+      VectorFields     -> <|"q" -> {sgV, -sgX}|>,
       Transitions      -> {},
       ModeInvariants   -> <|"q" -> True|>,
       InitialMode      -> "q",
