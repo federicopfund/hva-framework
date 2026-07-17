@@ -59,9 +59,9 @@ ScheduleAgentTask[agentOrId_, action_, interval_?Positive] :=
       Return[$Failed]
     ];
 
-    (* Crear ScheduledTask WL nativo: ejecuta action[] cada interval segundos *)
+    (* Crear ScheduledTask WL nativo: ejecuta action[agentOrId] cada interval segundos *)
     task = ScheduledTask[
-      action[],
+      action[agentOrId],
       Quantity[interval, "Seconds"]
     ];
 
@@ -89,7 +89,7 @@ CancelAgentTask[task_ScheduledTask] :=
     If[!MissingQ[found],
       $ActiveAgentTasks = KeyDrop[$ActiveAgentTasks, found]
     ];
-    RemoveScheduledTask[task];
+    Quiet[RemoveScheduledTask[task]];
     True
   ];
 
@@ -100,13 +100,13 @@ CancelAgentTask[agentId_String] :=
       Return[False]
     ];
     $ActiveAgentTasks = KeyDrop[$ActiveAgentTasks, agentId];
-    RemoveScheduledTask[task];
+    Quiet[RemoveScheduledTask[task]];
     True
   ];
 
 CancelAgentTask[_] := False;
 
-Protect[ScheduleAgentTask, CancelAgentTask];
+Protect[ScheduleAgentTask, CancelAgentTask, $ActiveAgentTasks];
 
 End[]
 EndPackage[]

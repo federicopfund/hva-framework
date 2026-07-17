@@ -97,3 +97,23 @@ VerificationTest[
   $Failed,
   TestID -> "Runtime-Scheduler-08-bad-agent-not-string"
 ]
+
+(* La accion recibe el agentId como argumento (RT-0001: action[agentOrId]) *)
+VerificationTest[
+  Quiet[
+    Module[{received, task},
+      received = None;
+      task = HVA`Runtime`Scheduler`ScheduleAgentTask[
+        "agentAction",
+        Function[id, received = id],
+        2.0
+      ];
+      (* El body del ScheduledTask captura la llamada: extraemos el argumento
+         del primer elemento del body examinando la estructura interna del task. *)
+      MatchQ[task, _ScheduledTask] &&
+      MatchQ[task[[1]], (Function[id, received = id])["agentAction"]]
+    ]
+  ],
+  True,
+  TestID -> "Runtime-Scheduler-09-action-receives-agentid"
+]
