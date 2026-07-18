@@ -70,10 +70,20 @@ Needs["HVA`Services`Verifier`ContractChecker`"]
 Needs["HVA`Services`Verifier`Certificate`"]
 Needs["HVA`Services`Simulator`HybridIntegrator`"]
 
+(* ── $expandPredicate — descompone predicados compuestos en simples
+   15 <= x <= 30  ->  {15 <= x, x <= 30}
+   And[p1,p2]    ->  {p1, p2}  (recursivo)
+   simple         ->  {simple}                                         *)
+$expandPredicate[Inequality[a_, op1_, x_, op2_, b_]] :=
+  {op1[a, x], op2[x, b]};
+$expandPredicate[And[ps__]] :=
+  Flatten[Map[$expandPredicate, {ps}], 1];
+$expandPredicate[p_] := {p};
+
 (* ── VerifyAgent ────────────────────────────────────────────────── *)
 VerifyAgent[agent_] /; HybridAgentQ[agent] :=
   Module[{invs, tVar, contVars, normRules, normAgent,
-          results, allPass, witness, fragment, status},
+          flatInvs, results, allPass, witness, fragment, status},
 
     tVar     = AgentTime[agent];
     contVars = AgentContinuousVars[agent];
@@ -112,10 +122,16 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
       ]]
     ];
 
-    (* Verificar cada invariante de forma inductiva sobre el agente normalizado *)
+    (* Expandir predicados compuestos (Inequality, And) en simples
+       ANTES de pasarlos a CheckInvariantInductive para que el checker
+       de barrera funcione con cada sub-predicado simple por separado. *)
+    flatInvs = DeleteDuplicates[Flatten[Map[$expandPredicate, invs], 1]];
+    flatInvs = Select[flatInvs, # =!= True &];
+
+    (* Verificar cada invariante simple de forma inductiva *)
     results = Map[
       Function[pred, CheckInvariantInductive[normAgent, pred]],
-      invs
+      flatInvs
     ];
 
     allPass  = AllTrue[results, TrueQ[#["status"]] &];
@@ -133,8 +149,8 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
 
     GenerateCertificate[
       AgentId[agent],
-      invs,
-      AssociationThread[invs, results],
+      flatInvs,
+      AssociationThread[flatInvs, results],
       witness,
       status,
       fragment
