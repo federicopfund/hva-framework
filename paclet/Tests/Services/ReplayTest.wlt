@@ -34,8 +34,11 @@ $replayAgent = HybridAgent["replay-test",
 ];
 
 (* Calcular la traza UNA sola vez con Set.
-   Last[states]["trace"] accede directamente al campo sin pasar por el
-   simbolo AgentTrace (ADR-008: AgentTrace existe en dos contextos). *)
+   Usar AgentTrace[agent] (el accessor definido en HybridAgent.wl) para
+   extraer la traza del ultimo estado: devuelve assoc["trace"] via el
+   downvalue AgentTrace[HybridAgent[a_]] := a["trace"].
+   La notacion Last[states]["trace"] NO funciona sobre HybridAgent porque
+   HybridAgent no tiene SubValues y la expresion queda sin evaluar (ADR-008). *)
 $realTrace = Module[{agent0, step, states},
   agent0 = $replayAgent;
   step = Function[st, Module[{q, nu, vars, rhs, newNu},
@@ -49,7 +52,7 @@ $realTrace = Module[{agent0, step, states},
       <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
   ]];
   states = NestList[step, agent0, 15];
-  Last[states]["trace"]
+  AgentTrace[Last[states]]
 ];
 
 $run = Quiet[IntegrateHybridSystemPrecise[$replayAgent, 3.0]];
