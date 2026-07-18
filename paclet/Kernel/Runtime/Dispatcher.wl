@@ -3,7 +3,7 @@
 (* :Author: HVA Contributors *)
 (* :Summary: Despacho de mensajes por pattern matching con orden de especificidad. *)
 (* :Capa: Runtime (3) *)
-(* :Depends: HVA`Utilities`ErrorHandling` *)
+(* :Depends: HVA`Core`HybridAgent`, HVA`Utilities`ErrorHandling` *)
 (* :Formalismo: FORM Def. 2.5 (transicion por mensaje), Anexo B (B4 — DispatcherDeterminism) *)
 (* :Spec: §9 (runtime y mensajeria) *)
 (* :Methodology: METHODOLOGY.md §5 *)
@@ -16,7 +16,8 @@
    primario publico para evitar el conflicto.
 *)
 
-BeginPackage["HVA`Runtime`Dispatcher`", {"HVA`Utilities`ErrorHandling`"}]
+BeginPackage["HVA`Runtime`Dispatcher`",
+  {"HVA`Core`HybridAgent`", "HVA`Utilities`ErrorHandling`"}]
 
 DispatchMessage::usage =
   "DispatchMessage[agent, msg] aplica la primera RewriteRule de agent que unifica\n" <>
@@ -42,11 +43,13 @@ DispatchMessage::ambiguous = "Multiples RewriteRules del agente `1` unifican con
 
 Begin["`Private`"]
 
+Needs["HVA`Core`HybridAgent`"]
 Needs["HVA`Utilities`ErrorHandling`"]
 
 (* Registrar tags de dominio de este modulo (Issue #11 UTIL-0003) *)
-RegisterErrorTag["HVA.Runtime.NoMatch",   "error"];
-RegisterErrorTag["HVA.Runtime.Ambiguous", "error"];
+RegisterErrorTag["HVA.Runtime.NoMatch",    "error"];
+RegisterErrorTag["HVA.Runtime.Ambiguous",  "error"];
+RegisterErrorTag["HVA.Runtime.NotAnAgent", "error"];
 
 (* ============================================================== *)
 (* Helpers internos                                               *)
@@ -71,18 +74,24 @@ SpecificityOrder[rules_List] :=
 
 DispatcherDeterminism[agent_, msg_] :=
   Module[{rules, matching},
-    rules    = SpecificityOrder[Lookup[agent[[1]], "rewriteRules", {}]];
+    If[!HybridAgentQ[agent],
+      Return[RaiseHVAError["HVA.Runtime.NotAnAgent",
+        <|"Function" -> "DispatcherDeterminism",
+          "Expected" -> "HybridAgent",
+          "Got"      -> ToString[Head[agent]]|>]]
+    ];
+    rules    = SpecificityOrder[AgentRewriteRules[agent]];
     matching = Select[rules, Function[r, MatchQ[msg, r[[1]]]]];
     Which[
       Length[matching] === 1,
         True,
       Length[matching] === 0,
         RaiseHVAError["HVA.Runtime.NoMatch",
-          <|"agentId"  -> Lookup[agent[[1]], "id", Unknown],
+          <|"agentId"  -> AgentId[agent],
             "message" -> msg|>],
       True,
         RaiseHVAError["HVA.Runtime.Ambiguous",
-          <|"agentId"  -> Lookup[agent[[1]], "id", Unknown],
+          <|"agentId"  -> AgentId[agent],
             "message" -> msg,
             "count"   -> Length[matching]|>]
     ]
@@ -94,20 +103,26 @@ DispatcherDeterminism[agent_, msg_] :=
 
 DispatchMessage[agent_, msg_] :=
   Module[{rules, sorted, matching},
-    rules    = Lookup[agent[[1]], "rewriteRules", {}];
+    If[!HybridAgentQ[agent],
+      Return[RaiseHVAError["HVA.Runtime.NotAnAgent",
+        <|"Function" -> "DispatchMessage",
+          "Expected" -> "HybridAgent",
+          "Got"      -> ToString[Head[agent]]|>]]
+    ];
+    rules    = AgentRewriteRules[agent];
     sorted   = SpecificityOrder[rules];
     matching = Select[sorted, Function[r, MatchQ[msg, r[[1]]]]];
     Which[
       Length[matching] === 0,
-        Message[DispatchMessage::noRule, Lookup[agent[[1]], "id", "?"], msg];
+        Message[DispatchMessage::noRule, AgentId[agent], msg];
         RaiseHVAError["HVA.Runtime.NoMatch",
-          <|"agentId"  -> Lookup[agent[[1]], "id", Unknown],
+          <|"agentId"  -> AgentId[agent],
             "message" -> msg|>],
       Length[matching] > 1,
         Message[DispatchMessage::ambiguous,
-          Lookup[agent[[1]], "id", "?"], msg, Length[matching]];
+          AgentId[agent], msg, Length[matching]];
         RaiseHVAError["HVA.Runtime.Ambiguous",
-          <|"agentId"  -> Lookup[agent[[1]], "id", Unknown],
+          <|"agentId"  -> AgentId[agent],
             "message" -> msg,
             "count"   -> Length[matching]|>],
       True,
