@@ -7,14 +7,20 @@
 
 BeginPackage["HVA`FrontEnd`Styles`Colors`"]
 
-HVABrandTeal::usage   = "HVABrandTeal es el color teal primario de la marca HVA.";
+HVABrandTeal::usage  = "HVABrandTeal es el color teal primario de la marca HVA \
+(variante oscura, para fondos oscuros).";
+HVABrandLight::usage = "HVABrandLight es el color teal de la marca HVA optimizado \
+para fondos claros — mayor saturacion y menor luminosidad que HVABrandTeal.";
 HVAStatusColor::usage = "HVAStatusColor[state] devuelve el RGBColor \
 correspondiente al estado del agente: verde (on/running), rojo (error), \
 ambar (warn/degraded), gris (off/inactivo).";
 
 Begin["`Private`"]
 
-HVABrandTeal = RGBColor[0.10, 0.75, 0.62];
+(* Teal oscuro — panels dark (uso original) *)
+HVABrandTeal  = RGBColor[0.10, 0.75, 0.62];
+(* Teal claro — panels luminosos: mayor contraste sobre #F5F5F5 *)
+HVABrandLight = RGBColor[0.00, 0.52, 0.44];
 
 HVAStatusColor[state_String] := Which[
   MemberQ[{"on","running","active","started","initialized"}, state],
