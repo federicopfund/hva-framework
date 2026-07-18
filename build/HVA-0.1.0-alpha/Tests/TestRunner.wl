@@ -46,12 +46,62 @@ Print["Failed: ", $failed];
 
 (* Imprimir detalle de fallos *)
 If[$failed > 0,
+  Print[""];
+  Print["-- FAILURES --------------------------------------------------"];
   Do[
-    If[res["Outcome"] =!= "Success",
-      Print["  FAIL  ", res["TestID"], "  (", res["Outcome"], ")"]
+    Module[{outcome, testId, input, expected, actual, msgs, expMsgs},
+      outcome = res["Outcome"];
+      If[outcome =!= "Success",
+        testId   = res["TestID"];
+        input    = res["Input"];
+        expected = res["ExpectedOutput"];
+        actual   = res["ActualOutput"];
+        msgs     = res["ActualMessages"];
+        expMsgs  = res["ExpectedMessages"];
+
+        Print[""];
+        Print["  [", outcome, "]  ", testId];
+
+        (* Input expression *)
+        With[{s = ToString[input, InputForm]},
+          If[StringLength[s] > 0 && s =!= "Null",
+            Print["    Input:    ", StringTake[s, Min[StringLength[s], 400]]]
+          ]
+        ];
+
+        (* Expected vs Actual *)
+        Print["    Expected: ", StringTake[
+          ToString[expected, InputForm],
+          Min[StringLength[ToString[expected, InputForm]], 400]
+        ]];
+        Print["    Actual:   ", StringTake[
+          ToString[actual, InputForm],
+          Min[StringLength[ToString[actual, InputForm]], 400]
+        ]];
+
+        (* Messages actually emitted *)
+        If[msgs =!= {} && msgs =!= Missing["KeyAbsent", "ActualMessages"],
+          Print["    Messages:"];
+          Scan[
+            Function[m, Print["      >> ", StringTake[ToString[m], Min[StringLength[ToString[m]], 300]]]],
+            msgs
+          ]
+        ];
+
+        (* Messages expected but not matched (MessagesFailure) *)
+        If[outcome === "MessagesFailure" &&
+           expMsgs =!= {} &&
+           expMsgs =!= Missing["KeyAbsent", "ExpectedMessages"] &&
+           expMsgs =!= msgs,
+          Print["    Expected messages: ", ToString[expMsgs]]
+        ];
+
+        Print["  ------------------------------------------------------"]
+      ]
     ],
     {res, Values[$report["TestResults"]]}
-  ]
+  ];
+  Print[""]
 ];
 
 If[$failed > 0, Exit[$failed], Exit[0]]
