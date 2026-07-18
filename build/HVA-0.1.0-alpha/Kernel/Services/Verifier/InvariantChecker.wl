@@ -78,6 +78,18 @@ modeAtTimeFromRun[agent_, result_, t_] :=
     ]
   ];
 
+(* ── Helper: descomponer un predicado en una lista de desigualdades simples.
+   Soporta:
+     - desigualdad simple:  a >= b  -> {a >= b}
+     - doble desigualdad:   Inequality[a,op1,x,op2,b]  -> {a op1 x, x op2 b}
+     - And[p1, p2, ...]:    cada pi se expande recursivamente
+   Devuelve una lista plana de desigualdades simples. *)
+$splitPredicate[Inequality[a_, op1_, x_, op2_, b_]] :=
+  {op1[a, x], op2[x, b]};
+$splitPredicate[And[ps__]] :=
+  Flatten[Map[$splitPredicate, {ps}]];
+$splitPredicate[p_] := {p};   (* ya es simple o no reconocido *)
+
 (* ── Helper: funcion barrera p inducida por una desigualdad simple, tal que la
    region segura es {p >= 0}. Devuelve $Failed si el predicado no es una
    desigualdad simple. *)
@@ -165,23 +177,30 @@ CheckInvariantInductive[agent_, predicate_, opts : OptionsPattern[]] :=
        p == 0 y <grad p, F(q)> < 0. Se busca un contraejemplo con FindInstance.
        Si el predicado no es una desigualdad simple, no se puede construir p:
        I2 se reporta como no-probado (False) por honestidad. *)
-    barrier = predicateToBarrier[predicate];
-    If[barrier === $Failed,
-      Message[CheckInvariantInductive::badPredicate, HoldForm[predicate]];
-      i2 = AssociationMap[False &, modes],
-
+    (* Descomponer predicado compuesto en lista de desigualdades simples *)
+    With[{simplePs = $splitPredicate[predicate]},
       i2 = Association @ Map[
         Function[q,
-          Module[{rhs, gradP, lie, counterexample},
-            rhs   = ModeVectorField[agent, q];
-            gradP = D[barrier, {vars}];               (* nabla p *)
-            lie   = gradP . rhs;                       (* <nabla p, F(q)> *)
-            (* Contraejemplo: punto frontera donde la barrera decrece *)
-            counterexample = Quiet[
-              FindInstance[(barrier == 0) && (lie < 0), vars, Reals]
+          Module[{rhs, results},
+            rhs = ModeVectorField[agent, q];
+            (* Verificar cada sub-predicado simple por separado *)
+            results = Map[
+              Function[p,
+                Module[{b, gradP, lie, ce},
+                  b = predicateToBarrier[p];
+                  If[b === $Failed,
+                    Message[CheckInvariantInductive::badPredicate, HoldForm[p]];
+                    False,
+                    gradP = D[b, {vars}];
+                    lie   = gradP . rhs;
+                    ce    = Quiet[FindInstance[(b == 0) && (lie < 0), vars, Reals]];
+                    ce === {}
+                  ]
+                ]
+              ],
+              simplePs
             ];
-            (* Si no hay contraejemplo (lista vacia) -> I2 OK *)
-            q -> (counterexample === {})
+            q -> AllTrue[results, TrueQ]
           ]
         ],
         modes

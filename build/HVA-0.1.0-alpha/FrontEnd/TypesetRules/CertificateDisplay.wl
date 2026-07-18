@@ -209,7 +209,7 @@ VerificationCertificate /:
     statusIcon  = $certStatusIcon[status]
   },
   With[{
-    icon        = CertificateIcon[statusColor],
+    icon        = HVA`FrontEnd`Icons`CertificateIcon`CertificateIcon[statusColor],
     statusRow   = Row[{Style[statusIcon <> "  ", statusColor, Bold, 11],
                        Style[statusLabel, statusColor, Bold, 10,
                              FontFamily -> "Helvetica Neue"]}],
