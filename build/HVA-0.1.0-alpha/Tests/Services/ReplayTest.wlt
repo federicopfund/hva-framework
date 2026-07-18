@@ -12,10 +12,15 @@
 
 (* ── Bootstrap ──────────────────────────────────────────────────── *)
 Needs["HVA`"];
-(* Simbolos propios de este test file — nombres unicos para evitar colision *)
+Needs["HVA`Services`Simulator`HybridIntegrator`"];
 Clear[rpX, rpV, rpT];
 
-$replayAgent := HybridAgent["replay-test",
+(* Construir el agente UNA sola vez con Set (=).
+   SetDelayed (:=) re-evaluaria la expresion en cada acceso; como los
+   modos se llaman "a" y "b", cualquier variable local llamada 'a' o
+   'b' en un Function anidado substituiria los strings de modo, corrompiendo
+   el agente. Con = el valor queda fijo en el momento de la carga. *)
+$replayAgent = HybridAgent["replay-test",
   Modes            -> {"a", "b"},
   ContinuousVars   -> {rpX, rpV},
   VectorFields     -> <|"a" -> {rpV, -rpX}, "b" -> {0, 0}|>,
@@ -28,26 +33,29 @@ $replayAgent := HybridAgent["replay-test",
   TimeSymbol       -> rpT
 ];
 
-(* Construir traza real directamente con HVA Core — sin depender de ningún integrador *)
-$eulerManual[a_, dt_] :=
-  Module[{q, nu, vars, rhs, newNu},
-    q    = AgentCurrentMode[a];
-    nu   = AgentValuation[a];
-    vars = AgentContinuousVars[a];
-    rhs  = AgentVectorFields[a][q] /. Normal[nu];
+(* Calcular la traza UNA sola vez con Set.
+   Extraer el campo "trace" usando First para obtener la Association interna
+   del HybridAgent y luego indexar directamente.
+   Esto evita el simbolo AgentTrace por completo (ADR-008: AgentTrace existe
+   en dos contextos — HVA`Core`AgentTrace` y HVA`Core`HybridAgent` — y la
+   version correcta depende del orden del $ContextPath en el kernel activo). *)
+$realTrace = Module[{agent0, step, states},
+  agent0 = $replayAgent;
+  step = Function[st, Module[{q, nu, vars, rhs, newNu},
+    q    = AgentCurrentMode[st];
+    nu   = AgentValuation[st];
+    vars = AgentContinuousVars[st];
+    rhs  = AgentVectorFields[st][q] /. Normal[nu];
     newNu = AssociationThread[vars,
-      MapThread[#1 + dt * #2 &, {Lookup[nu, vars], rhs}]];
-    AppendTrace[WithValuation[a, newNu],
+      MapThread[Function[{v, r}, v + 0.1 * r], {Lookup[nu, vars], rhs}]];
+    AppendTrace[WithValuation[st, newNu],
       <|"type" -> "flow", "mode" -> q, "valuation" -> newNu|>]
-  ];
+  ]];
+  states = NestList[step, agent0, 15];
+  First[Last[states]]["trace"]
+];
 
-$realStates := NestList[$eulerManual[#, 0.1] &, $replayAgent, 15];
-$realTrace  := AgentTrace[Last[$realStates]];
-
-(* Corrida precisa real para los tests de adaptacion a IntegrateHybridSystemPrecise.
-   $replayAgent: oscilador en modo "a" (x''=-x) que salta a "b" (congelado) cuando rpX>0.8. *)
-Needs["HVA`Services`Simulator`HybridIntegrator`"];
-$run := IntegrateHybridSystemPrecise[$replayAgent, 3.0];
+$run = Quiet[IntegrateHybridSystemPrecise[$replayAgent, 3.0]];
 
 (* ── 1. Smoke ────────────────────────────────────────────────────── *)
 
@@ -55,6 +63,14 @@ VerificationTest[
   Quiet[Needs["HVA`Services`Simulator`Replay`"]; True],
   True,
   TestID -> "Services-Replay-01-smoke-load"
+]
+
+(* ── 1b. Diagnóstico: $replayAgent se construye correctamente ────── *)
+(* Este test expone el error exacto del constructor si falla          *)
+VerificationTest[
+  HybridAgentQ[$replayAgent],
+  True,
+  TestID -> "Services-Replay-01b-replayagent-builds-ok"
 ]
 
 (* ── 2. Functional: ReplayTrace devuelve lista de HybridAgent ──── *)
@@ -112,7 +128,7 @@ VerificationTest[
   Module[{tau, replayed, finalTau},
     tau      = $realTrace;
     replayed = ReplayTrace[$replayAgent, tau];
-    finalTau = AgentTrace[Last[replayed]];
+    finalTau = First[Last[replayed]]["trace"];
     Length[finalTau] === Length[tau]
   ],
   True,
@@ -122,15 +138,17 @@ VerificationTest[
 (* ── 7. Functional: ReplayEvent individual (evento de flujo) ──────── *)
 
 VerificationTest[
-  Module[{a, evt, aNew},
-    a   = $replayAgent;
-    (* Construir manualmente un evento de flujo con valuation guardada *)
-    evt = <|"type"      -> "flow",
-            "mode"      -> "a",
-            "dt"        -> 0.1,
-            "valuation" -> <|rpX -> 0.1, rpV -> 0.995|>|>;
+  Module[{a, evt, aNew, vars, vX, vV},
+    a    = $replayAgent;
+    vars = AgentContinuousVars[a];
+    vX   = vars[[1]];  (* primer var = posicion *)
+    vV   = vars[[2]];  (* segunda var = velocidad *)
+    evt  = <|"type"      -> "flow",
+             "mode"      -> "a",
+             "dt"        -> 0.1,
+             "valuation" -> AssociationThread[vars, {0.1, 0.995}]|>;
     aNew = ReplayEvent[a, evt];
-    HybridAgentQ[aNew] && AgentValuation[aNew][rpX] === 0.1
+    HybridAgentQ[aNew] && AgentValuation[aNew][vX] === 0.1
   ],
   True,
   TestID -> "Services-Replay-07-replay-event-flow"
@@ -139,14 +157,15 @@ VerificationTest[
 (* ── 8. Functional: ReplayEvent individual (evento de transición) ── *)
 
 VerificationTest[
-  Module[{a, evt, aNew},
-    a   = $replayAgent;
-    evt = <|"type"           -> "transition",
-            "from"           -> "a",
-            "to"             -> "b",
-            "condition"      -> rpX > 0.8,
-            "action"         -> <||>,
-            "valuationAfter" -> <|rpX -> 0.85, rpV -> 0.52|>|>;
+  Module[{a, evt, aNew, vars},
+    a    = $replayAgent;
+    vars = AgentContinuousVars[a];
+    evt  = <|"type"           -> "transition",
+             "from"           -> "a",
+             "to"             -> "b",
+             "condition"      -> True,
+             "action"         -> <||>,
+             "valuationAfter" -> AssociationThread[vars, {0.85, 0.52}]|>;
     aNew = ReplayEvent[a, evt];
     HybridAgentQ[aNew] && AgentCurrentMode[aNew] === "b"
   ],
@@ -353,10 +372,11 @@ VerificationTest[
       InitialValuation -> <|sgX -> 0.0, sgV -> 1.0|>,
       TimeSymbol       -> sgT
     ];
-    run2     = IntegrateHybridSystemPrecise[singleAgent, 2.0];
+    run2     = Quiet[IntegrateHybridSystemPrecise[singleAgent, 2.0]];
     replayed = ReplayPreciseRun[singleAgent, run2, 0.1];
+    HybridAgentQ[Last[replayed]] &&
     AgentCurrentMode[Last[replayed]] === "q" &&
-    AllTrue[AgentTrace[Last[replayed]], #["type"] === "flow" &]
+    AllTrue[First[Last[replayed]]["trace"], #["type"] === "flow" &]
   ],
   True,
   TestID -> "Services-Replay-26-no-transition-run-stays-in-single-mode-Def-2.4"
