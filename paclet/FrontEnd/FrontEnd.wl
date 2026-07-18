@@ -15,14 +15,18 @@
        Typography.wl   -> helpers de texto (HVALabel, HVAModeLabel, ...)
 
      Icons/
-       AgentIcon.wl    -> Graphics del icono del agente (HybridAgentIcon)
+       AgentIcon.wl        -> Graphics del icono del agente (HybridAgentIcon)
+       CertificateIcon.wl  -> escudo del certificado (CertificateIcon)
 
      TypesetRules/
-       HybridAgentDisplay.wl -> panel MakeBoxes de HybridAgent
+       HybridAgentDisplay.wl    -> panel MakeBoxes de HybridAgent
+       CertificateDisplay.wl    -> panel MakeBoxes de VerificationCertificate
+                                    + PrettyCertificate (API publica)
 
-   Para agregar el display de un nuevo objeto:
-     1. Crear TypesetRules/<NuevoObjeto>Display.wl con el UpValue MakeBoxes
-     2. Agregar Get[..., "<NuevoObjeto>Display.wl"] en LoadTypesetRules[] *)
+  Para agregar el display de un nuevo objeto:
+     1. Crear Icons/<NuevoObjeto>Icon.wl y agregar Get en LoadIcons[]
+     2. Crear TypesetRules/<NuevoObjeto>Display.wl con el UpValue MakeBoxes
+     3. Agregar Get[..., "<NuevoObjeto>Display.wl"] en LoadTypesetRules[] *)
 
 BeginPackage["HVA`FrontEnd`"]
 

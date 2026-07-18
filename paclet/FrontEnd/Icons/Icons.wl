@@ -14,6 +14,7 @@ Begin["`Private`"]
 
 LoadIcons[] := Module[{base = DirectoryName[$InputFileName]},
   Get[FileNameJoin[{base, "AgentIcon.wl"}]];
+  Get[FileNameJoin[{base, "CertificateIcon.wl"}]];
 ]
 
 End[]
