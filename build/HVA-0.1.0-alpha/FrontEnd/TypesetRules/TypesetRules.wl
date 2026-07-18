@@ -7,8 +7,6 @@
              HVA`FrontEnd`TypesetRules`CertificateDisplay` *)
 (* :License: MIT *)
 
-$HVATypesetRulesBase = DirectoryName[$InputFileName];
-
 BeginPackage["HVA`FrontEnd`TypesetRules`"]
 
 LoadTypesetRules::usage = "LoadTypesetRules[] instala las reglas MakeBoxes \
@@ -16,10 +14,24 @@ de todos los objetos del framework HVA (HybridAgent, VerificationCertificate).";
 
 Begin["`Private`"]
 
-LoadTypesetRules[] := Module[{base = $HVATypesetRulesBase},
-  Get[FileNameJoin[{base, "HybridAgentDisplay.wl"}]];
-  Get[FileNameJoin[{base, "CertificateDisplay.wl"}]];
-]
+$resolveTypesetRulesBase[] :=
+  Module[{loc},
+    loc = Quiet[PacletObject["HVA"]["Location"], {PacletObject::notfound}];
+    If[StringQ[loc] && loc =!= "",
+      FileNameJoin[{loc, "FrontEnd", "TypesetRules"}],
+      Module[{fromFile = DirectoryName[$InputFileName]},
+        If[StringQ[fromFile] && fromFile =!= "", fromFile, $Failed]
+      ]
+    ]
+  ];
+
+LoadTypesetRules[] :=
+  Module[{base},
+    base = $resolveTypesetRulesBase[];
+    If[base === $Failed, Return[$Failed]];
+    Get[FileNameJoin[{base, "HybridAgentDisplay.wl"}]];
+    Get[FileNameJoin[{base, "CertificateDisplay.wl"}]];
+  ];
 
 End[]
 EndPackage[]

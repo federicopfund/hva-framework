@@ -6,18 +6,30 @@
 (* :Depends: HVA`FrontEnd`Styles`Colors`, HVA`FrontEnd`Styles`Typography` *)
 (* :License: MIT *)
 
-$HVAStylesBase = DirectoryName[$InputFileName];
-
 BeginPackage["HVA`FrontEnd`Styles`"]
 
 LoadStyles::usage = "LoadStyles[] carga Colors y Typography en orden de dependencia.";
 
 Begin["`Private`"]
 
-LoadStyles[] := Module[{base = $HVAStylesBase},
-  Get[FileNameJoin[{base, "Colors.wl"}]];
-  Get[FileNameJoin[{base, "Typography.wl"}]];
-]
+$resolveStylesBase[] :=
+  Module[{loc},
+    loc = Quiet[PacletObject["HVA"]["Location"], {PacletObject::notfound}];
+    If[StringQ[loc] && loc =!= "",
+      FileNameJoin[{loc, "FrontEnd", "Styles"}],
+      Module[{fromFile = DirectoryName[$InputFileName]},
+        If[StringQ[fromFile] && fromFile =!= "", fromFile, $Failed]
+      ]
+    ]
+  ];
+
+LoadStyles[] :=
+  Module[{base},
+    base = $resolveStylesBase[];
+    If[base === $Failed, Return[$Failed]];
+    Get[FileNameJoin[{base, "Colors.wl"}]];
+    Get[FileNameJoin[{base, "Typography.wl"}]];
+  ];
 
 End[]
 EndPackage[]
