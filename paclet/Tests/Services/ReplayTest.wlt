@@ -128,7 +128,7 @@ VerificationTest[
   Module[{tau, replayed, finalTau},
     tau      = $realTrace;
     replayed = ReplayTrace[$replayAgent, tau];
-    finalTau = Last[replayed]["trace"];
+    finalTau = First[Last[replayed]]["trace"];
     Length[finalTau] === Length[tau]
   ],
   True,
@@ -376,7 +376,7 @@ VerificationTest[
     replayed = ReplayPreciseRun[singleAgent, run2, 0.1];
     HybridAgentQ[Last[replayed]] &&
     AgentCurrentMode[Last[replayed]] === "q" &&
-    AllTrue[Last[replayed]["trace"], #["type"] === "flow" &]
+    AllTrue[First[Last[replayed]]["trace"], #["type"] === "flow" &]
   ],
   True,
   TestID -> "Services-Replay-26-no-transition-run-stays-in-single-mode-Def-2.4"
