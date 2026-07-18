@@ -71,20 +71,22 @@ Needs["HVA`Services`Verifier`Certificate`"]
 Needs["HVA`Services`Simulator`HybridIntegrator`"]
 
 (* ── VerifyAgent ────────────────────────────────────────────────── *)
+
+(* Expande un predicado compuesto en lista de desigualdades simples.
+   Definido aqui (no en Private helper) para garantizar que se redefine
+   siempre que este archivo se cargue, incluso via Get[] forzado. *)
+$hvaSplitPred[Inequality[a_, op1_, x_, op2_, b_]] := {op1[a, x], op2[x, b]};
+$hvaSplitPred[And[ps__]] := Flatten[Map[$hvaSplitPred, {ps}], 1];
+$hvaSplitPred[p_]        := {p};
+
 VerifyAgent[agent_] /; HybridAgentQ[agent] :=
   Module[{invs, tVar, contVars, normRules, normAgent,
-          results, allPass, witness, fragment, status},
+          flatInvs, results, allPass, witness, fragment, status},
 
     tVar     = AgentTime[agent];
     contVars = AgentContinuousVars[agent];
-
-    (* Reglas de normalizacion: var[tVar] -> var para todas las vars continuas.
-       CheckInvariantInductive trabaja con variables simbolicas puras (x, no x[t]).
-       Tanto los predicados como los VectorFields deben estar normalizados
-       para que gradP . rhs, FindInstance y Resolve operen correctamente. *)
     normRules = Map[Function[v, v[tVar] -> v], contVars];
 
-    (* Construir agente normalizado: VectorFields y ModeInvariants sin var[t] *)
     normAgent = HybridAgent[AgentId[agent],
       Modes            -> AgentModes[agent],
       ContinuousVars   -> contVars,
@@ -104,7 +106,6 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
     invs = If[AssociationQ[invs], Values[invs], invs];
     invs = Select[invs, # =!= True &];
 
-    (* Sin invariantes no-triviales: certificado trivialmente Verified *)
     If[invs === {},
       Return[GenerateCertificate[
         AgentId[agent], True, <||>, Missing["NotApplicable"],
@@ -112,10 +113,33 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
       ]]
     ];
 
-    (* Verificar cada invariante de forma inductiva sobre el agente normalizado *)
+    (* Expandir inline: Inequality[a,op1,x,op2,b] -> {a op1 x, x op2 b}
+       Sin depender de helper privado para sobrevivir recarga parcial. *)
+    flatInvs = DeleteDuplicates[Flatten[
+      Map[
+        Function[p,
+          Which[
+            MatchQ[p, Inequality[_, _, _, _, _]],
+              With[{a=p[[1]],op1=p[[2]],x=p[[3]],op2=p[[4]],b=p[[5]]},
+                {op1[a,x], op2[x,b]}],
+            MatchQ[p, _And],
+              Flatten[Map[Function[q,
+                If[MatchQ[q, Inequality[_,_,_,_,_]],
+                  With[{a=q[[1]],op1=q[[2]],x=q[[3]],op2=q[[4]],b=q[[5]]},
+                    {op1[a,x], op2[x,b]}],
+                  {q}]
+              ], List @@ p], 1],
+            True, {p}
+          ]
+        ],
+        invs
+      ],
+    1]];
+    flatInvs = Select[flatInvs, # =!= True &];
+
     results = Map[
       Function[pred, CheckInvariantInductive[normAgent, pred]],
-      invs
+      flatInvs
     ];
 
     allPass  = AllTrue[results, TrueQ[#["status"]] &];
@@ -133,8 +157,8 @@ VerifyAgent[agent_] /; HybridAgentQ[agent] :=
 
     GenerateCertificate[
       AgentId[agent],
-      invs,
-      AssociationThread[invs, results],
+      flatInvs,
+      AssociationThread[flatInvs, results],
       witness,
       status,
       fragment
