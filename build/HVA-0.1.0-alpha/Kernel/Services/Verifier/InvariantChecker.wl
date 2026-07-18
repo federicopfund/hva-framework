@@ -156,7 +156,7 @@ CheckInvariant[agent_, predicate_, opts : OptionsPattern[]] :=
 
 CheckInvariantInductive[agent_, predicate_, opts : OptionsPattern[]] :=
   Module[
-    {modes, vars, vfs, nu0, q0, barrier, rules, i1, i2, i3, i4, allPass},
+    {modes, vars, nu0, q0, rules, i1, i2, i3, i4, allPass},
 
     If[!HybridAgentQ[agent],
       Message[CheckInvariantInductive::notAgent, HoldForm[agent]];
@@ -165,46 +165,58 @@ CheckInvariantInductive[agent_, predicate_, opts : OptionsPattern[]] :=
 
     modes = AgentModes[agent];
     vars  = AgentContinuousVars[agent];
-    vfs   = AgentVectorFields[agent];
-    nu0   = AgentValuation[agent];
-    q0    = AgentCurrentMode[agent];
+    (* Usar InitialValuation (estado de diseno) no Valuation (estado runtime).
+       Valuation puede ser <||> si el agente es nuevo o fue construido via HybridAgent[]. *)
+    nu0   = With[{iv = AgentInitialValuation[agent]},
+              If[AssociationQ[iv] && Length[iv] > 0, iv, AgentValuation[agent]]];
+    q0    = AgentInitialMode[agent];
 
     (* I1: InductiveInitialization — Psi(q0, v0) = True *)
     i1 = TrueQ[predicate /. Normal[nu0]];
 
-    (* I2: InductiveContinuousStep — la barrera p (region segura {p >= 0}) no decrece
-       en la frontera {p == 0}: para cada modo q, NO existe estado real con
-       p == 0 y <grad p, F(q)> < 0. Se busca un contraejemplo con FindInstance.
-       Si el predicado no es una desigualdad simple, no se puede construir p:
-       I2 se reporta como no-probado (False) por honestidad. *)
-    (* Descomponer predicado compuesto en lista de desigualdades simples *)
-    With[{simplePs = $splitPredicate[predicate]},
-      i2 = Association @ Map[
-        Function[q,
-          Module[{rhs, results},
-            rhs = ModeVectorField[agent, q];
-            (* Verificar cada sub-predicado simple por separado *)
-            results = Map[
-              Function[p,
-                Module[{b, gradP, lie, ce},
-                  b = predicateToBarrier[p];
-                  If[b === $Failed,
-                    Message[CheckInvariantInductive::badPredicate, HoldForm[p]];
-                    False,
-                    gradP = D[b, {vars}];
-                    lie   = gradP . rhs;
-                    ce    = Quiet[FindInstance[(b == 0) && (lie < 0), vars, Reals]];
-                    ce === {}
-                  ]
+    (* I2: InductiveContinuousStep — la barrera p no decrece en la frontera {p==0}.
+       El predicado ya llega expandido (simple) desde VerifyAgent/SystemCommands.
+       Si por alguna razon llega compuesto, lo expandimos aqui tambien de forma
+       inline sin depender de ningun helper privado cacheado. *)
+    i2 = Association @ Map[
+      Function[q,
+        Module[{rhs, simplePs, results},
+          rhs = ModeVectorField[agent, q];
+          (* Expansion inline de Inequality[a,op1,x,op2,b] -> {a op1 x, x op2 b} *)
+          simplePs = Which[
+            MatchQ[predicate, Inequality[_, _, _, _, _]],
+              With[{a=predicate[[1]], op1=predicate[[2]],
+                    x=predicate[[3]], op2=predicate[[4]], b=predicate[[5]]},
+                {op1[a,x], op2[x,b]}],
+            MatchQ[predicate, _And],
+              Flatten[Map[Function[p,
+                If[MatchQ[p, Inequality[_,_,_,_,_]],
+                  With[{a=p[[1]],op1=p[[2]],x=p[[3]],op2=p[[4]],b=p[[5]]},
+                    {op1[a,x], op2[x,b]}],
+                  {p}]
+              ], List @@ predicate], 1],
+            True, {predicate}
+          ];
+          results = Map[
+            Function[p,
+              Module[{b, gradP, lie, ce},
+                b = predicateToBarrier[p];
+                If[b === $Failed,
+                  Message[CheckInvariantInductive::badPredicate, HoldForm[p]];
+                  False,
+                  gradP = D[b, {vars}];
+                  lie   = gradP . rhs;
+                  ce    = Quiet[FindInstance[(b == 0) && (lie < 0), vars, Reals]];
+                  ce === {}
                 ]
-              ],
-              simplePs
-            ];
-            q -> AllTrue[results, TrueQ]
-          ]
-        ],
-        modes
-      ]
+              ]
+            ],
+            simplePs
+          ];
+          q -> AllTrue[results, TrueQ]
+        ]
+      ],
+      modes
     ];
 
     (* I3: InductiveDiscreteStep — Psi preservado bajo cada transicion *)
@@ -213,7 +225,6 @@ CheckInvariantInductive[agent_, predicate_, opts : OptionsPattern[]] :=
         Module[{action, nuAfter, preserves},
           action  = Lookup[tr, "action", <||>];
           nuAfter = If[AssociationQ[action] && Length[action] > 0,
-            (* Aplicar reset map *)
             <|nu0, Map[# /. Normal[nu0] &, action]|>,
             nu0
           ];
