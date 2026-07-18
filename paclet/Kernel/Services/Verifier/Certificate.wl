@@ -39,7 +39,22 @@ CertFragment::usage =
   "Valores canonicos: inductive | barrier | bounded-model-check | simulation.\n" <>
   "Un VerificationCertificate sin CertFragment es un defecto (R5).";
 
-(* Accessor *)
+(* Accessors funcionales — CertStatus[cert], CertFragment[cert], etc. *)
+CertStatus[VerificationCertificate[fields_Association, _]] :=
+  Lookup[fields, HVA`Services`Verifier`Certificate`CertStatus,
+                 HVA`Services`Verifier`Certificate`Pending];
+CertFragment[VerificationCertificate[fields_Association, _]] :=
+  Lookup[fields, HVA`Services`Verifier`Certificate`CertFragment, Missing["NotApplicable"]];
+CertAgent[VerificationCertificate[fields_Association, _]] :=
+  Lookup[fields, HVA`Services`Verifier`Certificate`CertAgent, Missing["NotApplicable"]];
+CertTarget[VerificationCertificate[fields_Association, _]] :=
+  Lookup[fields, HVA`Services`Verifier`Certificate`CertTarget, Missing["NotApplicable"]];
+CertProof[VerificationCertificate[fields_Association, _]] :=
+  Lookup[fields, HVA`Services`Verifier`Certificate`CertProof, Missing["NotApplicable"]];
+CertWitness[VerificationCertificate[fields_Association, _]] :=
+  Lookup[fields, HVA`Services`Verifier`Certificate`CertWitness, Missing["NotApplicable"]];
+
+(* Accessor constructor *)
 GenerateCertificate::usage =
   "GenerateCertificate[certAgent, certTarget, certProof, certWitness, certStatus, certFragment]\n" <>
   "construye un VerificationCertificate validando que CertFragment sea un valor canonico.\n" <>
