@@ -138,11 +138,17 @@ $HVAModuleGraph = <|
     "HVA`Services`Simulator`HybridIntegrator`"
   },
   "HVA`DSL`RunSystem`"         -> {"HVA`Core`", "HVA`Runtime`", "HVA`Services`"},
+  "HVA`DSL`DiagnoseAgent`"     -> {
+    "HVA`Core`", "HVA`Services`Supervisor`"
+  },
   "HVA`DSL`"                   -> {
     "HVA`Core`", "HVA`Runtime`", "HVA`Services`", "HVA`Adapters`",
     "HVA`DSL`DefineAgent`", "HVA`DSL`DefineContract`",
     "HVA`DSL`DefineCausalModel`", "HVA`DSL`ExportCertificate`",
-    "HVA`DSL`SystemCommands`", "HVA`DSL`RunSystem`"
+    "HVA`DSL`SystemCommands`", "HVA`DSL`RunSystem`", "HVA`DSL`DiagnoseAgent`"
+  },
+  "HVA`FrontEnd`TypesetRules`AgentDashboard`"   -> {
+    "HVA`Core`", "HVA`Services`Verifier`Certificate`", "HVA`FrontEnd`"
   },
   "HVA`FrontEnd`"                               -> {"HVA`DSL`"}
 |>;

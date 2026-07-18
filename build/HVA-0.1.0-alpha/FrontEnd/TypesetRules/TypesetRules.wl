@@ -31,6 +31,7 @@ LoadTypesetRules[] :=
     If[base === $Failed, Return[$Failed]];
     Get[FileNameJoin[{base, "HybridAgentDisplay.wl"}]];
     Get[FileNameJoin[{base, "CertificateDisplay.wl"}]];
+    Get[FileNameJoin[{base, "AgentDashboard.wl"}]];
   ];
 
 End[]

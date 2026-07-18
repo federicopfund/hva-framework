@@ -112,12 +112,16 @@ PacletObject[
           "HVA`DSL`DefineCausalModel`",
           "HVA`DSL`RunSystem`",
           "HVA`DSL`SystemCommands`",
-          "HVA`DSL`ExportCertificate`"
+          "HVA`DSL`ExportCertificate`",
+          "HVA`DSL`DiagnoseAgent`"
         }},
 
       (* ── FrontEnd ─────────────────────────────────────────── *)
       {"Kernel", "Root" -> "FrontEnd",
-        "Context" -> {"HVA`FrontEnd`"}}
+        "Context" -> {
+          "HVA`FrontEnd`",
+          "HVA`FrontEnd`TypesetRules`AgentDashboard`"
+        }}
 
       ,
 

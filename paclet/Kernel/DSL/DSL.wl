@@ -23,6 +23,7 @@ LoadDSL[] := Module[{},
   Needs["HVA`DSL`RunSystem`"];
   Needs["HVA`DSL`SystemCommands`"];
   Needs["HVA`DSL`ExportCertificate`"];
+  Needs["HVA`DSL`DiagnoseAgent`"];
 ];
 
 (* TODO: implementar en ISSUE-XXXX *)
