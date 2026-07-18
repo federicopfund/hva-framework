@@ -28,6 +28,12 @@
      2. Crear TypesetRules/<NuevoObjeto>Display.wl con el UpValue MakeBoxes
      3. Agregar Get[..., "<NuevoObjeto>Display.wl"] en LoadTypesetRules[] *)
 
+(* Capturar el directorio base ANTES de BeginPackage/Get anidados.
+   En Wolfram Cloud $InputFileName no se propaga correctamente dentro de
+   Get[] anidados — este patron es identico al usado en HVA.wl ($pacletEntryFile)
+   y garantiza que los paths se resuelven correctamente en cualquier entorno. *)
+$HVAFrontEndBase = DirectoryName[$InputFileName];
+
 BeginPackage["HVA`FrontEnd`"]
 
 LoadFrontEnd::usage = "LoadFrontEnd[] carga estilos, iconos y reglas de \
@@ -35,7 +41,7 @@ typesetting del framework HVA en orden de dependencia.";
 
 Begin["`Private`"]
 
-LoadFrontEnd[] := Module[{base = DirectoryName[$InputFileName]},
+LoadFrontEnd[] := Module[{base = $HVAFrontEndBase},
   Get[FileNameJoin[{base, "Styles",       "Styles.wl"}]];
   Get[FileNameJoin[{base, "Icons",        "Icons.wl"}]];
   Get[FileNameJoin[{base, "TypesetRules", "TypesetRules.wl"}]];

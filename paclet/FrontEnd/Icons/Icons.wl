@@ -6,13 +6,15 @@
 (* :Depends: HVA`FrontEnd`Icons`AgentIcon` *)
 (* :License: MIT *)
 
+$HVAIconsBase = DirectoryName[$InputFileName];
+
 BeginPackage["HVA`FrontEnd`Icons`"]
 
 LoadIcons::usage = "LoadIcons[] carga todos los iconos del framework HVA.";
 
 Begin["`Private`"]
 
-LoadIcons[] := Module[{base = DirectoryName[$InputFileName]},
+LoadIcons[] := Module[{base = $HVAIconsBase},
   Get[FileNameJoin[{base, "AgentIcon.wl"}]];
   Get[FileNameJoin[{base, "CertificateIcon.wl"}]];
 ]
