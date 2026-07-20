@@ -147,8 +147,12 @@ $HVAModuleGraph = <|
     "HVA`DSL`DefineCausalModel`", "HVA`DSL`ExportCertificate`",
     "HVA`DSL`SystemCommands`", "HVA`DSL`RunSystem`", "HVA`DSL`DiagnoseAgent`"
   },
+  "HVA`FrontEnd`TypesetRules`CertificateDisplay`" -> {
+    "HVA`Services`Verifier`Certificate`", "HVA`FrontEnd`"
+  },
   "HVA`FrontEnd`TypesetRules`AgentDashboard`"   -> {
-    "HVA`Core`", "HVA`Services`Verifier`Certificate`", "HVA`FrontEnd`"
+    "HVA`Core`", "HVA`Services`Verifier`Certificate`",
+    "HVA`FrontEnd`TypesetRules`CertificateDisplay`", "HVA`FrontEnd`"
   },
   "HVA`FrontEnd`"                               -> {"HVA`DSL`"}
 |>;
