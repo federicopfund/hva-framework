@@ -4,13 +4,15 @@
 (* :Summary: Inicializador de reglas de typesetting para objetos HVA. *)
 (* :Capa: FrontEnd > TypesetRules (7) *)
 (* :Depends: HVA`FrontEnd`TypesetRules`HybridAgentDisplay`,
-             HVA`FrontEnd`TypesetRules`CertificateDisplay` *)
+             HVA`FrontEnd`TypesetRules`CertificateDisplay`,
+             HVA`FrontEnd`TypesetRules`AgentDashboard` *)
 (* :License: MIT *)
 
 BeginPackage["HVA`FrontEnd`TypesetRules`"]
 
 LoadTypesetRules::usage = "LoadTypesetRules[] instala las reglas MakeBoxes \
-de todos los objetos del framework HVA (HybridAgent, VerificationCertificate).";
+de todos los objetos del framework HVA (HybridAgent, VerificationCertificate).\n" <>
+"Exporta: PrettyCertificate, DisplayCertifiedCredential, PlotAgent.";
 
 Begin["`Private`"]
 

@@ -5,7 +5,8 @@
 (* :Capa: FrontEnd > TypesetRules (7) *)
 (* :Depends: HVA`Core`HybridAgent`,
              HVA`Services`Verifier`Certificate`,
-             HVA`FrontEnd`Styles`Colors` *)
+             HVA`FrontEnd`Styles`Colors`,
+             HVA`FrontEnd`TypesetRules`CertificateDisplay` *)
 (* :Spec: §10 (API y DSL) *)
 (* :Methodology: METHODOLOGY.md §5 *)
 (* :Issues: DSL-0006 *)
@@ -14,21 +15,22 @@
 BeginPackage["HVA`FrontEnd`TypesetRules`AgentDashboard`",
   {"HVA`Core`HybridAgent`",
    "HVA`Services`Verifier`Certificate`",
-   "HVA`FrontEnd`Styles`Colors`"}]
+   "HVA`FrontEnd`Styles`Colors`",
+   "HVA`FrontEnd`TypesetRules`CertificateDisplay`"}]
 
 PlotAgent::usage =
   "PlotAgent[agent, sim] genera el dashboard visual del agente hibrido.\n" <>
   "agent : HybridAgent (el agente declarado).\n" <>
   "sim   : Association devuelto por SimulateAgent (o IntegrateHybridSystemPrecise).\n" <>
   "Opciones:\n" <>
-  "  PlotCertificate -> cert|None  (default None) incluir panel del certificado\n" <>
+  "  PlotCertificate -> cert|None  (default None) incluir certificado oficial\n" <>
   "  PlotWidth       -> _Integer   (default 620)  ancho en pixeles\n" <>
   "  PlotTime        -> tMax|Automatic  re-escalar el eje de tiempo\n" <>
   "Devuelve un Column con:\n" <>
   "  [1] Grafica de trayectoria continua eT(t) con bandas de invariante y marcadores de salto\n" <>
   "  [2] Grafica de modo discreto q(t) como escalera\n" <>
   "  [3] Tabla de transiciones discretas\n" <>
-  "  [4] PrettyCertificate[cert] si PlotCertificate -> cert fue especificado\n" <>
+  "  [4] DisplayCertifiedCredential[cert] si PlotCertificate -> cert fue especificado\n" <>
   "Uso canonico:\n" <>
   "  sim  = SimulateAgent[thermostat, 600];\n" <>
   "  cert = VerifyAgent[thermostat];\n" <>
@@ -49,6 +51,7 @@ Begin["`Private`"]
 Needs["HVA`Core`HybridAgent`"]
 Needs["HVA`Services`Verifier`Certificate`"]
 Needs["HVA`FrontEnd`Styles`Colors`"]
+Needs["HVA`FrontEnd`TypesetRules`CertificateDisplay`"]
 
 Options[PlotAgent] = {
   PlotCertificate -> None,
@@ -253,15 +256,15 @@ PlotAgent[agent_, sim_, opts : OptionsPattern[]] :=
       ]
     };
 
-    (* Certificado opcional *)
+    (* Certificado oficial — DisplayCertifiedCredential *)
     If[VerificationCertificateQ[cert],
       AppendTo[rows,
         Framed[
           Column[{
-            Style["Verification", Bold, 10, GrayLevel[0.45],
+            Style["Certificado de Acreditacion", Bold, 10, GrayLevel[0.42],
                   FontFamily -> "Helvetica Neue"],
             Spacer[6],
-            PrettyCertificate[cert]
+            DisplayCertifiedCredential[cert]
           }, Alignment -> Left],
           Background     -> GrayLevel[0.98],
           FrameStyle     -> Directive[GrayLevel[0.82], Thickness[0.5]],
