@@ -113,7 +113,7 @@ $plotTrajectory[agent_, sim_, width_, accentColor_] :=
       PlotStyle  -> Map[Directive[#, Thickness[0.003]] &,
                      {accentColor, RGBColor[0.85,0.35,0.10]}],
       PlotLegends -> Map[ToString, vars],
-      PlotRange  -> {0, tMax},
+      PlotRange  -> {{0, tMax}, Automatic},
       Frame      -> True,
       FrameLabel -> {{"valor continuo", None}, {None, None}},
       PlotLabel  -> Style[
