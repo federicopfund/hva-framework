@@ -250,7 +250,13 @@ $qualitySeal[status_] :=
    DisplayCertifiedCredential — RENDER COMPLETO TIPO DIPLOMA OFICIAL
    ══════════════════════════════════════════════════════════════════════════ *)
 
-DisplayCertifiedCredential[cert_?VerificationCertificateQ] :=
+(* Alias local para que el pattern se resuelva con el simbolo completamente
+   calificado aunque se evalue desde dentro de `Private`. *)
+$isCert = HVA`Services`Verifier`Certificate`VerificationCertificateQ;
+
+Unprotect[DisplayCertifiedCredential];
+
+DisplayCertifiedCredential[cert_?$isCert] :=
   Module[
     {fields, status, statusColor, statusLabel, statusIcon, statusVerb,
      agentId, fragment, target, proof, witness,
@@ -496,7 +502,7 @@ DisplayCertifiedCredential[cert_?VerificationCertificateQ] :=
     ]
   ];
 
-DisplayCertifiedCredential[expr_] /; !VerificationCertificateQ[expr] :=
+DisplayCertifiedCredential[expr_] /; !$isCert[expr] :=
   (Message[DisplayCertifiedCredential::notCert, Head[expr]]; $Failed);
 
 Protect[DisplayCertifiedCredential];
@@ -588,7 +594,9 @@ Protect[VerificationCertificate];
    PrettyCertificate — Panel compacto (compatibilidad previa)
    ══════════════════════════════════════════════════════════════════════════ *)
 
-PrettyCertificate[cert_?VerificationCertificateQ] :=
+Unprotect[PrettyCertificate];
+
+PrettyCertificate[cert_?$isCert] :=
   Module[{fields, status, statusColor, statusLabel, statusIcon, seal,
           agentId, fragment, target, proof, witness},
     fields      = cert[[1]];
@@ -703,7 +711,7 @@ PrettyCertificate[cert_?VerificationCertificateQ] :=
     ]
   ];
 
-PrettyCertificate[expr_] /; !VerificationCertificateQ[expr] :=
+PrettyCertificate[expr_] /; !$isCert[expr] :=
   (Message[PrettyCertificate::notCert, Head[expr]]; $Failed);
 
 Protect[PrettyCertificate];
