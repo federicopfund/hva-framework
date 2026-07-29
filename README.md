@@ -2,7 +2,7 @@
 
 [![Wolfram Language 13.0+](https://img.shields.io/badge/Wolfram%20Language-13.0%2B-DD1100?logo=wolfram&logoColor=white)](https://www.wolfram.com/language/)
 [![Version](https://img.shields.io/badge/Version-0.1.0--alpha-orange)]()
-[![Estado](https://img.shields.io/badge/Estado-N%C3%BAcleo%20en%20implementaci%C3%B3n-blue)]()
+[![Estado](https://img.shields.io/badge/Estado-N%C3%BAcleo%20implementado-blue)]()
 [![Licencia: MIT](https://img.shields.io/badge/Licencia-MIT-green)](LICENSE)
 
 > **Un framework de agentes reactivos para Wolfram Language donde verificación, simulación y ejecución comparten una única representación simbólica.**
@@ -200,12 +200,16 @@ trace = SimulateAgent[thermostat, TimeHorizon -> 60];
 | Componente | Archivo de referencia | Estado |
 |-----------|----------------------|--------|
 | Scaffolding del paclet (ARCH-0001) | `paclet/` | Completo |
-| Núcleo simbólico — `HybridAgent`, `Contract`, `Message` | `Kernel/Core/` | En implementación |
-| Verificador de invariantes | `Kernel/Services/Verifier/` | Placeholder |
-| Simulador híbrido | `Kernel/Services/Simulator/` | Placeholder |
-| Runtime — Dispatcher, Mailbox | `Kernel/Runtime/` | Placeholder |
-| Supervisor causal | `Kernel/Services/Supervisor/` | Placeholder |
-| DSL público | `Kernel/DSL/` | Placeholder |
+| Núcleo simbólico — `HybridAgent`, `Contract`, `MessageAlphabet`, `CausalModel` | `Kernel/Core/` | Implementado |
+| Utilidades — validación por schema, logging, serialización | `Kernel/Utilities/` | Implementado |
+| Verificador de invariantes | `Kernel/Services/Verifier/` | Implementado |
+| Simulador híbrido | `Kernel/Services/Simulator/` | Implementado (excepto `MultiAgentScheduler`, diferido a Fase 2) |
+| Executor — lifecycle y restauración de estado | `Kernel/Services/Executor/` | Implementado |
+| Supervisor causal | `Kernel/Services/Supervisor/` | Implementado |
+| Runtime — Scheduler, Dispatcher, Mailbox, Transport | `Kernel/Runtime/` | Implementado (excepto `SocketTransport`, diferido a Fase 3) |
+| DSL público | `Kernel/DSL/` | Implementado |
+| Adaptadores de hardware/sensores | `Kernel/Adapters/` | Placeholder — solo scaffolding, sin lógica |
+| FrontEnd — dashboards y certificados | `FrontEnd/` | Implementado |
 
 Deuda formal activa: [`docs/documenta/FORMAL_DEBT.md`](docs/documenta/FORMAL_DEBT.md)
 
