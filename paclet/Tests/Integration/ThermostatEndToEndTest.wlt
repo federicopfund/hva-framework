@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: ThermostatEndToEndTest *)
 (* :Context: HVA`Integration`Tests *)
 (* :Author: HVA Contributors *)

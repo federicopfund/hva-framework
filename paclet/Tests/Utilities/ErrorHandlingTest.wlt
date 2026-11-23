@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: ErrorHandlingTest *)
 (* :Context: HVA`Utilities`ErrorHandling`Tests *)
 (* :Author: HVA Contributors *)

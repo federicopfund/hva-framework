@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: MockAdapter *)
 (* :Context: HVA`Adapters`MockAdapter` *)
 (* :Author: HVA Contributors *)

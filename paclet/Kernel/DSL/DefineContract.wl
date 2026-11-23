@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: DefineContract *)
 (* :Context: HVA`DSL`DefineContract` *)
 (* :Author: HVA Contributors *)

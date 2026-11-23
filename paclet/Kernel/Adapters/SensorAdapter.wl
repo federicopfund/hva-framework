@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: SensorAdapter *)
 (* :Context: HVA`Adapters`SensorAdapter` *)
 (* :Author: HVA Contributors *)

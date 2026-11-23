@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Colors *)
 (* :Context: HVA`FrontEnd`Styles`Colors` *)
 (* :Author: HVA Contributors *)

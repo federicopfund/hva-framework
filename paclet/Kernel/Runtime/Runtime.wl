@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Runtime *)
 (* :Context: HVA`Runtime` *)
 (* :Author: HVA Contributors *)

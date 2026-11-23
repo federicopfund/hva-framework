@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Registry *)
 (* :Context: HVA`Adapters`Registry` *)
 (* :Author: HVA Contributors *)

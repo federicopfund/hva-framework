@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: MailboxTest *)
 (* :Context: HVA`Runtime`Mailbox`Tests *)
 (* :Author: HVA Contributors *)

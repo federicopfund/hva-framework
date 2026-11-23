@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: MultiAgentScheduler *)
 (* :Context: HVA`Services`Simulator`MultiAgentScheduler` *)
 (* :Author: HVA Contributors *)

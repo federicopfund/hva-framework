@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: MessageAlphabet *)
 (* :Context: HVA`Core`MessageAlphabet` *)
 (* :Author: HVA Contributors *)

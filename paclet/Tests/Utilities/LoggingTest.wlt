@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* LoggingTest.wlt — UTIL-0002 · Logging estructurado de eventos del runtime *)
 
 (* ============================================================== *)

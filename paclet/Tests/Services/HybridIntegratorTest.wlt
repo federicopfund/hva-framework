@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: HybridIntegratorTest *)
 (* :Context: HVA`Services`Simulator`HybridIntegrator`Tests *)
 (* :Author: HVA Contributors *)

@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: EventDetectorTest *)
 (* :Context: HVA`Services`Simulator`EventDetector`Tests *)
 (* :Author: HVA Contributors *)

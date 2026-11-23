@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: SystemCommands *)
 (* :Context: HVA`DSL`SystemCommands` *)
 (* :Author: HVA Contributors *)

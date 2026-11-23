@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: ValidationTest *)
 (* :Context: HVA`Utilities`Validation`Tests *)
 (* :Author: HVA Contributors *)

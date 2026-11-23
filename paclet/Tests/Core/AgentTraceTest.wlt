@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: AgentTraceTest *)
 (* :Context: HVA`Core`AgentTrace`Tests *)
 (* :Author: HVA Contributors *)

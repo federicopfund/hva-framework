@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: SocketTransport *)
 (* :Context: HVA`Runtime`Transport`SocketTransport` *)
 (* :Author: HVA Contributors *)

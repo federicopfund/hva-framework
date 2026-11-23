@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Supervisor *)
 (* :Context: HVA`Services`Supervisor` *)
 (* :Author: HVA Contributors *)

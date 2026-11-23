@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Replay *)
 (* :Context: HVA`Services`Simulator`Replay` *)
 (* :Author: HVA Contributors *)

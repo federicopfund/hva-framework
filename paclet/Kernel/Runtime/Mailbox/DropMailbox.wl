@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: DropMailbox *)
 (* :Context: HVA`Runtime`Mailbox`DropMailbox` *)
 (* :Author: HVA Contributors *)

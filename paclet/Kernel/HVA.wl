@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: HVA *)
 (* :Context: HVA` *)
 (* :Author: HVA Contributors *)

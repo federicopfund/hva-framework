@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: SerializationTest *)
 (* :Context: HVA`Utilities`Serialization`Tests *)
 (* :Author: HVA Contributors *)

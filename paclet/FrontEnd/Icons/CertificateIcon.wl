@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: CertificateIcon *)
 (* :Context: HVA`FrontEnd`Icons`CertificateIcon` *)
 (* :Author: HVA Contributors *)

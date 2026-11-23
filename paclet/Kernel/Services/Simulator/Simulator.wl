@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Simulator *)
 (* :Context: HVA`Services`Simulator` *)
 (* :Author: HVA Contributors *)

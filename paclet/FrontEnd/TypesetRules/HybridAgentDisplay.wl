@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: HybridAgentDisplay *)
 (* :Context: HVA`FrontEnd`TypesetRules`HybridAgentDisplay` *)
 (* :Author: HVA Contributors *)

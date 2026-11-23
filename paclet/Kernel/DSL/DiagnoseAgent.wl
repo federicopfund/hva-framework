@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: DiagnoseAgent *)
 (* :Context: HVA`DSL`DiagnoseAgent` *)
 (* :Author: HVA Contributors *)

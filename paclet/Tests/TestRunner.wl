@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* ================================================================
    HVA TestRunner — usado por el CI via Docker
    Ruta en contenedor: /app/paclet/Tests/TestRunner.wl

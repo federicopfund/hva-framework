@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: SimulatorTest *)
 (* :Context: HVA`Simulator`Tests *)
 (* :Author: HVA Contributors *)

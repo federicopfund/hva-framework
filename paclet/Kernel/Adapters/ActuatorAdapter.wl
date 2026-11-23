@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: ActuatorAdapter *)
 (* :Context: HVA`Adapters`ActuatorAdapter` *)
 (* :Author: HVA Contributors *)

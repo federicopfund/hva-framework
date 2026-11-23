@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: TransportTest *)
 (* :Context: HVA`Runtime`Transport`Tests *)
 (* :Author: HVA Contributors *)

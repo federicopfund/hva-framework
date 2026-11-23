@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: PriorityMailbox *)
 (* :Context: HVA`Runtime`Mailbox`PriorityMailbox` *)
 (* :Author: HVA Contributors *)

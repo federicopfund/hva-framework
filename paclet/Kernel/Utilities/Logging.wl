@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Logging *)
 (* :Context: HVA`Utilities`Logging` *)
 (* :Author: HVA Contributors *)

@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: WSAMAdapter *)
 (* :Context: HVA`Adapters`WSAMAdapter` *)
 (* :Author: HVA Contributors *)

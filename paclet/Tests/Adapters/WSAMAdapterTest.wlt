@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: WSAMAdapterTest *)
 (* :Context: HVA`Adapters`WSAMAdapter`Tests *)
 (* :Mirrors: Kernel/Adapters/WSAMAdapter.wl *)

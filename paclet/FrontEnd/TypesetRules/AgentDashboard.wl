@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: AgentDashboard *)
 (* :Context: HVA`FrontEnd`TypesetRules`AgentDashboard` *)
 (* :Author: HVA Contributors *)

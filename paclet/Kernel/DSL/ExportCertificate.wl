@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: ExportCertificate *)
 (* :Context: HVA`DSL`ExportCertificate` *)
 (* :Author: HVA Contributors *)

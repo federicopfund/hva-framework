@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Typography *)
 (* :Context: HVA`FrontEnd`Styles`Typography` *)
 (* :Author: HVA Contributors *)

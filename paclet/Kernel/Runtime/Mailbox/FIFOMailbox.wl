@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: FIFOMailbox *)
 (* :Context: HVA`Runtime`Mailbox`FIFOMailbox` *)
 (* :Author: HVA Contributors *)

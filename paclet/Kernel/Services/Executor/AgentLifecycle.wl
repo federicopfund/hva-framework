@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: AgentLifecycle *)
 (* :Context: HVA`Services`Executor`AgentLifecycle` *)
 (* :Author: HVA Contributors *)

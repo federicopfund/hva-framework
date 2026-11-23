@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: CertificateDisplay *)
 (* :Context: HVA`FrontEnd`TypesetRules`CertificateDisplay` *)
 (* :Author: HVA Contributors *)

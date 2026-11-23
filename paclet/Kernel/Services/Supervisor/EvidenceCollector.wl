@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: EvidenceCollector *)
 (* :Context: HVA`Services`Supervisor`EvidenceCollector` *)
 (* :Author: HVA Contributors *)

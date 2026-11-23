@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: HybridAgentTest *)
 (* :Context: HVA`Core`HybridAgent` *)
 (* :Author: HVA Contributors *)

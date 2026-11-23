@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: DedupMailbox *)
 (* :Context: HVA`Runtime`Mailbox`DedupMailbox` *)
 (* :Author: HVA Contributors *)

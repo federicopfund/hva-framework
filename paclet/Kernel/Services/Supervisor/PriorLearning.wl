@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: PriorLearning *)
 (* :Context: HVA`Services`Supervisor`PriorLearning` *)
 (* :Author: HVA Contributors *)

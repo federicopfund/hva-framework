@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: DefineAgent *)
 (* :Context: HVA`DSL`DefineAgent` *)
 (* :Author: HVA Contributors *)

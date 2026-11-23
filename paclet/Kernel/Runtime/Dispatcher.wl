@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Dispatcher *)
 (* :Context: HVA`Runtime`Dispatcher` *)
 (* :Author: HVA Contributors *)

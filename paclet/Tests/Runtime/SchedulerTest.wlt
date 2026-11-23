@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: SchedulerTest *)
 (* :Context: HVA`Runtime`Scheduler`Tests *)
 (* :Author: HVA Contributors *)

@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: VectorFieldAnalysis *)
 (* :Context: HVA`Services`Verifier`VectorFieldAnalysis` *)
 (* :Author: HVA Contributors *)

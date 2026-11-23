@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Verifier *)
 (* :Context: HVA`Services`Verifier` *)
 (* :Author: HVA Contributors *)

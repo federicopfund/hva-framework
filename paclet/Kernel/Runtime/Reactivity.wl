@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: Reactivity *)
 (* :Context: HVA`Runtime`Reactivity` *)
 (* :Author: HVA Contributors *)

@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: CausalModel *)
 (* :Context: HVA`Core`CausalModel` *)
 (* :Author: HVA Contributors *)

@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: StateRestore *)
 (* :Context: HVA`Services`Executor`StateRestore` *)
 (* :Author: HVA Contributors *)

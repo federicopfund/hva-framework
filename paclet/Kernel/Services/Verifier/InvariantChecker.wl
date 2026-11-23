@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: InvariantChecker *)
 (* :Context: HVA`Services`Verifier`InvariantChecker` *)
 (* :Author: HVA Contributors *)

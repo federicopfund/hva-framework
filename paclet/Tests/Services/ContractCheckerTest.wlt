@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: ContractCheckerTest *)
 (* :Context: HVA`Services`Verifier`ContractChecker`Tests *)
 (* :Author: HVA Contributors *)

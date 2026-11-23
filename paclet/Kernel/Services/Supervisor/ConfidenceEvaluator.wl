@@ -1,3 +1,4 @@
+(* ::Package::"Tags"-><|"NonASCIICharacter" -> <|Enabled -> False|>|>:: *)
 (* :Title: ConfidenceEvaluator *)
 (* :Context: HVA`Services`Supervisor`ConfidenceEvaluator` *)
 (* :Author: HVA Contributors *)
