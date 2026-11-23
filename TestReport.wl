@@ -144,7 +144,9 @@ layerRows = Map[Function[suiteEntry,
   Print[" ", layer, "  —  ", Lookup[$layerDesc, layer, ""]];
   Print[" ", hr[63]];
 
-  Map[Function[relPath,
+  (* Variables locales: las suites se evaluan en Global`, y simbolos como t
+     (TimeSymbol -> t) o x colisionarian con globales del runner. *)
+  Map[Function[relPath, Module[{fullPath, fname, rep, p, f, t, statusTag},
     fullPath = $testBase <> relPath;
     fname    = Last @ StringSplit[relPath, "/"];
 
@@ -184,7 +186,7 @@ layerRows = Map[Function[suiteEntry,
       Map[printVerboseTest, Values[rep["TestResults"]]]
     ]
 
-  ], files];
+  ]], files];
 
   Print[" ", hr[63]];
   Print["  Layer: ",
