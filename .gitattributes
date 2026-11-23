@@ -3,3 +3,7 @@
 # merge=ours tells git to always keep main's version (empty stubs) on merge.
 # Requires: git config merge.ours.driver true
 .claude/**  merge=ours
+
+# Shell scripts must keep LF endings so they run under bash (Linux/Docker)
+*.sh                text eol=lf
+bin/wolfram-notebook text eol=lf
