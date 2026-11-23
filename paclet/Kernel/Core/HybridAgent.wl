@@ -61,7 +61,7 @@ RewriteRules::usage       = "Opcion RewriteRules -> {pattern :> action..} para H
 TimeSymbol::usage     = "Opcion TimeSymbol -> _Symbol para HybridAgent (default t).";
 
 (* Accessors (18) *)
-AgentId::usage           = "AgentId[a] devuelve el identificador del agente.\nImplementa el componente id ∈ 𝕀 de FORM Def. 2.1.";
+AgentId::usage           = "AgentId[a] devuelve el identificador del agente.\nImplementa el componente id ∈ \[DoubleStruckCapitalI] de FORM Def. 2.1.";
 AgentModes::usage       = "AgentModes[a] devuelve la lista de modos discretos del agente.\nImplementa el accessor del conjunto de modos Q de FORM Def. 2.1.";
 AgentContinuousVars::usage         = "AgentContinuousVars[a] devuelve la lista de variables continuas del agente.\nImplementa el accessor del espacio continuo X ⊆ ℝⁿ de FORM Def. 2.1.";
 AgentVectorFields::usage     = "AgentVectorFields[a] devuelve la familia de campos vectoriales por modo del agente.\nImplementa el accessor de ℱ : Q -> Vect(X×U) de FORM Def. 2.1.";
